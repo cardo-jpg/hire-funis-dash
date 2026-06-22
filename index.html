@@ -887,53 +887,14 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     </div>
 
     <div class="controls">
-      <!-- Presets -->
-      <div class="preset-tabs" id="presetTabs">
-        <button class="preset-tab" data-preset="today"     onclick="setPreset(this)">Hoje</button>
-        <button class="preset-tab" data-preset="7d"        onclick="setPreset(this)">7 dias</button>
-        <button class="preset-tab" data-preset="30d"       onclick="setPreset(this)">30 dias</button>
-        <button class="preset-tab active" data-preset="month" onclick="setPreset(this)">Este mês</button>
-        <button class="preset-tab" data-preset="lastmonth" onclick="setPreset(this)">Mês passado</button>
-        <button class="preset-tab" data-preset="all"       onclick="setPreset(this)">Tudo</button>
-      </div>
-
-      <!-- Date range picker -->
-      <div class="dr-wrap" id="drWrap">
-        <button class="dr-btn" id="drBtn" onclick="toggleDatePicker()">
-          <span id="drLabel">Este mês</span>
-          <span class="dr-arrow">▾</span>
-        </button>
-        <div class="dr-picker" id="drPicker">
-          <div class="cal-row">
-            <div class="cal-panel">
-              <div class="cal-hdr">
-                <button class="cal-nav-btn" onclick="drNavMonth('start',-1)">‹</button>
-                <span class="cal-month-lbl" id="drStartMonth"></span>
-                <button class="cal-nav-btn" onclick="drNavMonth('start',1)">›</button>
-              </div>
-              <div class="cal-wdays"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
-              <div class="cal-grid" id="drStartDays"></div>
-            </div>
-            <div class="cal-sep"></div>
-            <div class="cal-panel">
-              <div class="cal-hdr">
-                <button class="cal-nav-btn" onclick="drNavMonth('end',-1)">‹</button>
-                <span class="cal-month-lbl" id="drEndMonth"></span>
-                <button class="cal-nav-btn" onclick="drNavMonth('end',1)">›</button>
-              </div>
-              <div class="cal-wdays"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
-              <div class="cal-grid" id="drEndDays"></div>
-            </div>
-          </div>
-          <div class="dr-actions">
-            <button class="dr-cancel" onclick="closeDatePicker()">Cancelar</button>
-            <button class="dr-apply"  onclick="applyDatePicker()">Aplicar</button>
-          </div>
-        </div>
+      <!-- Janela fixa: últimos 30 dias (ancorada na data mais recente dos dados) -->
+      <div class="dr-btn" style="cursor:default" title="Janela fixa em 30 dias, ancorada na data mais recente da planilha">
+        <span style="font-weight:700;color:#fff">Últimos 30 dias</span>
+        <span id="drRangeLabel" class="last-update" style="margin-left:6px"></span>
       </div>
 
       <span class="last-update" id="lastUpdate"></span>
-      <button class="btn-refresh" id="btnRefresh" onclick="loadCurrent()">
+      <button class="btn-refresh" id="btnRefresh" onclick="refreshLive()">
         <span id="refreshIcon">↻</span> Atualizar
       </button>
     </div>
@@ -1174,67 +1135,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
     </div><!-- /channels -->
 
-    <!-- Resultado Comercial v2 -->
-    <div class="hf-v2-wrap">
-      <div class="hf-v2-label">Resultado Todo o Período</div>
-
-      <!-- KPI Strip v2 -->
-      <div class="hf-kpi-strip-v2">
-        <div class="hf-kpi-v2">
-          <div class="hf-kpi-label">Investido</div>
-          <div class="hf-kpi-value dash" id="v2_kpiInvestido">—</div>
-        </div>
-        <div class="hf-kpi-v2">
-          <div class="hf-kpi-label">Faturamento</div>
-          <div class="hf-kpi-value dash" id="v2_kpiFaturamento">—</div>
-        </div>
-        <div class="hf-kpi-v2">
-          <div class="hf-kpi-label">Vendas</div>
-          <div class="hf-kpi-value dash" id="v2_kpiVendas">—</div>
-        </div>
-        <div class="hf-kpi-v2">
-          <div class="hf-kpi-label">Ticket Médio</div>
-          <div class="hf-kpi-value dash" id="v2_kpiTicket">—</div>
-        </div>
-        <div class="hf-kpi-v2">
-          <div class="hf-kpi-label">CAC</div>
-          <div class="hf-kpi-value dash" id="v2_kpiCac">—</div>
-        </div>
-        <div class="hf-kpi-v2">
-          <div class="hf-kpi-label">ROAS</div>
-          <div class="hf-kpi-value dash" id="v2_kpiRoas">—</div>
-        </div>
-      </div>
-
-      <!-- Compact 4-channel grid -->
-      <div class="hf-v2-grid">
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">📱 IG Malu</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="v2_malu_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="v2_malu_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="v2_malu_roas">—</div></div>
-        </div>
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">📸 IG Hire</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="v2_hire_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="v2_hire_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="v2_hire_roas">—</div></div>
-        </div>
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">🎥 YouTube</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="v2_yt_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="v2_yt_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="v2_yt_roas">—</div></div>
-        </div>
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">🌐 Site</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="v2_site_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="v2_site_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="v2_site_roas">—</div></div>
-        </div>
-      </div>
-    </div><!-- /v2 -->
-
   </div><!-- /viewAudiencia -->
 
   <!-- ── E-books ── -->
@@ -1388,49 +1288,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       </div>
 
     </div><!-- /ebook cards -->
-
-    <!-- Resultado Todo o Período v2 -->
-    <div class="hf-v2-wrap">
-      <div class="hf-v2-label">Resultado Todo o Período</div>
-
-      <!-- KPI Strip v2 -->
-      <div class="hf-kpi-strip-v2">
-        <div class="hf-kpi-v2"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="eb_v2_kpiInvestido">—</div></div>
-        <div class="hf-kpi-v2"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="eb_v2_kpiFaturamento">—</div></div>
-        <div class="hf-kpi-v2"><div class="hf-kpi-label">Vendas</div><div class="hf-kpi-value dash" id="eb_v2_kpiVendas">—</div></div>
-        <div class="hf-kpi-v2"><div class="hf-kpi-label">Ticket Médio</div><div class="hf-kpi-value dash" id="eb_v2_kpiTicket">—</div></div>
-        <div class="hf-kpi-v2"><div class="hf-kpi-label">CAC</div><div class="hf-kpi-value dash" id="eb_v2_kpiCac">—</div></div>
-        <div class="hf-kpi-v2"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="eb_v2_kpiRoas">—</div></div>
-      </div>
-
-      <!-- Compact 4-ebook grid -->
-      <div class="hf-v2-grid">
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">📗 Ebook 5 Formas</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="eb_v2_5op_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="eb_v2_5op_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="eb_v2_5op_roas">—</div></div>
-        </div>
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">📘 Ebook 7 Erros</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="eb_v2_7erros_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="eb_v2_7erros_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="eb_v2_7erros_roas">—</div></div>
-        </div>
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">📙 Ebook Remoto</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="eb_v2_cr_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="eb_v2_cr_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="eb_v2_cr_roas">—</div></div>
-        </div>
-        <div class="hf-v2-ch">
-          <div class="hf-v2-ch-name">📕 Ebook 10 Empresas</div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big" id="eb_v2_10emp_vend">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big" id="eb_v2_10emp_fat">—</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim" id="eb_v2_10emp_roas">—</div></div>
-        </div>
-      </div>
-    </div><!-- /v2 ebooks -->
 
   </div><!-- /viewEbooks -->
 
@@ -1639,118 +1496,136 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
 <script>
 // ── Formatters ────────────────────────────────────────────────────────────────
-// ===== STANDALONE EMBEDDED DATA (substitui as APIs /api/hire/funis/*) =====
-const EMBED = {
-  "audiencia": {
-    "somatorio": {
-      "investido": 35650.24,
-      "faturamento": 729209.23,
-      "vendas": 576,
-      "ticket_medio": 1265.99,
-      "cac": 61.89,
-      "roas": 20.5
-    },
-    "channels": {
-      "ig_malu": {
-        "investido": 16429.62,
-        "seguidores": 6163,
-        "custo_seguidor": 7.34,
-        "roas": 15.38,
-        "vendas": 180,
-        "faturamento": 252766.47
-      },
-      "ig_hire": {
-        "investido": 6488.47,
-        "seguidores": 2357,
-        "custo_seguidor": 1.4,
-        "roas": 10.57,
-        "vendas": 29,
-        "faturamento": 68563.17
-      },
-      "youtube": null,
-      "site": null
-    },
-    "somatorio_v2": {
-      "investido": 22918.09,
-      "faturamento": 321329.64,
-      "vendas": 209,
-      "ticket_medio": 1537.46,
-      "cac": 109.66,
-      "roas": 14.02
-    },
-    "channels_v2": {
-      "ig_malu": {
-        "vendas": 180,
-        "faturamento": 252766.47,
-        "roas": 15.38
-      },
-      "ig_hire": {
-        "vendas": 29,
-        "faturamento": 68563.17,
-        "roas": 10.57
-      },
-      "youtube": null,
-      "site": null
-    },
-    "budgets": {}
-  },
-  "ebooks": {
-    "somatorio": {
-      "investido": 13134.51,
-      "faturamento": 183745.26,
-      "vendas": 224,
-      "ticket_medio": 820.29,
-      "cac": 58.64,
-      "roas": 13.99
-    },
-    "ebooks": {
-      "eb_5op": {
-        "vendas": 129,
-        "faturamento": 93179.2,
-        "investido": 8205.2,
-        "leads": 7045,
-        "cpl": 1.16,
-        "roas": 11.36
-      },
-      "eb_7erros": {
-        "vendas": 95,
-        "faturamento": 90566.06,
-        "investido": 4929.31,
-        "leads": 2904,
-        "cpl": 1.7,
-        "roas": 18.37
-      },
-      "eb_cr": null,
-      "eb_10emp": null
-    },
-    "somatorio_v2": {
-      "investido": 13134.51,
-      "faturamento": 183745.26,
-      "vendas": 224,
-      "ticket_medio": 820.29,
-      "cac": 58.64,
-      "roas": 13.99
-    },
-    "ebooks_v2": {
-      "eb_5op": {
-        "vendas": 129,
-        "faturamento": 93179.2,
-        "roas": 11.36
-      },
-      "eb_7erros": {
-        "vendas": 95,
-        "faturamento": 90566.06,
-        "roas": 18.37
-      },
-      "eb_cr": null,
-      "eb_10emp": null
-    },
-    "budgets": {}
-  },
-  "corredor": null,
-  "site": null,
-  "youtube": null
+// ===== FONTE DE DADOS AO VIVO — Google Sheets pública via JSONP gviz ==========
+// A planilha está DEFASADA por canal (cada série termina numa data diferente).
+// A janela de "últimos 30 dias" é ancorada POR SÉRIE na data máxima da própria
+// série — assim nenhum canal recente fica zerado por causa de outro mais antigo.
+const SHEET_ID = '1l6_bsucWh3CZKhBZpqBykPJuYT3GQ5ZehAR5IAXd8kg';
+const GIDS = {
+  ig_malu:'1908625822', ig_hire:'1758274680',
+  eb_5op:'491256637', eb_7erros:'1570522981', eb_cr:'48918871', eb_10emp:'158106962',
+  site_kw:'1598644082', site_camp:'2007620725',
+  youtube:'1098222347', budget:'1387283031',
 };
+
+let _gvizCache = {};
+let _gvizSeq = 0;
+
+// gvizLoad(gid) → Promise<table>  (JSONP — contorna ausência de CORS no gviz)
+function gvizLoad(gid){
+  if (_gvizCache[gid]) return Promise.resolve(_gvizCache[gid]);
+  return new Promise((resolve, reject) => {
+    const cb = '__gviz_cb_' + (++_gvizSeq) + '_' + Date.now();
+    let done = false;
+    const script = document.createElement('script');
+    const cleanup = () => {
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    };
+    const timer = setTimeout(() => {
+      if (done) return; done = true; cleanup();
+      reject(new Error('Tempo esgotado ao carregar a aba (gid ' + gid + ')'));
+    }, 20000);
+    window[cb] = (resp) => {
+      if (done) return; done = true;
+      try {
+        if (!resp || !resp.table) throw new Error('Resposta gviz vazia (gid ' + gid + ')');
+        _gvizCache[gid] = resp.table;
+        cleanup(); resolve(resp.table);
+      } catch(err){ cleanup(); reject(err); }
+    };
+    script.onerror = () => {
+      if (done) return; done = true; cleanup();
+      reject(new Error('Falha de rede ao carregar a aba (gid ' + gid + ')'));
+    };
+    script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+                 '/gviz/tq?gid=' + gid + '&tqx=responseHandler:' + cb;
+    document.head.appendChild(script);
+  });
+}
+
+// Datas vêm como "Date(2026,3,6)" — mês JÁ 0-indexado (3 = abril).
+function _gvParseDate(v){
+  if (v == null) return null;
+  const m = String(v).match(/Date\((\d+),(\d+),(\d+)/);
+  if (!m) return null;
+  return new Date(+m[1], +m[2], +m[3]);
+}
+function _gvNum(c){ return (c && c.v != null) ? (+c.v || 0) : 0; }
+function _gvStr(c){ return (c && c.v != null) ? String(c.v) : ''; }
+
+// Tabela → linhas {date, ...campos}. map: { campo: idx } ou { campo: {i, str:true} }.
+function gvRows(table, map, dateIdx){
+  dateIdx = dateIdx == null ? 0 : dateIdx;
+  const out = [];
+  for (const r of (table.rows || [])){
+    const c = r.c || [];
+    const d = _gvParseDate(c[dateIdx] && c[dateIdx].v);
+    if (!d) continue;
+    const o = { date: d };
+    for (const k in map){
+      const spec = map[k];
+      if (spec && typeof spec === 'object') o[k] = spec.str ? _gvStr(c[spec.i]) : _gvNum(c[spec.i]);
+      else o[k] = _gvNum(c[spec]);
+    }
+    out.push(o);
+  }
+  return out;
+}
+
+// Janela de 30 dias ancorada na data máxima da própria série.
+function window30(rows){
+  if (!rows || !rows.length) return { rows: [], start: null, end: null };
+  let mx = rows[0].date;
+  for (const r of rows) if (r.date > mx) mx = r.date;
+  const start = new Date(mx); start.setDate(start.getDate() - 29);
+  return { rows: rows.filter(r => r.date >= start && r.date <= mx), start, end: new Date(mx) };
+}
+function gvSum(rows, k){ let s = 0; for (const r of rows) s += (r[k] || 0); return s; }
+function _safeDiv(a, b){ return (b && b !== 0) ? a / b : null; }
+
+// Intervalo real exibido (mín. start / máx. end entre séries com dados na janela).
+let _rangeMin = null, _rangeMax = null;
+function _resetRange(){ _rangeMin = null; _rangeMax = null; }
+function _trackRange(w){
+  if (!w || !w.start || !w.rows.length) return;
+  if (!_rangeMin || w.start < _rangeMin) _rangeMin = w.start;
+  if (!_rangeMax || w.end   > _rangeMax) _rangeMax = w.end;
+}
+function _fmtDM(d){ return d ? `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` : ''; }
+function updateRangeLabel(){
+  const el = document.getElementById('drRangeLabel');
+  if (!el) return;
+  if (_rangeMin && _rangeMax)
+    el.textContent = `${_fmtDM(_rangeMin)} – ${String(_rangeMax.getDate()).padStart(2,'0')}/${String(_rangeMax.getMonth()+1).padStart(2,'0')}/${_rangeMax.getFullYear()}`;
+  else el.textContent = '';
+}
+
+// Orçamento (matriz) — best-effort. O cabeçalho da aba vem colapsado nas labels
+// das colunas como listas paralelas: "channel a b c", "month m m m", "budget x y z".
+function parseBudgetMatrix(table){
+  const out = {};
+  try {
+    const cols = table.cols || [];
+    const lab = i => (cols[i] && cols[i].label) ? cols[i].label.trim().split(/\s+/) : [];
+    const chs = lab(0).slice(1), mos = lab(1).slice(1), bus = lab(2).slice(1);
+    const n = Math.min(chs.length, mos.length, bus.length);
+    for (let i = 0; i < n; i++){
+      const ch = chs[i], mo = mos[i], bv = parseFloat(bus[i]);
+      if (!ch || !mo) continue;
+      (out[ch] = out[ch] || {})[mo] = isNaN(bv) ? 0 : bv;
+    }
+    for (const r of (table.rows || [])){
+      const c = r.c || [];
+      const ch = _gvStr(c[0]), mo = _gvStr(c[1]), bv = _gvNum(c[2]);
+      if (ch && mo) (out[ch] = out[ch] || {})[mo] = bv;
+    }
+  } catch(e){ /* orçamento neutro se a matriz mudar de forma */ }
+  return out;
+}
+let _budgetMatrix = {};
+
 function _hfEmptyState(msg){
   document.querySelectorAll('.hf-empty-injected').forEach(e=>e.remove());
   return msg;
@@ -1974,9 +1849,22 @@ function loadCurrent() {
 }
 
 // ── Budget month key ──────────────────────────────────────────────────────────
+// O mês de orçamento segue a data-âncora dos dados (não o "hoje"), pois a planilha
+// está defasada. _rangeMax é o fim da janela de 30 dias mais recente carregada.
+function _syncBudgetMonthFromRange(){
+  if (_rangeMax) state.dateEnd = _localFmt(_rangeMax);
+}
 function getBudgetMonth() {
   const ref = state.dateEnd || todayStr();
   return ref.slice(0, 7); // "YYYY-MM"
+}
+
+// Carrega a matriz de orçamento (best-effort). Não bloqueia nem quebra as abas.
+async function loadBudgetMatrix(){
+  try {
+    const t = await gvizLoad(GIDS.budget);
+    _budgetMatrix = parseBudgetMatrix(t);
+  } catch(e){ _budgetMatrix = {}; }
 }
 
 // ── Budget localStorage helpers ───────────────────────────────────────────────
@@ -2050,6 +1938,22 @@ function _resetLoadingFlags() {
 
 let _loading = false;
 
+// Agrega um canal (ig/youtube) em KPIs de 30 dias. cols: Date, Investido, [Seguidores], Vendas, Faturamento.
+function aggChannel30(rows){
+  const w = window30(rows);
+  _trackRange(w);
+  const inv = gvSum(w.rows, 'investido');
+  const fat = gvSum(w.rows, 'faturamento');
+  const vend = gvSum(w.rows, 'vendas');
+  const seg = gvSum(w.rows, 'seguidores');   // 0 se a série não tiver a coluna
+  return {
+    investido: inv, faturamento: fat, vendas: vend, seguidores: seg,
+    roas: _safeDiv(fat, inv),
+    custo_seguidor: _safeDiv(inv, seg),
+    _window: w,
+  };
+}
+
 async function loadAudiencia() {
   if (_loading) return;
   _loading = true;
@@ -2060,17 +1964,40 @@ async function loadAudiencia() {
 
   document.getElementById('errorBanner').style.display = 'none';
 
-  const params = new URLSearchParams();
-  if (state.dateStart) params.set('date_start', state.dateStart);
-  if (state.dateEnd)   params.set('date_end',   state.dateEnd);
-
   try {
-    const d = EMBED.audiencia;
-    renderAudiencia(d);
+    _resetRange();
+    const [tMalu, tHire, tYt] = await Promise.all([
+      gvizLoad(GIDS.ig_malu), gvizLoad(GIDS.ig_hire), gvizLoad(GIDS.youtube),
+    ]);
+
+    const malu = aggChannel30(gvRows(tMalu, { investido:1, seguidores:{i:2,str:false}, vendas:3, faturamento:4 }));
+    const hire = aggChannel30(gvRows(tHire, { investido:1, seguidores:{i:2,str:false}, vendas:3, faturamento:4 }));
+    // YouTube: Date, Campanha, Investido, Vendas, Faturamento (sem seguidores)
+    const yt   = aggChannel30(gvRows(tYt,   { investido:2, vendas:3, faturamento:4 }));
+    yt.seguidores = null; yt.custo_seguidor = null; yt.inscritos = null; yt.custo_inscrito = null;
+
+    // Somatório do funil (canais com vendas/faturamento): malu + hire + youtube
+    const inv = malu.investido + hire.investido + yt.investido;
+    const fat = malu.faturamento + hire.faturamento + yt.faturamento;
+    const vend = malu.vendas + hire.vendas + yt.vendas;
+    const somatorio = {
+      investido: inv, faturamento: fat, vendas: vend,
+      ticket_medio: _safeDiv(fat, vend),
+      cac: _safeDiv(inv, vend),
+      roas: _safeDiv(fat, inv),
+    };
+
+    _syncBudgetMonthFromRange();
+    renderAudiencia({
+      somatorio,
+      channels: { ig_malu: malu, ig_hire: hire, youtube: yt, site: null },
+      budgets: _budgetMatrix,
+    });
+    updateRangeLabel();
     document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   } catch(e) {
     const banner = document.getElementById('errorBanner');
-    banner.textContent = 'Erro ao carregar dados: ' + e.message;
+    banner.textContent = 'Erro ao carregar Audiência (dados ao vivo): ' + e.message;
     banner.style.display = 'block';
   } finally {
     _loading = false;
@@ -2140,35 +2067,27 @@ function renderAudiencia(d) {
   setEl('site_vendas',  NUM(si.vendas));
   setEl('site_fat',     BRL(si.faturamento));
 
-  // Resultado Comercial v2
-  const s2 = d.somatorio_v2 || {};
-  const c2 = d.channels_v2  || {};
-  setEl('v2_kpiInvestido',   BRL(s2.investido));
-  setEl('v2_kpiFaturamento', BRL(s2.faturamento));
-  setEl('v2_kpiVendas',      NUM(s2.vendas));
-  setEl('v2_kpiTicket',      BRL(s2.ticket_medio));
-  setEl('v2_kpiCac',         BRL(s2.cac));
-  setEl('v2_kpiRoas',        ROAS(s2.roas));
-  ['v2_kpiInvestido','v2_kpiFaturamento','v2_kpiVendas','v2_kpiTicket','v2_kpiCac','v2_kpiRoas'].forEach(id => {
-    const el = document.getElementById(id); if (el && el.textContent !== '—') el.classList.remove('dash');
-  });
-
-  const v2ch = [
-    ['malu', c2.ig_malu], ['hire', c2.ig_hire], ['yt', c2.youtube], ['site', c2.site]
-  ];
-  v2ch.forEach(([k, ch]) => {
-    if (!ch) return;
-    setEl(`v2_${k}_vend`,  NUM(ch.vendas));
-    setEl(`v2_${k}_fat`,   BRL(ch.faturamento));
-    setEl(`v2_${k}_roas`,  ROAS(ch.roas));
-  });
-
-  // Budgets
+  // Budgets (best-effort, da matriz de orçamento)
   loadBudgetInputs(d.budgets || {});
 }
 
 // ── E-books ───────────────────────────────────────────────────────────────────
 let _loadingEb = false;
+
+// Agrega um ebook em KPIs de 30 dias. cols: Date, Campanha, Investido, Leads, Vendas, Faturamento.
+function aggEbook30(rows){
+  const w = window30(rows);
+  _trackRange(w);
+  const inv = gvSum(w.rows, 'investido');
+  const fat = gvSum(w.rows, 'faturamento');
+  const vend = gvSum(w.rows, 'vendas');
+  const leads = gvSum(w.rows, 'leads');
+  return {
+    investido: inv, faturamento: fat, vendas: vend, leads,
+    cpl: _safeDiv(inv, leads),
+    roas: _safeDiv(fat, inv),
+  };
+}
 
 async function loadEbooks() {
   if (_loadingEb) return;
@@ -2179,18 +2098,40 @@ async function loadEbooks() {
   if (icon) icon.textContent = '↻';
   document.getElementById('errorBanner').style.display = 'none';
 
-  const params = new URLSearchParams();
-  if (state.dateStart) params.set('date_start', state.dateStart);
-  if (state.dateEnd)   params.set('date_end',   state.dateEnd);
-
   try {
-    const d = EMBED.ebooks;
-    renderEbooks(d);
+    _resetRange();
+    const [t5, t7, tcr, t10] = await Promise.all([
+      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr), gvizLoad(GIDS.eb_10emp),
+    ]);
+    const EBMAP = { investido:2, leads:3, vendas:4, faturamento:5 };
+    const eb_5op    = aggEbook30(gvRows(t5,  EBMAP));
+    const eb_7erros = aggEbook30(gvRows(t7,  EBMAP));
+    const eb_cr     = aggEbook30(gvRows(tcr, EBMAP));
+    const eb_10emp  = aggEbook30(gvRows(t10, EBMAP));
+
+    const all = [eb_5op, eb_7erros, eb_cr, eb_10emp];
+    const inv = all.reduce((a,e)=>a+e.investido,0);
+    const fat = all.reduce((a,e)=>a+e.faturamento,0);
+    const vend = all.reduce((a,e)=>a+e.vendas,0);
+    const somatorio = {
+      investido: inv, faturamento: fat, vendas: vend,
+      ticket_medio: _safeDiv(fat, vend),
+      cac: _safeDiv(inv, vend),
+      roas: _safeDiv(fat, inv),
+    };
+
+    _syncBudgetMonthFromRange();
+    renderEbooks({
+      somatorio,
+      ebooks: { eb_5op, eb_7erros, eb_cr, eb_10emp },
+      budgets: _budgetMatrix,
+    });
+    updateRangeLabel();
     document.getElementById('lastUpdate').textContent =
       'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   } catch(e) {
     const banner = document.getElementById('errorBanner');
-    banner.textContent = 'Erro ao carregar e-books: ' + e.message;
+    banner.textContent = 'Erro ao carregar E-books (dados ao vivo): ' + e.message;
     banner.style.display = 'block';
   } finally {
     _loadingEb = false;
@@ -2230,33 +2171,7 @@ function renderEbooks(d) {
     setEl(`${pfx}_roas`,    ROAS(ch.roas));
   });
 
-  // Resultado Todo o Período (v2 — Sheet2)
-  const s2 = d.somatorio_v2 || {};
-  setEl('eb_v2_kpiInvestido',   BRL(s2.investido));
-  setEl('eb_v2_kpiFaturamento', BRL(s2.faturamento));
-  setEl('eb_v2_kpiVendas',      NUM(s2.vendas));
-  setEl('eb_v2_kpiTicket',      BRL(s2.ticket_medio));
-  setEl('eb_v2_kpiCac',         BRL(s2.cac));
-  setEl('eb_v2_kpiRoas',        ROAS(s2.roas));
-  ['eb_v2_kpiInvestido','eb_v2_kpiFaturamento','eb_v2_kpiVendas','eb_v2_kpiTicket','eb_v2_kpiCac','eb_v2_kpiRoas'].forEach(id => {
-    const el = document.getElementById(id); if (el && el.textContent !== '—') el.classList.remove('dash');
-  });
-
-  const eb2 = d.ebooks_v2 || {};
-  const MAP2 = [
-    ['5op',   eb2.eb_5op],
-    ['7erros', eb2.eb_7erros],
-    ['cr',    eb2.eb_cr],
-    ['10emp', eb2.eb_10emp],
-  ];
-  MAP2.forEach(([pfx, ch]) => {
-    if (!ch) return;
-    setEl(`eb_v2_${pfx}_vend`, NUM(ch.vendas));
-    setEl(`eb_v2_${pfx}_fat`,  BRL(ch.faturamento));
-    setEl(`eb_v2_${pfx}_roas`, ROAS(ch.roas));
-  });
-
-  // Budgets
+  // Budgets (best-effort)
   loadBudgetInputs(d.budgets || {});
 }
 
@@ -2271,16 +2186,9 @@ async function loadCorredor() {
   if (icon) icon.textContent = '↻';
   document.getElementById('errorBanner').style.display = 'none';
 
-  const params = new URLSearchParams();
-  if (state.dateStart) params.set('date_start', state.dateStart);
-  if (state.dateEnd)   params.set('date_end',   state.dateEnd);
-
   try {
-    if (!EMBED.corredor) {
-      _hfShowEmpty('viewCorredor', 'Dados ao vivo indisponíveis nesta versão estática. O painel Corredor vinha em tempo real da API da Meta Ads (visualizações, hook rate, retenção, criativos) e não está incluído neste arquivo standalone.');
-    } else {
-      renderCorredor(EMBED.corredor);
-    }
+    // Corredor NÃO existe na planilha (vinha ao vivo da Meta Ads). Estado vazio honesto.
+    _hfShowEmpty('viewCorredor', '📊 Dados ao vivo indisponíveis nesta versão. O painel Corredor vinha em tempo real da API da Meta Ads (visualizações, hook rate, retenção, criativos) e não faz parte desta planilha.');
     document.getElementById('lastUpdate').textContent =
       'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   } catch(e) {
@@ -2447,18 +2355,94 @@ function renderCorredor(d) {
 // ── Site ──────────────────────────────────────────────────────────────────────
 let _siteChart = null;
 
+function _isoDM(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+// Constrói o objeto Site (mesmo shape que o render espera) a partir das abas gviz.
+function buildSiteData(tKw, tCamp){
+  _resetRange();
+  // Palavras-chave: Data, Palavras-chave, Investido, Impressões, Cliques, Leads
+  const kwRows = gvRows(tKw, { kw:{i:1,str:true}, investido:2, impressoes:3, cliques:4, leads:5 });
+  const wKw = window30(kwRows); _trackRange(wKw);
+
+  // KPIs (janela). "Mensagens" = Leads (não há coluna de conversão/mensagem própria).
+  const inv = gvSum(wKw.rows, 'investido');
+  const imp = gvSum(wKw.rows, 'impressoes');
+  const cli = gvSum(wKw.rows, 'cliques');
+  const leads = gvSum(wKw.rows, 'leads');
+  const kpis = {
+    investido: inv, impressoes: imp, cliques: cli,
+    ctr: _safeDiv(cli, imp) != null ? _safeDiv(cli, imp) * 100 : null,
+    conversoes: leads,
+    cpl: _safeDiv(inv, leads),
+  };
+
+  // Série diária (custo por lead/dia) — agrega por data dentro da janela.
+  const byDay = {};
+  for (const r of wKw.rows){
+    const key = _isoDM(r.date);
+    const o = byDay[key] || (byDay[key] = { date:key, inv:0, leads:0 });
+    o.inv += r.investido; o.leads += r.leads;
+  }
+  const serie = Object.values(byDay).sort((a,b)=>a.date<b.date?-1:1)
+    .map(o => ({ date:o.date, conv:o.leads, cpl: o.leads ? +(o.inv/o.leads).toFixed(2) : null }));
+
+  // Tabela de palavras-chave — agrega por palavra-chave na janela.
+  const byKw = {};
+  for (const r of wKw.rows){
+    const key = r.kw || '(sem palavra-chave)';
+    const o = byKw[key] || (byKw[key] = { keyword:key, investido:0, impressoes:0, cliques:0, leads:0 });
+    o.investido += r.investido; o.impressoes += r.impressoes; o.cliques += r.cliques; o.leads += r.leads;
+  }
+  const keywords = Object.values(byKw)
+    .sort((a,b)=>b.investido-a.investido)
+    .map(o => ({
+      keyword:o.keyword, investido:o.investido, impressoes:o.impressoes, cliques:o.cliques,
+      cpc: _safeDiv(o.investido, o.cliques),
+      ctr: _safeDiv(o.cliques, o.impressoes) != null ? _safeDiv(o.cliques, o.impressoes)*100 : null,
+      leads:o.leads, cpl: _safeDiv(o.investido, o.leads),
+    }));
+
+  // Campanhas: Date, Campanha, Investido, Leads, Vendas, Faturamento
+  let campanhas = [];
+  if (tCamp){
+    const cRows = gvRows(tCamp, { campanha:{i:1,str:true}, investido:2, leads:3, vendas:4, faturamento:5 });
+    const wC = window30(cRows); _trackRange(wC);
+    const byC = {};
+    for (const r of wC.rows){
+      const key = r.campanha || '(sem campanha)';
+      const o = byC[key] || (byC[key] = { campanha:key, investido:0, leads:0 });
+      o.investido += r.investido; o.leads += r.leads;
+    }
+    campanhas = Object.values(byC).sort((a,b)=>b.investido-a.investido).map(o => ({
+      campanha:o.campanha, investido:o.investido, impressoes:null, cliques:null,
+      conversoes:o.leads, cpl:_safeDiv(o.investido, o.leads), ctr:null,
+    }));
+  }
+
+  return { kpis, serie, keywords, campanhas };
+}
+
 async function loadSite() {
-  const params = new URLSearchParams();
-  if (state.dateStart) params.set('date_start', state.dateStart);
-  if (state.dateEnd)   params.set('date_end',   state.dateEnd);
+  const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
+  if (btn) btn.classList.add('loading');
+  document.getElementById('errorBanner').style.display = 'none';
 
   let d;
-  if (!EMBED.site) {
-    _hfShowEmpty('viewSite', 'Dados ao vivo indisponíveis nesta versão estática. O painel Site vinha em tempo real do Google Ads (impressões, cliques, conversões, palavras-chave) e não está incluído neste arquivo standalone.');
+  try {
+    const [tKw, tCamp] = await Promise.all([ gvizLoad(GIDS.site_kw), gvizLoad(GIDS.site_camp) ]);
+    d = buildSiteData(tKw, tCamp);
+    _syncBudgetMonthFromRange();
+    updateRangeLabel();
+    document.getElementById('lastUpdate').textContent =
+      'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    const b = document.getElementById('errorBanner');
+    b.textContent = 'Erro ao carregar Site (dados ao vivo): ' + e.message;
+    b.style.display = 'block';
+    if (btn) btn.classList.remove('loading');
     return;
-  } else {
-    d = EMBED.site;
   }
+  if (btn) btn.classList.remove('loading');
 
   const k = d.kpis || {};
   [
@@ -2589,18 +2573,61 @@ async function ytAuth() {
   alert('Conexão com o YouTube indisponível nesta versão estática (offline).');
 }
 
+// Constrói o objeto YouTube. A aba só tem Date, Campanha, Investido, Vendas, Faturamento
+// (SEM inscritos/impressões/cliques). Métricas de inscritos ficam honestamente "—".
+function buildYoutubeData(tYt){
+  _resetRange();
+  const rows = gvRows(tYt, { campanha:{i:1,str:true}, investido:2, vendas:3, faturamento:4 });
+  const w = window30(rows); _trackRange(w);
+  const inv = gvSum(w.rows, 'investido');
+  const kpis = {
+    investido: inv,
+    inscritos: null, cliques: null, custo_inscrito: null, impressoes: null, cpm: null,
+  };
+  // Série diária de investimento (sem inscritos → ins ausente, chart de custo não plota).
+  const byDay = {};
+  for (const r of w.rows){
+    const key = _isoDM(r.date);
+    const o = byDay[key] || (byDay[key] = { date:key, inv:0 });
+    o.inv += r.investido;
+  }
+  const serie_gads = Object.values(byDay).sort((a,b)=>a.date<b.date?-1:1)
+    .map(o => ({ date:o.date, ins:0, inv:o.inv }));
+  // Tabela: por campanha (investido/faturamento na janela).
+  const byC = {};
+  for (const r of w.rows){
+    const key = r.campanha || '(sem campanha)';
+    const o = byC[key] || (byC[key] = { nome:key, valor:0, vendas:0, faturamento:0 });
+    o.valor += r.investido; o.vendas += r.vendas; o.faturamento += r.faturamento;
+  }
+  const anuncios = Object.values(byC).sort((a,b)=>b.valor-a.valor).map(o => ({
+    nome:o.nome, status:'—', conversoes:null, impressoes:null,
+    valor:o.valor, custo_conv:null, taxa:null, video_url:null,
+  }));
+  return { kpis, serie_gads, anuncios, analytics: { authorized:false } };
+}
+
 async function loadYoutube() {
-  const params = new URLSearchParams();
-  if (state.dateStart) params.set('date_start', state.dateStart);
-  if (state.dateEnd)   params.set('date_end',   state.dateEnd);
+  const btn = document.getElementById('btnRefresh');
+  if (btn) btn.classList.add('loading');
+  document.getElementById('errorBanner').style.display = 'none';
 
   let d;
-  if (!EMBED.youtube) {
-    _hfShowEmpty('viewYoutube', 'Dados ao vivo indisponíveis nesta versão estática. O painel YouTube vinha em tempo real do Google Ads + YouTube Analytics (inscritos, vídeos, custo por inscrito) e não está incluído neste arquivo standalone.');
+  try {
+    const tYt = await gvizLoad(GIDS.youtube);
+    d = buildYoutubeData(tYt);
+    _syncBudgetMonthFromRange();
+    updateRangeLabel();
+    document.getElementById('lastUpdate').textContent =
+      'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    const b = document.getElementById('errorBanner');
+    b.textContent = 'Erro ao carregar YouTube (dados ao vivo): ' + e.message;
+    b.style.display = 'block';
+    if (btn) btn.classList.remove('loading');
     return;
-  } else {
-    d = EMBED.youtube;
   }
+  if (btn) btn.classList.remove('loading');
 
   const k = d.kpis || {};
   [
@@ -2758,11 +2785,17 @@ async function loadYoutube() {
   }
 }
 
+// ── Atualizar: limpa o cache gviz e recarrega a aba atual ao vivo ─────────────
+function refreshLive(){
+  _gvizCache = {};
+  _resetLoadingFlags();
+  loadBudgetMatrix().then(loadCurrent);
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
-updateDrLabel();
 preFillBudgetsFromLocal();
-// standalone: sem fetch de budget — usa apenas localStorage (preFillBudgetsFromLocal)
-loadAudiencia();
+// Carrega a matriz de orçamento (best-effort) e então a aba inicial ao vivo.
+loadBudgetMatrix().then(() => loadAudiencia());
 </script>
 </body>
 </html>
