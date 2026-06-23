@@ -1322,9 +1322,9 @@ function window30(rows){
   return { rows: rows.filter(r => r.date >= s && r.date <= e), start: s, end: e };
 }
 
-function _parseDateInput(v){ // 'YYYY-MM-DD' → Date local (meio-dia pra evitar fuso)
+function _parseDateInput(v){ // 'YYYY-MM-DD' → Date local à MEIA-NOITE (componentes locais = sem shift de fuso)
   if(!v) return null; const m=v.match(/(\d{4})-(\d{2})-(\d{2})/); if(!m) return null;
-  return new Date(+m[1], +m[2]-1, +m[3], 12, 0, 0);
+  return new Date(+m[1], +m[2]-1, +m[3], 0, 0, 0, 0);
 }
 function _fmtDMY(d){ return d ? `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}` : ''; }
 function _setFilterStatus(txt, cls){
@@ -1341,6 +1341,7 @@ function onDateFilterChange(){
   _fStart = _parseDateInput(document.getElementById('fDateStart').value);
   _fEnd   = _parseDateInput(document.getElementById('fDateEnd').value);
   if (_fStart && _fEnd && _fStart > _fEnd){ const t=_fStart; _fStart=_fEnd; _fEnd=t; } // troca se invertido
+  if (_fEnd) _fEnd.setHours(23,59,59,999); // inclui o DIA FINAL inteiro (linhas vêm à meia-noite)
   if (_fEnd) state.dateEnd = (typeof _localFmt==='function') ? _localFmt(_fEnd) : state.dateEnd; // budget month coerente
   _reaggregate();
   const ini = _fStart ? _fmtDMY(_fStart) : (_dataMin ? _fmtDMY(_dataMin) : '');
