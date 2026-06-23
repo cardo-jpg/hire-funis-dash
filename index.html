@@ -862,6 +862,24 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     @media (max-width:560px) {
       .hf-kpi-strip { grid-template-columns:repeat(2,1fr); }
     }
+
+    /* MUDANÇA 1 — fontes +30% */
+    html { font-size: 130%; }
+
+    /* MUDANÇA 2 — sem textos cinza; tudo claro (lavanda/branco) */
+    :root { --muted: #e9e4f2; }
+    .hf-kpi-label, .hf-v2-metric-lbl, .hf-v2-budget-lbl, .hf-v2-ch-sub,
+    .hf-v2-label, .last-update { color:#cdbce6 !important; }      /* labels: lavanda claro */
+    .hf-v2-ch-name { color:#ffffff !important; }
+    .hf-v2-metric-val, .hf-v2-metric-val.dim, .hf-ch-metric-val.dim { color:#ffffff !important; }
+    .hf-tab { color:#d8d0e8 !important; }
+    .hf-table td.camp-name, .hf-table td.cri-name, .hf-table td.kw-text, .hf-table td.vid-title { color:#ece8f5 !important; }
+    .hf-table thead th { color:#e9e4f2 !important; }
+    /* labels/refs adicionais que usavam rgba branco apagado */
+    .hf-kpi-ref, .hf-kpi-value.dash, .hf-budget-lbl, .hf-ch-metric-lbl,
+    .hf-v2-budget-prefix, .hf-budget-prefix { color:#cdbce6 !important; }
+    .hf-chart-title, .yt-chart-title, .yt-setup-box p { color:#cdbce6 !important; }
+    .acao-amostra { color:#e9e4f2 !important; }
   </style>
 </head>
 <body>
@@ -918,7 +936,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- Tabs -->
   <div class="hf-tabs">
     <button class="hf-tab active" data-tab="geral" onclick="setTab(this)">Geral</button>
-    <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)" style="display:none">Audiência</button>
+    <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)">E-books</button>
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)" style="display:none">Corredor</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
@@ -939,229 +957,13 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   </div><!-- /viewGeral -->
 
   <!-- ── Audiência ── -->
-  <div id="viewAudiencia">
-
-    <!-- KPI Strip -->
-    <div class="hf-kpi-strip">
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Investido</div>
-        <div class="hf-kpi-value dash" id="kpiInvestido">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Faturamento</div>
-        <div class="hf-kpi-value dash" id="kpiFaturamento">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Vendas</div>
-        <div class="hf-kpi-value dash" id="kpiVendas">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Ticket Médio</div>
-        <div class="hf-kpi-value dash" id="kpiTicket">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">CAC</div>
-        <div class="hf-kpi-value dash" id="kpiCac">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">ROAS</div>
-        <div class="hf-kpi-value dash" id="kpiRoas">—</div>
+  <div id="viewAudiencia" style="display:none">
+    <div class="hf-v2-wrap">
+      <div class="hf-v2-label">Audiência — últimos 30 dias (janela por funil)</div>
+      <div class="hf-v2-grid" id="audienciaCols">
+        <div style="grid-column:1/-1;text-align:center;color:#cdbce6;padding:32px">Carregando…</div>
       </div>
     </div>
-
-    <!-- Channel Cards -->
-    <div class="hf-channels">
-
-      <!-- IG Malu -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">📱</span>
-            <span class="hf-ch-label">IG Malu</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetIgMalu" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('ig_malu',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveIgMalu">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics cols-6">
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Vendas</div>
-            <div class="hf-ch-metric-val" id="malu_vendas">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Faturamento</div>
-            <div class="hf-ch-metric-val" id="malu_fat">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Investido</div>
-            <div class="hf-ch-metric-val dim" id="malu_invest">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Novos Seg.</div>
-            <div class="hf-ch-metric-val dim" id="malu_seg">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Custo/Seg.</div>
-            <div class="hf-ch-metric-val dim" id="malu_cpl">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">ROAS</div>
-            <div class="hf-ch-metric-val dim" id="malu_roas">—</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- IG Hire -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">📸</span>
-            <span class="hf-ch-label">IG Hire</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetIgHire" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('ig_hire',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveIgHire">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics cols-6">
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Vendas</div>
-            <div class="hf-ch-metric-val" id="hire_vendas">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Faturamento</div>
-            <div class="hf-ch-metric-val" id="hire_fat">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Investido</div>
-            <div class="hf-ch-metric-val dim" id="hire_invest">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Novos Seg.</div>
-            <div class="hf-ch-metric-val dim" id="hire_seg">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Custo/Seg.</div>
-            <div class="hf-ch-metric-val dim" id="hire_cpl">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">ROAS</div>
-            <div class="hf-ch-metric-val dim" id="hire_roas">—</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- YouTube -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">🎥</span>
-            <span class="hf-ch-label">YouTube</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetYoutube" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('youtube',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveYoutube">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics">
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Vendas</div>
-            <div class="hf-ch-metric-val" id="yt_vendas">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Faturamento</div>
-            <div class="hf-ch-metric-val" id="yt_fat">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Inscritos</div>
-            <div class="hf-ch-metric-val dim" id="yt_inscritos">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Investido</div>
-            <div class="hf-ch-metric-val dim" id="yt_invest">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Custo/Inscrito</div>
-            <div class="hf-ch-metric-val dim" id="yt_custo_ins">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">ROAS</div>
-            <div class="hf-ch-metric-val dim" id="yt_roas">—</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Site -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">🌐</span>
-            <span class="hf-ch-label">Site</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetSite" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('site',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveSite">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics cols-6">
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Vendas</div>
-            <div class="hf-ch-metric-val" id="site_vendas">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Faturamento</div>
-            <div class="hf-ch-metric-val" id="site_fat">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Investido</div>
-            <div class="hf-ch-metric-val dim" id="site_invest">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Leads</div>
-            <div class="hf-ch-metric-val dim" id="site_leads">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">Custo/Lead</div>
-            <div class="hf-ch-metric-val dim" id="site_cpl">—</div>
-          </div>
-          <div class="hf-ch-metric">
-            <div class="hf-ch-metric-lbl">ROAS</div>
-            <div class="hf-ch-metric-val dim" id="site_roas">—</div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /channels -->
-
   </div><!-- /viewAudiencia -->
 
   <!-- ── E-books ── -->
@@ -1868,13 +1670,18 @@ function setTab(btn) {
   loadCurrent();
 }
 
-function loadCurrent() {
+async function loadCurrent() {
   if      (state.tab === 'geral')    loadGeral();
   else if (state.tab === 'ebooks')   loadEbooks();
   else if (state.tab === 'corredor') loadCorredor();
   else if (state.tab === 'site')     loadSite();
   else if (state.tab === 'youtube')  loadYoutube();
-  else                               loadAudiencia();
+  else if (state.tab === 'audiencia') {
+    // mesmos dados/cards da Geral, só os 4 funis de tráfego
+    if (!_lastGeral) await loadGeral();   // popula _lastGeral
+    renderAudiencia2();
+  }
+  else                               loadGeral();
 }
 
 // ── Budget month key ──────────────────────────────────────────────────────────
@@ -2092,8 +1899,9 @@ function saveGeralBudget(channel, raw){
     if (num == null) localStorage.removeItem(_budgetKey(channel));
     else localStorage.setItem(_budgetKey(channel), String(num));
   } catch(e){}
-  // re-renderiza a Geral pra reformatar o valor digitado (sem refazer fetch)
-  if (_lastGeral) renderGeral(_lastGeral.cols, _lastGeral.tot, _lastGeral.matrix);
+  // re-renderiza AMBOS os grids existentes pra refletir o valor digitado (sem refazer fetch)
+  if (document.getElementById('geralCols') && _lastGeral) renderGeral(_lastGeral.cols, _lastGeral.tot, _lastGeral.matrix);
+  if (document.getElementById('audienciaCols')) renderAudiencia2();
 }
 
 // Budget de um canal: override local tem prioridade; senão, valor da planilha
@@ -2112,25 +1920,25 @@ function _geralBudget(matrix, channel){
 }
 
 let _lastGeral = null;
-function renderGeral(cols, tot, matrix) {
-  // (faixa de KPIs consolidados removida — só os cards por funil)
-  _lastGeral = { cols, tot, matrix };  // guarda pra re-render ao editar budget
 
-  // Grid de colunas por funil de tráfego
-  // [chave, ícone, título, subtítulo, label audiência, label custo]
-  const DEFS = [
-    ['ig_malu',  '📱', 'IG Malu',            'Instagram Malu',                    'Novos Seguidores', 'Custo por Seguidor', 'social'],
-    ['ig_hire',  '📸', 'IG Hire',            'Instagram Hire Brazil',             'Novos Seguidores', 'Custo por Seguidor', 'social'],
-    ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
-    ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
-    ['eb_5op',   '📘', 'Ebook 5 Oportunidades', 'Cadastro · Captação',           'Leads',            'Custo por Lead',     'ebook'],
-    ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
-    ['eb_cr',    '📗', 'Ebook Carreira Remota', 'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
-    ['eb_10emp', '📙', 'Ebook 10 Empresas',     'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
-  ];
+// [chave, ícone, título, subtítulo, label audiência, label custo, kind]
+const DEFS_ALL = [
+  ['ig_malu',  '📱', 'IG Malu',            'Instagram Malu',                    'Novos Seguidores', 'Custo por Seguidor', 'social'],
+  ['ig_hire',  '📸', 'IG Hire',            'Instagram Hire Brazil',             'Novos Seguidores', 'Custo por Seguidor', 'social'],
+  ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
+  ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
+  ['eb_5op',   '📘', 'Ebook 5 Oportunidades', 'Cadastro · Captação',           'Leads',            'Custo por Lead',     'ebook'],
+  ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
+  ['eb_cr',    '📗', 'Ebook Carreira Remota', 'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
+  ['eb_10emp', '📙', 'Ebook 10 Empresas',     'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
+];
+// Audiência = só os 4 funis de tráfego (sem ebooks)
+const DEFS_AUD = DEFS_ALL.filter(d => ['ig_malu','ig_hire','youtube','site'].includes(d[0]));
 
+// Monta o HTML dos cards de funil a partir das defs informadas.
+function funnelCardsHTML(cols, matrix, defs){
   let html = '';
-  for (const [key, icon, titulo, sub, audLbl, custoLbl, kind] of DEFS){
+  for (const [key, icon, titulo, sub, audLbl, custoLbl, kind] of defs){
     const f = cols[key] || {};
     const bud = _geralBudget(matrix, key);
     // Métrica de audiência + custo
@@ -2162,7 +1970,18 @@ function renderGeral(cols, tot, matrix) {
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim">${ROAS(f.roas)}</div></div>
       </div>`;
   }
-  setEl('geralCols', html);
+  return html;
+}
+
+function renderGeral(cols, tot, matrix) {
+  // (faixa de KPIs consolidados removida — só os cards por funil)
+  _lastGeral = { cols, tot, matrix };  // guarda pra re-render ao editar budget
+  setEl('geralCols', funnelCardsHTML(cols, matrix, DEFS_ALL));
+}
+
+// Aba Audiência: mesmos cards da Geral, mas só os 4 funis de tráfego.
+function renderAudiencia2(){
+  if (_lastGeral) setEl('audienciaCols', funnelCardsHTML(_lastGeral.cols, _lastGeral.matrix, DEFS_AUD));
 }
 
 // Agrega um canal (ig/youtube) em KPIs de 30 dias. cols: Date, Investido, [Seguidores], Vendas, Faturamento.
@@ -3022,7 +2841,7 @@ function refreshLive(){
 // ── Init ──────────────────────────────────────────────────────────────────────
 preFillBudgetsFromLocal();
 // Carrega a matriz de orçamento (best-effort) e então a aba inicial ao vivo.
-loadBudgetMatrix().then(() => loadGeral());
+loadBudgetMatrix().then(() => loadCurrent());
 </script>
 </body>
 </html>
