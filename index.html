@@ -968,156 +968,12 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   <!-- ── E-books ── -->
   <div id="viewEbooks" style="display:none">
-
-    <!-- KPI Strip -->
-    <div class="hf-kpi-strip">
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Investido</div>
-        <div class="hf-kpi-value dash" id="eb_kpiInvestido">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Faturamento</div>
-        <div class="hf-kpi-value dash" id="eb_kpiFaturamento">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Vendas</div>
-        <div class="hf-kpi-value dash" id="eb_kpiVendas">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Ticket Médio</div>
-        <div class="hf-kpi-value dash" id="eb_kpiTicket">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">CAC</div>
-        <div class="hf-kpi-value dash" id="eb_kpiCac">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">ROAS</div>
-        <div class="hf-kpi-value dash" id="eb_kpiRoas">—</div>
+    <div class="hf-v2-wrap">
+      <div class="hf-v2-label">E-books — últimos 30 dias (janela por funil)</div>
+      <div class="hf-v2-grid" id="ebooksCols">
+        <div style="grid-column:1/-1;text-align:center;color:#cdbce6;padding:32px">Carregando…</div>
       </div>
     </div>
-
-    <!-- E-book Cards -->
-    <div class="hf-channels">
-
-      <!-- Ebook 5 Oportunidades -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">📗</span>
-            <span class="hf-ch-label">Ebook 5 Formas</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetEb5op" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('eb_5op',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveEb5op">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics cols-6">
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Vendas</div><div class="hf-ch-metric-val" id="eb5op_vendas">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Faturamento</div><div class="hf-ch-metric-val" id="eb5op_fat">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Investido</div><div class="hf-ch-metric-val dim" id="eb5op_invest">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Leads</div><div class="hf-ch-metric-val dim" id="eb5op_leads">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">CPL</div><div class="hf-ch-metric-val dim" id="eb5op_cpl">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">ROAS</div><div class="hf-ch-metric-val dim" id="eb5op_roas">—</div></div>
-        </div>
-      </div>
-
-      <!-- Ebook 7 Erros -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">📘</span>
-            <span class="hf-ch-label">Ebook 7 Erros</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetEb7erros" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('eb_7erros',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveEb7erros">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics cols-6">
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Vendas</div><div class="hf-ch-metric-val" id="eb7erros_vendas">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Faturamento</div><div class="hf-ch-metric-val" id="eb7erros_fat">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Investido</div><div class="hf-ch-metric-val dim" id="eb7erros_invest">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Leads</div><div class="hf-ch-metric-val dim" id="eb7erros_leads">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">CPL</div><div class="hf-ch-metric-val dim" id="eb7erros_cpl">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">ROAS</div><div class="hf-ch-metric-val dim" id="eb7erros_roas">—</div></div>
-        </div>
-      </div>
-
-      <!-- Ebook Remoto (CR) -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">📙</span>
-            <span class="hf-ch-label">Ebook Remoto</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetEbCr" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('eb_cr',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveEbCr">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics cols-6">
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Vendas</div><div class="hf-ch-metric-val" id="ebcr_vendas">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Faturamento</div><div class="hf-ch-metric-val" id="ebcr_fat">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Investido</div><div class="hf-ch-metric-val dim" id="ebcr_invest">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Leads</div><div class="hf-ch-metric-val dim" id="ebcr_leads">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">CPL</div><div class="hf-ch-metric-val dim" id="ebcr_cpl">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">ROAS</div><div class="hf-ch-metric-val dim" id="ebcr_roas">—</div></div>
-        </div>
-      </div>
-
-      <!-- Ebook 10 Empresas -->
-      <div class="hf-ch">
-        <div class="hf-ch-head">
-          <div class="hf-ch-name">
-            <span class="hf-ch-icon">📕</span>
-            <span class="hf-ch-label">Ebook 10 Empresas</span>
-          </div>
-          <div class="hf-budget">
-            <div class="hf-budget-lbl">Budget Mensal</div>
-            <div class="hf-budget-row">
-              <span class="hf-budget-prefix">R$</span>
-              <input class="hf-budget-input" id="budgetEb10emp" type="text" inputmode="decimal"
-                     placeholder="0,00"
-                     onblur="saveBudget('eb_10emp',this)"
-                     onkeydown="if(event.key==='Enter')this.blur()">
-            </div>
-            <div class="hf-budget-save-indicator" id="saveEb10emp">Salvo ✓</div>
-          </div>
-        </div>
-        <div class="hf-ch-metrics cols-6">
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Vendas</div><div class="hf-ch-metric-val" id="eb10emp_vendas">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Faturamento</div><div class="hf-ch-metric-val" id="eb10emp_fat">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Investido</div><div class="hf-ch-metric-val dim" id="eb10emp_invest">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">Leads</div><div class="hf-ch-metric-val dim" id="eb10emp_leads">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">CPL</div><div class="hf-ch-metric-val dim" id="eb10emp_cpl">—</div></div>
-          <div class="hf-ch-metric"><div class="hf-ch-metric-lbl">ROAS</div><div class="hf-ch-metric-val dim" id="eb10emp_roas">—</div></div>
-        </div>
-      </div>
-
-    </div><!-- /ebook cards -->
-
   </div><!-- /viewEbooks -->
 
   <!-- ── Corredor Polonês ── -->
@@ -1672,7 +1528,7 @@ function setTab(btn) {
 
 async function loadCurrent() {
   if      (state.tab === 'geral')    loadGeral();
-  else if (state.tab === 'ebooks')   loadEbooks();
+  else if (state.tab === 'ebooks')   { if (!_lastGeral) await loadGeral(); renderEbooks2(); }
   else if (state.tab === 'corredor') loadCorredor();
   else if (state.tab === 'site')     loadSite();
   else if (state.tab === 'youtube')  loadYoutube();
@@ -1902,6 +1758,7 @@ function saveGeralBudget(channel, raw){
   // re-renderiza AMBOS os grids existentes pra refletir o valor digitado (sem refazer fetch)
   if (document.getElementById('geralCols') && _lastGeral) renderGeral(_lastGeral.cols, _lastGeral.tot, _lastGeral.matrix);
   if (document.getElementById('audienciaCols')) renderAudiencia2();
+  if (document.getElementById('ebooksCols')) renderEbooks2();
 }
 
 // Budget de um canal: override local tem prioridade; senão, valor da planilha
@@ -1934,6 +1791,7 @@ const DEFS_ALL = [
 ];
 // Audiência = só os 4 funis de tráfego (sem ebooks)
 const DEFS_AUD = DEFS_ALL.filter(d => ['ig_malu','ig_hire','youtube','site'].includes(d[0]));
+const DEFS_EB  = DEFS_ALL.filter(d => ['eb_5op','eb_7erros','eb_cr','eb_10emp'].includes(d[0]));
 
 // Monta o HTML dos cards de funil a partir das defs informadas.
 function funnelCardsHTML(cols, matrix, defs){
@@ -1982,6 +1840,11 @@ function renderGeral(cols, tot, matrix) {
 // Aba Audiência: mesmos cards da Geral, mas só os 4 funis de tráfego.
 function renderAudiencia2(){
   if (_lastGeral) setEl('audienciaCols', funnelCardsHTML(_lastGeral.cols, _lastGeral.matrix, DEFS_AUD));
+}
+
+// Aba E-books: mesmos cards da Geral, mas só os 4 funis de ebook.
+function renderEbooks2(){
+  if (_lastGeral) setEl('ebooksCols', funnelCardsHTML(_lastGeral.cols, _lastGeral.matrix, DEFS_EB));
 }
 
 // Agrega um canal (ig/youtube) em KPIs de 30 dias. cols: Date, Investido, [Seguidores], Vendas, Faturamento.
