@@ -1310,16 +1310,21 @@ let _dataMin = null, _dataMax = null;   // intervalo absoluto dos dados carregad
 // Agregação por funil. SEM filtro global → usa todos os dados de cada série.
 // COM filtro global → todas as séries filtram pelo mesmo [_fStart, _fEnd].
 // (mantém o nome window30 pra não mexer nas 6 chamadas existentes)
+// Piso de dados: ignora linhas anteriores ao início real das campanhas (2026).
+// Dados de 2025 nas abas YouTube/Site são antigos/errados e não devem somar.
+const _DATA_FLOOR = new Date(2026, 0, 1, 0, 0, 0);
 function window30(rows){
   if (!rows || !rows.length) return { rows: [], start: null, end: null };
-  let mn = rows[0].date, mx = rows[0].date;
-  for (const r of rows){ if (r.date < mn) mn = r.date; if (r.date > mx) mx = r.date; }
+  const valid = rows.filter(r => r.date >= _DATA_FLOOR);   // descarta dados pré-2026
+  if (!valid.length) return { rows: [], start: null, end: null };
+  let mn = valid[0].date, mx = valid[0].date;
+  for (const r of valid){ if (r.date < mn) mn = r.date; if (r.date > mx) mx = r.date; }
   // rastreia o intervalo absoluto dos dados (pra pré-preencher os inputs)
   if (!_dataMin || mn < _dataMin) _dataMin = mn;
   if (!_dataMax || mx > _dataMax) _dataMax = mx;
   const s = _fStart || mn;   // sem filtro nesse lado → usa o mín/máx da própria série
   const e = _fEnd   || mx;
-  return { rows: rows.filter(r => r.date >= s && r.date <= e), start: s, end: e };
+  return { rows: valid.filter(r => r.date >= s && r.date <= e), start: s, end: e };
 }
 
 function _parseDateInput(v){ // 'YYYY-MM-DD' → Date local à MEIA-NOITE (componentes locais = sem shift de fuso)
