@@ -979,6 +979,17 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Geral (visão consolidada) ── -->
   <div id="viewGeral">
 
+    <!-- Somatório consolidado (todos os funis, conforme filtro de data) -->
+    <div class="hf-v2-label" style="margin-bottom:10px">Somatório — Todos os Funis</div>
+    <div class="hf-kpi-strip cols-6">
+      <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="geral_kpiInvestido">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="geral_kpiFaturamento">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Vendas</div><div class="hf-kpi-value dash" id="geral_kpiVendas">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Ticket Médio</div><div class="hf-kpi-value dash" id="geral_kpiTicket">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">CAC</div><div class="hf-kpi-value dash" id="geral_kpiCac">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="geral_kpiRoas">—</div></div>
+    </div>
+
     <!-- Grid de colunas por funil -->
     <div class="hf-v2-wrap">
       <div class="hf-v2-label">Por Funil (período conforme filtro de data)</div>
@@ -1927,8 +1938,22 @@ function funnelCardsHTML(cols, matrix, defs){
 }
 
 function renderGeral(cols, tot, matrix) {
-  // (faixa de KPIs consolidados removida — só os cards por funil)
   _lastGeral = { cols, tot, matrix };  // guarda pra re-render ao editar budget
+  // Somatório consolidado (soma de TODOS os funis, já filtrado por data)
+  setEl('geral_kpiInvestido',   BRL(tot.investido));
+  setEl('geral_kpiFaturamento', BRL(tot.faturamento));
+  setEl('geral_kpiVendas',      NUM(tot.vendas));
+  setEl('geral_kpiTicket',      BRL(tot.ticket_medio));
+  setEl('geral_kpiCac',         BRL(tot.cac));
+  setEl('geral_kpiRoas',        ROAS(tot.roas));
+  ['geral_kpiInvestido','geral_kpiFaturamento','geral_kpiVendas',
+   'geral_kpiTicket','geral_kpiCac','geral_kpiRoas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.textContent !== '—') el.classList.remove('dash');
+  });
+  const roasEl = document.getElementById('geral_kpiRoas');
+  if (roasEl){ roasEl.classList.remove('good','warn'); if (tot.roas >= 3) roasEl.classList.add('good'); else if (tot.roas && tot.roas < 1) roasEl.classList.add('warn'); }
+  // Cards por funil
   setEl('geralCols', funnelCardsHTML(cols, matrix, DEFS_ALL));
 }
 
