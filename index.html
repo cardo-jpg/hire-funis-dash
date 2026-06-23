@@ -726,6 +726,11 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;
     }
     .hf-v2-ch-name { font-size:.78rem; font-weight:700; color:rgba(255,255,255,.55); display:flex; align-items:center; gap:6px; }
+    .hf-v2-ch-head { display:flex; flex-direction:column; gap:2px; }
+    .hf-v2-ch-sub { font-size:.66rem; color:rgba(255,255,255,.35); font-weight:500; padding-left:22px; }
+    .hf-v2-budget { display:flex; flex-direction:column; gap:1px; padding-bottom:8px; border-bottom:1px solid rgba(123,45,139,.25); margin-bottom:2px; }
+    .hf-v2-budget-lbl { font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.35); }
+    .hf-v2-budget-val { font-size:1.15rem; font-weight:800; color:var(--purple-light); }
     .hf-v2-metric { display:flex; flex-direction:column; gap:2px; }
     .hf-v2-metric-lbl { font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.35); }
     .hf-v2-metric-val { font-size:1.05rem; font-weight:700; color:#fff; }
@@ -904,12 +909,58 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   <!-- Tabs -->
   <div class="hf-tabs">
-    <button class="hf-tab active" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
+    <button class="hf-tab active" data-tab="geral" onclick="setTab(this)">Geral</button>
+    <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)">E-books</button>
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)" style="display:none">Corredor</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
   </div>
+
+  <!-- ── Geral (visão consolidada) ── -->
+  <div id="viewGeral">
+
+    <!-- KPI Strip consolidado -->
+    <div class="hf-kpi-strip cols-7">
+      <div class="hf-kpi">
+        <div class="hf-kpi-label">Investido</div>
+        <div class="hf-kpi-value dash" id="geral_kpiInvestido">—</div>
+      </div>
+      <div class="hf-kpi">
+        <div class="hf-kpi-label">Faturamento</div>
+        <div class="hf-kpi-value dash" id="geral_kpiFaturamento">—</div>
+      </div>
+      <div class="hf-kpi">
+        <div class="hf-kpi-label">Vendas</div>
+        <div class="hf-kpi-value dash" id="geral_kpiVendas">—</div>
+      </div>
+      <div class="hf-kpi">
+        <div class="hf-kpi-label">Leads</div>
+        <div class="hf-kpi-value dash" id="geral_kpiLeads">—</div>
+      </div>
+      <div class="hf-kpi">
+        <div class="hf-kpi-label">ROAS</div>
+        <div class="hf-kpi-value dash" id="geral_kpiRoas">—</div>
+      </div>
+      <div class="hf-kpi">
+        <div class="hf-kpi-label">Ticket Médio</div>
+        <div class="hf-kpi-value dash" id="geral_kpiTicket">—</div>
+      </div>
+      <div class="hf-kpi">
+        <div class="hf-kpi-label">CAC</div>
+        <div class="hf-kpi-value dash" id="geral_kpiCac">—</div>
+      </div>
+    </div>
+
+    <!-- Grid de colunas por funil -->
+    <div class="hf-v2-wrap">
+      <div class="hf-v2-label">Por Funil — últimos 30 dias (janela por funil)</div>
+      <div class="hf-v2-grid" id="geralCols">
+        <div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);padding:32px">Carregando…</div>
+      </div>
+    </div>
+
+  </div><!-- /viewGeral -->
 
   <!-- ── Audiência ── -->
   <div id="viewAudiencia">
@@ -1808,7 +1859,7 @@ const state = {
   preset:    'month',
   dateStart: _localFmt(_firstOfMonth),
   dateEnd:   _localFmt(today0),
-  tab:       'audiencia',
+  tab:       'geral',
 };
 
 function setPreset(btn) {
@@ -1832,6 +1883,7 @@ function setTab(btn) {
   document.querySelectorAll('.hf-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.tab = btn.dataset.tab;
+  document.getElementById('viewGeral').style.display     = state.tab === 'geral'     ? '' : 'none';
   document.getElementById('viewAudiencia').style.display = state.tab === 'audiencia' ? '' : 'none';
   document.getElementById('viewEbooks').style.display    = state.tab === 'ebooks'    ? '' : 'none';
   document.getElementById('viewCorredor').style.display  = state.tab === 'corredor'  ? '' : 'none';
@@ -1841,7 +1893,8 @@ function setTab(btn) {
 }
 
 function loadCurrent() {
-  if      (state.tab === 'ebooks')   loadEbooks();
+  if      (state.tab === 'geral')    loadGeral();
+  else if (state.tab === 'ebooks')   loadEbooks();
   else if (state.tab === 'corredor') loadCorredor();
   else if (state.tab === 'site')     loadSite();
   else if (state.tab === 'youtube')  loadYoutube();
@@ -1934,9 +1987,178 @@ function _resetLoadingFlags() {
   _loading = false;
   _loadingEb = false;
   _loadingCor = false;
+  _loadingGeral = false;
 }
 
 let _loading = false;
+
+// ── Geral (consolidado de todos os funis) ─────────────────────────────────────
+let _loadingGeral = false;
+
+// Agrega um funil em {janelaLabel, investido, leads, vendas, faturamento, roas}
+// na sua própria janela de 30 dias. `hasLeads=false` para funis sem coluna Leads.
+function aggFunil30(rows, hasLeads){
+  const w = window30(rows);
+  _trackRange(w);
+  const investido   = gvSum(w.rows, 'investido');
+  const faturamento = gvSum(w.rows, 'faturamento');
+  const vendas      = gvSum(w.rows, 'vendas');
+  const leads       = hasLeads ? gvSum(w.rows, 'leads') : null;
+  const janelaLabel = (w.start && w.end && w.rows.length)
+    ? `${_fmtDM(w.start)}–${_fmtDM(w.end)}` : '—';
+  return {
+    janelaLabel, investido, leads, vendas, faturamento,
+    roas: _safeDiv(faturamento, investido),
+    hasLeads: !!hasLeads,
+  };
+}
+
+async function loadGeral() {
+  if (_loadingGeral) return;
+  _loadingGeral = true;
+  const btn  = document.getElementById('btnRefresh');
+  const icon = document.getElementById('refreshIcon');
+  if (btn)  btn.classList.add('loading');
+  if (icon) icon.textContent = '↻';
+  document.getElementById('errorBanner').style.display = 'none';
+
+  try {
+    _resetRange();
+    const [tMalu, tHire, tYt, t5, t7, tcr, t10, tSite] = await Promise.all([
+      gvizLoad(GIDS.ig_malu), gvizLoad(GIDS.ig_hire), gvizLoad(GIDS.youtube),
+      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr), gvizLoad(GIDS.eb_10emp),
+      gvizLoad(GIDS.site_camp),
+    ]);
+
+    const EBMAP = { investido:2, leads:3, vendas:4, faturamento:5 };
+
+    // Funis de tráfego/audiência (4 colunas da Geral)
+    const fMalu = aggFunil30(gvRows(tMalu, { investido:1, vendas:3, faturamento:4 }), false);
+    const fHire = aggFunil30(gvRows(tHire, { investido:1, vendas:3, faturamento:4 }), false);
+    const fYt   = aggFunil30(gvRows(tYt,   { investido:2, vendas:3, faturamento:4 }), false);
+    // Site (campanha): Date, Campanha, Investido, Leads, Vendas, Faturamento
+    const fSite = aggFunil30(gvRows(tSite, { investido:2, leads:3, vendas:4, faturamento:5 }), true);
+
+    const funis = [
+      ['IG Malu',                fMalu],
+      ['IG Hire',                fHire],
+      ['YouTube',                fYt],
+      ['Ebook 5 Oportunidades',  aggFunil30(gvRows(t5,  EBMAP), true)],
+      ['Ebook 7 Erros',          aggFunil30(gvRows(t7,  EBMAP), true)],
+      ['Ebook Carreira Remota',  aggFunil30(gvRows(tcr, EBMAP), true)],
+      ['Ebook 10 Empresas',      aggFunil30(gvRows(t10, EBMAP), true)],
+      ['Site',                   fSite],
+    ];
+
+    // Colunas da Geral (uma por funil de tráfego)
+    const cols = { ig_malu: fMalu, ig_hire: fHire, youtube: fYt, site: fSite };
+
+    // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
+    let tInv = 0, tFat = 0, tVend = 0, tLeads = 0;
+    for (const [, f] of funis){
+      tInv += f.investido; tFat += f.faturamento; tVend += f.vendas;
+      if (f.hasLeads) tLeads += (f.leads || 0);
+    }
+    const tot = {
+      investido: tInv, faturamento: tFat, vendas: tVend, leads: tLeads,
+      roas: _safeDiv(tFat, tInv),
+      ticket_medio: _safeDiv(tFat, tVend),
+      cac: _safeDiv(tInv, tVend),
+    };
+
+    _syncBudgetMonthFromRange();
+    renderGeral(cols, tot, _budgetMatrix);
+    updateRangeLabel();
+    document.getElementById('lastUpdate').textContent =
+      'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    const banner = document.getElementById('errorBanner');
+    banner.textContent = 'Erro ao carregar Geral (dados ao vivo): ' + e.message;
+    banner.style.display = 'block';
+  } finally {
+    _loadingGeral = false;
+    if (btn)  btn.classList.remove('loading');
+    if (icon) icon.textContent = '↻';
+  }
+}
+
+// Busca o budget de um canal na matriz: usa o mês de orçamento corrente; se não
+// houver, cai para o mês mais recente disponível para o canal. null se nada.
+function _geralBudget(matrix, channel){
+  const m = (matrix || {})[channel];
+  if (!m || typeof m !== 'object') return null;
+  const month = getBudgetMonth();
+  if (m[month] != null && m[month] !== 0) return m[month];
+  // fallback: mês mais recente COM valor não-zero (planilha pode ter meses futuros zerados)
+  const keys = Object.keys(m).filter(k => m[k] != null && m[k] !== 0).sort();
+  if (!keys.length) return null;
+  return m[keys[keys.length - 1]];
+}
+
+function renderGeral(cols, tot, matrix) {
+  // KPIs consolidados (soma de TODOS os funis)
+  setEl('geral_kpiInvestido',   BRL(tot.investido));
+  setEl('geral_kpiFaturamento', BRL(tot.faturamento));
+  setEl('geral_kpiVendas',      NUM(tot.vendas));
+  setEl('geral_kpiLeads',       NUM(tot.leads));
+  setEl('geral_kpiRoas',        ROAS(tot.roas));
+  setEl('geral_kpiTicket',      BRL(tot.ticket_medio));
+  setEl('geral_kpiCac',         BRL(tot.cac));
+  ['geral_kpiInvestido','geral_kpiFaturamento','geral_kpiVendas','geral_kpiLeads',
+   'geral_kpiRoas','geral_kpiTicket','geral_kpiCac'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.textContent !== '—') el.classList.remove('dash');
+  });
+  const roasEl = document.getElementById('geral_kpiRoas');
+  if (roasEl && tot.roas) {
+    if (tot.roas >= 3)     roasEl.classList.add('good');
+    else if (tot.roas < 1) roasEl.classList.add('warn');
+  }
+
+  // Grid de colunas por funil de tráfego
+  // [chave, ícone, título, subtítulo, label audiência, label custo]
+  const DEFS = [
+    ['ig_malu', '📱', 'IG Malu',            'Instagram Malu',                    'Novos Seguidores', 'Custo por Seguidor', 'social'],
+    ['ig_hire', '📸', 'IG Hire',            'Instagram Hire Brazil',             'Novos Seguidores', 'Custo por Seguidor', 'social'],
+    ['youtube', '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
+    ['site',    '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
+  ];
+
+  let html = '';
+  for (const [key, icon, titulo, sub, audLbl, custoLbl, kind] of DEFS){
+    const f = cols[key] || {};
+    const bud = _geralBudget(matrix, key);
+    // Métrica de audiência + custo
+    let audVal = '—', custoVal = '—';
+    if (kind === 'site'){
+      const conv = (f.leads != null) ? f.leads : null;
+      audVal   = (conv != null) ? NUM(conv) : '—';
+      const cpa = _safeDiv(f.investido, conv);
+      custoVal = (cpa != null) ? BRL(cpa) : '—';
+    }
+    const budTxt = (bud != null)
+      ? 'R$&nbsp;' + bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+      : '—';
+    html += `
+      <div class="hf-v2-ch">
+        <div class="hf-v2-ch-head">
+          <div class="hf-v2-ch-name">${icon} ${titulo}</div>
+          <div class="hf-v2-ch-sub">${sub}</div>
+        </div>
+        <div class="hf-v2-budget">
+          <div class="hf-v2-budget-lbl">Budget Mensal</div>
+          <div class="hf-v2-budget-val">${budTxt}</div>
+        </div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido</div><div class="hf-v2-metric-val">${BRL(f.investido)}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${audLbl}</div><div class="hf-v2-metric-val dim">${audVal}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${custoLbl}</div><div class="hf-v2-metric-val dim">${custoVal}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big">${NUM(f.vendas)}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big">${BRL(f.faturamento)}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim">${ROAS(f.roas)}</div></div>
+      </div>`;
+  }
+  setEl('geralCols', html);
+}
 
 // Agrega um canal (ig/youtube) em KPIs de 30 dias. cols: Date, Investido, [Seguidores], Vendas, Faturamento.
 function aggChannel30(rows){
@@ -2795,7 +3017,7 @@ function refreshLive(){
 // ── Init ──────────────────────────────────────────────────────────────────────
 preFillBudgetsFromLocal();
 // Carrega a matriz de orçamento (best-effort) e então a aba inicial ao vivo.
-loadBudgetMatrix().then(() => loadAudiencia());
+loadBudgetMatrix().then(() => loadGeral());
 </script>
 </body>
 </html>
