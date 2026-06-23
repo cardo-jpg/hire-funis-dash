@@ -618,6 +618,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     }
     .df-input:hover, .df-input:focus { border-color:var(--purple-light); outline:none; }
     .df-input::-webkit-calendar-picker-indicator { filter:invert(.8); cursor:pointer; }
+    .df-select { font-weight:700; }
+    .df-select option { background:var(--surface); color:#fff; }
+    .df-sep { color:#cdbce6; font-size:.78rem; font-weight:700; opacity:.7; }
     .df-clear {
       display:flex; align-items:center; gap:6px;
       background:var(--surface); border:1px solid var(--border);
@@ -947,6 +950,11 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="controls">
       <!-- Filtro de data global (De/Até) — filtra a dashboard inteira -->
       <div class="date-filter">
+        <label class="df-lbl">Mês</label>
+        <select id="monthPicker" class="df-input df-select" onchange="onMonthPick()">
+          <option value="all">Todos os meses</option>
+        </select>
+        <span class="df-sep">ou</span>
         <label class="df-lbl">De</label>
         <input type="date" id="fDateStart" class="df-input" oninput="_markFilterPending()">
         <label class="df-lbl">Até</label>
@@ -1352,11 +1360,14 @@ function onDateFilterChange(){
   const ini = _fStart ? _fmtDMY(_fStart) : (_dataMin ? _fmtDMY(_dataMin) : '');
   const fim = _fEnd   ? _fmtDMY(_fEnd)   : (_dataMax ? _fmtDMY(_dataMax) : '');
   _setFilterStatus(`✓ aplicado: ${ini} – ${fim}`, 'applied');
+  // se foi um intervalo manual (não pelo seletor de mês), volta o seletor pra "Todos"
+  if (!_pickingMonth){ const sel=document.getElementById('monthPicker'); if(sel) sel.value='all'; }
 }
 function clearDateFilter(){
   _fStart=_fEnd=null;
   const a=document.getElementById('fDateStart'), b=document.getElementById('fDateEnd');
   if(a) a.value=''; if(b) b.value='';
+  const sel=document.getElementById('monthPicker'); if(sel) sel.value='all';
   _syncDateInputsToData();   // volta a mostrar o intervalo completo nos inputs
   _reaggregate();
   _setFilterStatus('✓ mostrando todo o período', 'applied');
@@ -1377,6 +1388,45 @@ function _syncDateInputsToData(){
   // status inicial (só na 1ª vez, quando ainda não há filtro aplicado/pendente)
   const s = document.getElementById('filterStatus');
   if (s && !s.textContent) _setFilterStatus('✓ mostrando todo o período', 'applied');
+  _buildMonthOptions();
+}
+
+// ── Seletor de mês ───────────────────────────────────────────────────────────
+let _pickingMonth = false;
+const _MES_NOME = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function _buildMonthOptions(){
+  const sel = document.getElementById('monthPicker');
+  if (!sel || !_dataMin || !_dataMax || sel.dataset.built) return;
+  let html = '<option value="all">Todos os meses</option>';
+  const months = [];
+  const cur = new Date(_dataMin.getFullYear(), _dataMin.getMonth(), 1);
+  const end = new Date(_dataMax.getFullYear(), _dataMax.getMonth(), 1);
+  while (cur <= end){ months.push([cur.getFullYear(), cur.getMonth()+1]); cur.setMonth(cur.getMonth()+1); }
+  for (const [y,m] of months) html += `<option value="${y}-${String(m).padStart(2,'0')}">${_MES_NOME[m-1]}/${y}</option>`;
+  sel.innerHTML = html;
+  sel.dataset.built = '1';
+  // default: aplica o mês mais recente uma vez (deferido, pra não recursar no load)
+  if (months.length && !sel.dataset.applied){
+    sel.dataset.applied = '1';
+    const [y,m] = months[months.length-1];
+    sel.value = `${y}-${String(m).padStart(2,'0')}`;
+    setTimeout(onMonthPick, 0);
+  }
+}
+function onMonthPick(){
+  const sel = document.getElementById('monthPicker');
+  if (!sel) return;
+  if (sel.value === 'all'){ clearDateFilter(); return; }
+  const m = sel.value.match(/(\d{4})-(\d{2})/);
+  if (!m) return;
+  const y = +m[1], mo = +m[2];
+  const first = new Date(y, mo-1, 1), last = new Date(y, mo, 0); // 1º e último dia do mês
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const a = document.getElementById('fDateStart'), b = document.getElementById('fDateEnd');
+  if (a) a.value = iso(first); if (b) b.value = iso(last);
+  _pickingMonth = true;
+  onDateFilterChange();
+  _pickingMonth = false;
 }
 function gvSum(rows, k){ let s = 0; for (const r of rows) s += (r[k] || 0); return s; }
 function _safeDiv(a, b){ return (b && b !== 0) ? a / b : null; }
