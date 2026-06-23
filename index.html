@@ -730,7 +730,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-v2-ch-sub { font-size:.66rem; color:rgba(255,255,255,.35); font-weight:500; padding-left:22px; }
     .hf-v2-budget { display:flex; flex-direction:column; gap:1px; padding-bottom:8px; border-bottom:1px solid rgba(123,45,139,.25); margin-bottom:2px; }
     .hf-v2-budget-lbl { font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.35); }
-    .hf-v2-budget-val { font-size:1.15rem; font-weight:800; color:var(--purple-light); }
+    .hf-v2-budget-val { font-size:1.15rem; font-weight:800; color:var(--purple-light); display:flex; align-items:baseline; gap:2px; }
+    .hf-v2-budget-input {
+      background:none; border:none; border-bottom:1px dashed rgba(168,85,200,.55);
+      color:var(--purple-light); font-size:1.15rem; font-weight:800; font-family:inherit;
+      width:7.5ch; padding:0 0 1px; outline:none; transition:border-color .15s,color .15s;
+    }
+    .hf-v2-budget-input:hover { border-bottom-color:var(--purple-light); }
+    .hf-v2-budget-input:focus { border-bottom-color:#fff; color:#fff; }
+    .hf-v2-budget-input::placeholder { color:rgba(168,85,200,.4); }
     .hf-v2-metric { display:flex; flex-direction:column; gap:2px; }
     .hf-v2-metric-lbl { font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.35); }
     .hf-v2-metric-val { font-size:1.05rem; font-weight:700; color:#fff; }
@@ -919,38 +927,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   <!-- ── Geral (visão consolidada) ── -->
   <div id="viewGeral">
-
-    <!-- KPI Strip consolidado -->
-    <div class="hf-kpi-strip cols-7">
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Investido</div>
-        <div class="hf-kpi-value dash" id="geral_kpiInvestido">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Faturamento</div>
-        <div class="hf-kpi-value dash" id="geral_kpiFaturamento">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Vendas</div>
-        <div class="hf-kpi-value dash" id="geral_kpiVendas">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Leads</div>
-        <div class="hf-kpi-value dash" id="geral_kpiLeads">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">ROAS</div>
-        <div class="hf-kpi-value dash" id="geral_kpiRoas">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">Ticket Médio</div>
-        <div class="hf-kpi-value dash" id="geral_kpiTicket">—</div>
-      </div>
-      <div class="hf-kpi">
-        <div class="hf-kpi-label">CAC</div>
-        <div class="hf-kpi-value dash" id="geral_kpiCac">—</div>
-      </div>
-    </div>
 
     <!-- Grid de colunas por funil -->
     <div class="hf-v2-wrap">
@@ -2090,9 +2066,41 @@ async function loadGeral() {
   }
 }
 
-// Busca o budget de um canal na matriz: usa o mês de orçamento corrente; se não
-// houver, cai para o mês mais recente disponível para o canal. null se nada.
+// ── Budget editável (override local) ─────────────────────────────────────────
+// O valor digitado na dash é salvo no navegador (localStorage). NÃO sincroniza
+// entre pessoas nem volta pra planilha — é só um override visual por navegador.
+function _budgetKey(channel){ return 'hf_budget_' + channel; }
+function _getBudgetOverride(channel){
+  try {
+    const v = localStorage.getItem(_budgetKey(channel));
+    if (v == null || v === '') return null;
+    const n = parseFloat(v);
+    return isNaN(n) ? null : n;
+  } catch(e){ return null; }
+}
+// Parseia "2.800,00" / "2800" / "2800,50" / "R$ 1.000,00" → número.
+function _parseBudgetInput(s){
+  if (s == null) return null;
+  s = String(s).replace(/[R$\s]/g,'').replace(/\./g,'').replace(',', '.');
+  if (s === '') return null;
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+function saveGeralBudget(channel, raw){
+  const num = _parseBudgetInput(raw);
+  try {
+    if (num == null) localStorage.removeItem(_budgetKey(channel));
+    else localStorage.setItem(_budgetKey(channel), String(num));
+  } catch(e){}
+  // re-renderiza a Geral pra reformatar o valor digitado (sem refazer fetch)
+  if (_lastGeral) renderGeral(_lastGeral.cols, _lastGeral.tot, _lastGeral.matrix);
+}
+
+// Budget de um canal: override local tem prioridade; senão, valor da planilha
+// (mês corrente; fallback no mês mais recente com valor não-zero).
 function _geralBudget(matrix, channel){
+  const ov = _getBudgetOverride(channel);
+  if (ov != null) return ov;
   const m = (matrix || {})[channel];
   if (!m || typeof m !== 'object') return null;
   const month = getBudgetMonth();
@@ -2103,25 +2111,10 @@ function _geralBudget(matrix, channel){
   return m[keys[keys.length - 1]];
 }
 
+let _lastGeral = null;
 function renderGeral(cols, tot, matrix) {
-  // KPIs consolidados (soma de TODOS os funis)
-  setEl('geral_kpiInvestido',   BRL(tot.investido));
-  setEl('geral_kpiFaturamento', BRL(tot.faturamento));
-  setEl('geral_kpiVendas',      NUM(tot.vendas));
-  setEl('geral_kpiLeads',       NUM(tot.leads));
-  setEl('geral_kpiRoas',        ROAS(tot.roas));
-  setEl('geral_kpiTicket',      BRL(tot.ticket_medio));
-  setEl('geral_kpiCac',         BRL(tot.cac));
-  ['geral_kpiInvestido','geral_kpiFaturamento','geral_kpiVendas','geral_kpiLeads',
-   'geral_kpiRoas','geral_kpiTicket','geral_kpiCac'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.textContent !== '—') el.classList.remove('dash');
-  });
-  const roasEl = document.getElementById('geral_kpiRoas');
-  if (roasEl && tot.roas) {
-    if (tot.roas >= 3)     roasEl.classList.add('good');
-    else if (tot.roas < 1) roasEl.classList.add('warn');
-  }
+  // (faixa de KPIs consolidados removida — só os cards por funil)
+  _lastGeral = { cols, tot, matrix };  // guarda pra re-render ao editar budget
 
   // Grid de colunas por funil de tráfego
   // [chave, ícone, título, subtítulo, label audiência, label custo]
@@ -2148,9 +2141,9 @@ function renderGeral(cols, tot, matrix) {
       const cpl = _safeDiv(f.investido, conv);
       custoVal = (cpl != null) ? BRL(cpl) : '—';
     }
-    const budTxt = (bud != null)
-      ? 'R$&nbsp;' + bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
-      : '—';
+    const budInput = (bud != null)
+      ? bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+      : '';
     html += `
       <div class="hf-v2-ch">
         <div class="hf-v2-ch-head">
@@ -2159,7 +2152,7 @@ function renderGeral(cols, tot, matrix) {
         </div>
         <div class="hf-v2-budget">
           <div class="hf-v2-budget-lbl">Budget Mensal</div>
-          <div class="hf-v2-budget-val">${budTxt}</div>
+          <div class="hf-v2-budget-val">R$&nbsp;<input class="hf-v2-budget-input" type="text" inputmode="decimal" placeholder="0,00" value="${budInput}" data-ch="${key}" onchange="saveGeralBudget('${key}', this.value)" onkeydown="if(event.key==='Enter')this.blur()"></div>
         </div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido</div><div class="hf-v2-metric-val">${BRL(f.investido)}</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${audLbl}</div><div class="hf-v2-metric-val dim">${audVal}</div></div>
