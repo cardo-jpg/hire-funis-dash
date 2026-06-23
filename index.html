@@ -2032,26 +2032,34 @@ async function loadGeral() {
 
     const EBMAP = { investido:2, leads:3, vendas:4, faturamento:5 };
 
-    // Funis de tráfego/audiência (4 colunas da Geral)
+    // Funis de tráfego/audiência
     const fMalu = aggFunil30(gvRows(tMalu, { investido:1, vendas:3, faturamento:4 }), false);
     const fHire = aggFunil30(gvRows(tHire, { investido:1, vendas:3, faturamento:4 }), false);
     const fYt   = aggFunil30(gvRows(tYt,   { investido:2, vendas:3, faturamento:4 }), false);
     // Site (campanha): Date, Campanha, Investido, Leads, Vendas, Faturamento
     const fSite = aggFunil30(gvRows(tSite, { investido:2, leads:3, vendas:4, faturamento:5 }), true);
+    // Ebooks: Date, Campanha, Investido, Leads, Vendas, Faturamento
+    const f5    = aggFunil30(gvRows(t5,  EBMAP), true);
+    const f7    = aggFunil30(gvRows(t7,  EBMAP), true);
+    const fcr   = aggFunil30(gvRows(tcr, EBMAP), true);
+    const f10   = aggFunil30(gvRows(t10, EBMAP), true);
 
     const funis = [
       ['IG Malu',                fMalu],
       ['IG Hire',                fHire],
       ['YouTube',                fYt],
-      ['Ebook 5 Oportunidades',  aggFunil30(gvRows(t5,  EBMAP), true)],
-      ['Ebook 7 Erros',          aggFunil30(gvRows(t7,  EBMAP), true)],
-      ['Ebook Carreira Remota',  aggFunil30(gvRows(tcr, EBMAP), true)],
-      ['Ebook 10 Empresas',      aggFunil30(gvRows(t10, EBMAP), true)],
+      ['Ebook 5 Oportunidades',  f5],
+      ['Ebook 7 Erros',          f7],
+      ['Ebook Carreira Remota',  fcr],
+      ['Ebook 10 Empresas',      f10],
       ['Site',                   fSite],
     ];
 
-    // Colunas da Geral (uma por funil de tráfego)
-    const cols = { ig_malu: fMalu, ig_hire: fHire, youtube: fYt, site: fSite };
+    // Colunas da Geral (todos os funis: 4 de tráfego + 4 ebooks)
+    const cols = {
+      ig_malu: fMalu, ig_hire: fHire, youtube: fYt, site: fSite,
+      eb_5op: f5, eb_7erros: f7, eb_cr: fcr, eb_10emp: f10,
+    };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
     let tInv = 0, tFat = 0, tVend = 0, tLeads = 0;
@@ -2118,10 +2126,14 @@ function renderGeral(cols, tot, matrix) {
   // Grid de colunas por funil de tráfego
   // [chave, ícone, título, subtítulo, label audiência, label custo]
   const DEFS = [
-    ['ig_malu', '📱', 'IG Malu',            'Instagram Malu',                    'Novos Seguidores', 'Custo por Seguidor', 'social'],
-    ['ig_hire', '📸', 'IG Hire',            'Instagram Hire Brazil',             'Novos Seguidores', 'Custo por Seguidor', 'social'],
-    ['youtube', '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
-    ['site',    '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
+    ['ig_malu',  '📱', 'IG Malu',            'Instagram Malu',                    'Novos Seguidores', 'Custo por Seguidor', 'social'],
+    ['ig_hire',  '📸', 'IG Hire',            'Instagram Hire Brazil',             'Novos Seguidores', 'Custo por Seguidor', 'social'],
+    ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
+    ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
+    ['eb_5op',   '📘', 'Ebook 5 Oportunidades', 'Cadastro · Captação',           'Leads',            'Custo por Lead',     'ebook'],
+    ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
+    ['eb_cr',    '📗', 'Ebook Carreira Remota', 'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
+    ['eb_10emp', '📙', 'Ebook 10 Empresas',     'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
   ];
 
   let html = '';
@@ -2130,11 +2142,11 @@ function renderGeral(cols, tot, matrix) {
     const bud = _geralBudget(matrix, key);
     // Métrica de audiência + custo
     let audVal = '—', custoVal = '—';
-    if (kind === 'site'){
+    if (kind === 'site' || kind === 'ebook'){
       const conv = (f.leads != null) ? f.leads : null;
       audVal   = (conv != null) ? NUM(conv) : '—';
-      const cpa = _safeDiv(f.investido, conv);
-      custoVal = (cpa != null) ? BRL(cpa) : '—';
+      const cpl = _safeDiv(f.investido, conv);
+      custoVal = (cpl != null) ? BRL(cpl) : '—';
     }
     const budTxt = (bud != null)
       ? 'R$&nbsp;' + bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
