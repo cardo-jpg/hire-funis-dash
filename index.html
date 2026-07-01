@@ -1348,7 +1348,7 @@ function aggSeg(table){
     seg += _segNum(c[1]);
     inv += _segNum(c[6]);
   }
-  return { seguidores: seg, custo_seguidor: seg > 0 ? inv / seg : null };
+  return { investido: inv, seguidores: seg, custo_seguidor: seg > 0 ? inv / seg : null };
 }
 
 // ── Filtro de data global (De/Até) ────────────────────────────────────────────
@@ -1882,9 +1882,15 @@ async function loadGeral() {
         gvizLoadFrom(SEG_SHEET_ID, 'sheet=HIRE'),
         gvizLoadFrom(SEG_SHEET_ID, 'sheet=MALU'),
       ]);
-      const sHire = aggSeg(segHireT), sMalu = aggSeg(segMaluT);
-      fHire.seguidores = sHire.seguidores; fHire.custo_seguidor = sHire.custo_seguidor;
-      fMalu.seguidores = sMalu.seguidores; fMalu.custo_seguidor = sMalu.custo_seguidor;
+      // Investido, Seguidores e CPS dos funis IG vêm DIRETO da planilha de Seguidores.
+      // Vendas/Faturamento continuam da planilha de funis (a de Seguidores não os tem);
+      // ROAS é recalculado com o investido de Seguidores para manter o card coerente.
+      for (const [f, s] of [[fHire, aggSeg(segHireT)], [fMalu, aggSeg(segMaluT)]]){
+        f.investido      = s.investido;
+        f.seguidores     = s.seguidores;
+        f.custo_seguidor = s.custo_seguidor;
+        f.roas           = _safeDiv(f.faturamento, s.investido);
+      }
     } catch(e){ console.warn('Seguidores indisponíveis:', e); }
     const fYt   = aggFunil30(gvRows(tYt,   { investido:2, vendas:3, faturamento:4 }), false);
     // Site (campanha): Date, Campanha, Investido, Leads, Vendas, Faturamento
