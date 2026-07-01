@@ -1979,6 +1979,32 @@ function saveGeralBudget(channel, raw){
   if (document.getElementById('ebooksCols')) renderEbooks2();
 }
 
+// Auto-save a cada tecla: grava no localStorage SEM re-renderizar (não perde o foco).
+// O onchange (ao sair do campo) faz o save completo + re-render dos valores calculados.
+function saveGeralBudgetLive(channel, raw){
+  const num = _parseBudgetInput(raw);
+  try {
+    if (num == null) localStorage.removeItem(_budgetKey(channel));
+    else localStorage.setItem(_budgetKey(channel), String(num));
+  } catch(e){}
+  _flashSaved('Verba salva ✓');
+}
+
+// Aviso rápido de "salvo" (toast no canto). Cria o elemento na primeira chamada.
+function _flashSaved(msg){
+  let t = document.getElementById('_savedToast');
+  if (!t){
+    t = document.createElement('div');
+    t.id = '_savedToast';
+    t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1b7a4b;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .2s;box-shadow:0 4px 12px rgba(0,0,0,.4);pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg || 'Salvo ✓';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1200);
+}
+
 // Budget de um canal: override local tem prioridade; senão, valor da planilha
 // (mês corrente; fallback no mês mais recente com valor não-zero).
 function _geralBudget(matrix, channel){
@@ -2041,7 +2067,7 @@ function funnelCardsHTML(cols, matrix, defs){
         </div>
         <div class="hf-v2-budget">
           <div class="hf-v2-budget-lbl">Budget Mensal</div>
-          <div class="hf-v2-budget-val">R$&nbsp;<input class="hf-v2-budget-input" type="text" inputmode="decimal" placeholder="0,00" value="${budInput}" data-ch="${key}" onchange="saveGeralBudget('${key}', this.value)" onkeydown="if(event.key==='Enter')this.blur()"></div>
+          <div class="hf-v2-budget-val">R$&nbsp;<input class="hf-v2-budget-input" type="text" inputmode="decimal" placeholder="0,00" value="${budInput}" data-ch="${key}" oninput="saveGeralBudgetLive('${key}', this.value)" onchange="saveGeralBudget('${key}', this.value)" onkeydown="if(event.key==='Enter')this.blur()"></div>
         </div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido</div><div class="hf-v2-metric-val">${BRL(f.investido)}</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${audLbl}</div><div class="hf-v2-metric-val dim">${audVal}</div></div>
