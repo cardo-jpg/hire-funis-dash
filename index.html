@@ -1249,8 +1249,13 @@ let _gvizCache = {};
 let _gvizSeq = 0;
 
 // gvizLoad(gid) → Promise<table>  (JSONP — contorna ausência de CORS no gviz)
-function gvizLoad(gid){
-  if (_gvizCache[gid]) return Promise.resolve(_gvizCache[gid]);
+function gvizLoad(gid){ return gvizLoadFrom(SHEET_ID, 'gid=' + gid); }
+
+// gvizLoadFrom(sheetId, query) → Promise<table>. query = 'gid=123' ou 'sheet=HIRE'.
+// Permite carregar de OUTRA planilha (ex.: a de Seguidores) mantendo o mesmo JSONP.
+function gvizLoadFrom(sheetId, query){
+  const cacheKey = sheetId + '|' + query;
+  if (_gvizCache[cacheKey]) return Promise.resolve(_gvizCache[cacheKey]);
   return new Promise((resolve, reject) => {
     const cb = '__gviz_cb_' + (++_gvizSeq) + '_' + Date.now();
     let done = false;
@@ -1262,22 +1267,22 @@ function gvizLoad(gid){
     };
     const timer = setTimeout(() => {
       if (done) return; done = true; cleanup();
-      reject(new Error('Tempo esgotado ao carregar a aba (gid ' + gid + ')'));
+      reject(new Error('Tempo esgotado ao carregar a aba (' + query + ')'));
     }, 20000);
     window[cb] = (resp) => {
       if (done) return; done = true;
       try {
-        if (!resp || !resp.table) throw new Error('Resposta gviz vazia (gid ' + gid + ')');
-        _gvizCache[gid] = resp.table;
+        if (!resp || !resp.table) throw new Error('Resposta gviz vazia (' + query + ')');
+        _gvizCache[cacheKey] = resp.table;
         cleanup(); resolve(resp.table);
       } catch(err){ cleanup(); reject(err); }
     };
     script.onerror = () => {
       if (done) return; done = true; cleanup();
-      reject(new Error('Falha de rede ao carregar a aba (gid ' + gid + ')'));
+      reject(new Error('Falha de rede ao carregar a aba (' + query + ')'));
     };
-    script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-                 '/gviz/tq?gid=' + gid + '&tqx=responseHandler:' + cb;
+    script.src = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+                 '/gviz/tq?' + query + '&tqx=responseHandler:' + cb;
     document.head.appendChild(script);
   });
 }
@@ -1309,6 +1314,41 @@ function gvRows(table, map, dateIdx){
     out.push(o);
   }
   return out;
+}
+
+// ── Seguidores (planilha separada "[HIRE] - Seguidores", abas HIRE/MALU) ───────
+// A planilha de funis não tem a coluna Seguidores preenchida; o dado vem daqui.
+const SEG_SHEET_ID = '1zFQVcdCqczs5eO9cB8eyii4Tf-kV3qkuYbN-sEB5oBA';
+function _segParseDate(v){
+  const dt = _gvParseDate(v); if (dt) return dt;                 // caso venha como Date(...)
+  const m = String(v == null ? '' : v).match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if (!m) return null;
+  const d = +m[1], mo = +m[2]; if (!d || !mo || mo > 12) return null;
+  const y = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : (mo >= 11 ? 2025 : 2026);
+  return new Date(y, mo - 1, d);
+}
+function _segNum(c){ // aceita número (72.66) ou texto ("R$ 72,66")
+  if (!c || c.v == null) return 0;
+  if (typeof c.v === 'number') return c.v;
+  let s = String(c.v).replace(/R\$|\s|\$/g, '');
+  if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
+  else if (s.includes(',')) s = s.replace(',', '.');
+  return parseFloat(s) || 0;
+}
+// Soma Novos Seguidores (col 1) e Investimento diário (col 6), respeitando o filtro global.
+// CPS = investimento / seguidores (mesmo cálculo da dash de seguidores).
+function aggSeg(table){
+  let seg = 0, inv = 0;
+  for (const r of (table && table.rows || [])){
+    const c = r.c || [];
+    const d = _segParseDate(c[0] && c[0].v);
+    if (!d) continue;
+    if (_fStart && d < _fStart) continue;
+    if (_fEnd   && d > _fEnd)   continue;
+    seg += _segNum(c[1]);
+    inv += _segNum(c[6]);
+  }
+  return { seguidores: seg, custo_seguidor: seg > 0 ? inv / seg : null };
 }
 
 // ── Filtro de data global (De/Até) ────────────────────────────────────────────
@@ -1835,6 +1875,17 @@ async function loadGeral() {
     // Funis de tráfego/audiência
     const fMalu = aggFunil30(gvRows(tMalu, { investido:1, vendas:3, faturamento:4 }), false);
     const fHire = aggFunil30(gvRows(tHire, { investido:1, vendas:3, faturamento:4 }), false);
+
+    // Seguidores/CPS vêm da planilha "[HIRE] - Seguidores" (abas HIRE/MALU).
+    try {
+      const [segHireT, segMaluT] = await Promise.all([
+        gvizLoadFrom(SEG_SHEET_ID, 'sheet=HIRE'),
+        gvizLoadFrom(SEG_SHEET_ID, 'sheet=MALU'),
+      ]);
+      const sHire = aggSeg(segHireT), sMalu = aggSeg(segMaluT);
+      fHire.seguidores = sHire.seguidores; fHire.custo_seguidor = sHire.custo_seguidor;
+      fMalu.seguidores = sMalu.seguidores; fMalu.custo_seguidor = sMalu.custo_seguidor;
+    } catch(e){ console.warn('Seguidores indisponíveis:', e); }
     const fYt   = aggFunil30(gvRows(tYt,   { investido:2, vendas:3, faturamento:4 }), false);
     // Site (campanha): Date, Campanha, Investido, Leads, Vendas, Faturamento
     const fSite = aggFunil30(gvRows(tSite, { investido:2, leads:3, vendas:4, faturamento:5 }), true);
@@ -1968,6 +2019,11 @@ function funnelCardsHTML(cols, matrix, defs){
       audVal   = (conv != null) ? NUM(conv) : '—';
       const cpl = _safeDiv(f.investido, conv);
       custoVal = (cpl != null) ? BRL(cpl) : '—';
+    } else if (kind === 'social'){
+      const seg = (f.seguidores != null) ? f.seguidores : null;
+      audVal   = seg ? NUM(seg) : '—';
+      const cps = (f.custo_seguidor != null) ? f.custo_seguidor : _safeDiv(f.investido, seg);
+      custoVal = (cps != null) ? BRL(cps) : '—';
     }
     const budInput = (bud != null)
       ? bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
