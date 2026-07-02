@@ -979,8 +979,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
     <button class="hf-tab" data-tab="ebook7" onclick="setTab(this)">Ebook 7 Erros</button>
     <button class="hf-tab" data-tab="ebookRemoto" onclick="setTab(this)">Ebook Remoto</button>
-    <button class="hf-tab" data-tab="impHire" onclick="setTab(this)">Impulsionar Hire</button>
-    <button class="hf-tab" data-tab="impMalu" onclick="setTab(this)">Impulsionar Malu</button>
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)" style="display:none">E-books</button>
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)" style="display:none">Corredor</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
@@ -1034,8 +1032,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Abas novas (Ebooks isolados + Impulsionar) — conteúdo gerado via JS ── -->
   <div id="viewEbook7" style="display:none"></div>
   <div id="viewEbookRemoto" style="display:none"></div>
-  <div id="viewImpHire" style="display:none"></div>
-  <div id="viewImpMalu" style="display:none"></div>
 
   <!-- ── Corredor Polonês ── -->
   <div id="viewCorredor" style="display:none">
@@ -1742,8 +1738,6 @@ function setTab(btn) {
   document.getElementById('viewYoutube').style.display   = state.tab === 'youtube'   ? '' : 'none';
   document.getElementById('viewEbook7').style.display      = state.tab === 'ebook7'      ? '' : 'none';
   document.getElementById('viewEbookRemoto').style.display = state.tab === 'ebookRemoto' ? '' : 'none';
-  document.getElementById('viewImpHire').style.display     = state.tab === 'impHire'     ? '' : 'none';
-  document.getElementById('viewImpMalu').style.display     = state.tab === 'impMalu'     ? '' : 'none';
   loadCurrent();
 }
 
@@ -1755,8 +1749,6 @@ async function loadCurrent() {
   else if (state.tab === 'youtube')  loadYoutube();
   else if (state.tab === 'ebook7')      loadEbookDetail('ebook7');
   else if (state.tab === 'ebookRemoto') loadEbookDetail('ebookRemoto');
-  else if (state.tab === 'impHire')     loadImpulsionar('impHire');
-  else if (state.tab === 'impMalu')     loadImpulsionar('impMalu');
   else if (state.tab === 'audiencia') {
     // mesmos dados/cards da Geral, só os 4 funis de tráfego
     if (!_lastGeral) await loadGeral();   // popula _lastGeral
@@ -2974,9 +2966,7 @@ async function loadYoutube() {
 const ANALISES_SHEET_ID = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI';
 const ANALISES_TABS = {
   ebook7:      'Ebook 7 Erros',
-  ebookRemoto: 'Ebook Remoto',        // ← TROCAR pelo nome EXATO da aba do ebook remoto
-  impHire:     'Stract-Geral Hire',
-  impMalu:     'Stract-Geral Malu',
+  ebookRemoto: 'Ebook CM',            // nome real da aba na planilha
 };
 const _newCharts = {};
 
