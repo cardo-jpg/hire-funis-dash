@@ -1315,6 +1315,13 @@ function gvRows(table, map, dateIdx){
   return out;
 }
 
+// Índice da coluna "Em real" (investimento já convertido p/ BRL). Fallback: idx informado.
+function _emRealIdx(table, fallbackIdx){
+  const cols = (table && table.cols) || [];
+  const i = cols.findIndex(c => ((c && c.label) || '').trim().toLowerCase() === 'em real');
+  return i >= 0 ? i : fallbackIdx;
+}
+
 // ── Seguidores (planilha separada "[HIRE] - Seguidores", abas HIRE/MALU) ───────
 // A planilha de funis não tem a coluna Seguidores preenchida; o dado vem daqui.
 const SEG_SHEET_ID = '1zFQVcdCqczs5eO9cB8eyii4Tf-kV3qkuYbN-sEB5oBA';
@@ -1869,11 +1876,9 @@ async function loadGeral() {
       gvizLoad(GIDS.site_camp),
     ]);
 
-    const EBMAP = { investido:2, leads:3, vendas:4, faturamento:5 };
-
-    // Funis de tráfego/audiência
-    const fMalu = aggFunil30(gvRows(tMalu, { investido:1, vendas:3, faturamento:4 }), false);
-    const fHire = aggFunil30(gvRows(tHire, { investido:1, vendas:3, faturamento:4 }), false);
+    // Funis de tráfego/audiência — investido = coluna "Em real" (BRL) de cada aba
+    const fMalu = aggFunil30(gvRows(tMalu, { investido:_emRealIdx(tMalu,1), vendas:3, faturamento:4 }), false);
+    const fHire = aggFunil30(gvRows(tHire, { investido:_emRealIdx(tHire,1), vendas:3, faturamento:4 }), false);
 
     // Seguidores/CPS vêm da planilha "[HIRE] - Seguidores" (abas HIRE/MALU).
     try {
@@ -1881,24 +1886,21 @@ async function loadGeral() {
         gvizLoadFrom(SEG_SHEET_ID, 'sheet=HIRE'),
         gvizLoadFrom(SEG_SHEET_ID, 'sheet=MALU'),
       ]);
-      // Investido, Seguidores e CPS dos funis IG vêm DIRETO da planilha de Seguidores.
-      // Vendas/Faturamento continuam da planilha de funis (a de Seguidores não os tem);
-      // ROAS é recalculado com o investido de Seguidores para manter o card coerente.
+      // Investido vem da coluna "Em real" da planilha de funis. Seguidores vêm da planilha
+      // de Seguidores; CPS = investido "Em real" ÷ seguidores (coerente com o card).
       for (const [f, s] of [[fHire, aggSeg(segHireT)], [fMalu, aggSeg(segMaluT)]]){
-        f.investido      = s.investido;
         f.seguidores     = s.seguidores;
-        f.custo_seguidor = s.custo_seguidor;
-        f.roas           = _safeDiv(f.faturamento, s.investido);
+        f.custo_seguidor = s.seguidores > 0 ? _safeDiv(f.investido, s.seguidores) : null;
       }
     } catch(e){ console.warn('Seguidores indisponíveis:', e); }
-    const fYt   = aggFunil30(gvRows(tYt,   { investido:2, vendas:3, faturamento:4 }), false);
-    // Site (campanha): Date, Campanha, Investido, Leads, Vendas, Faturamento
-    const fSite = aggFunil30(gvRows(tSite, { investido:2, leads:3, vendas:4, faturamento:5 }), true);
-    // Ebooks: Date, Campanha, Investido, Leads, Vendas, Faturamento
-    const f5    = aggFunil30(gvRows(t5,  EBMAP), true);
-    const f7    = aggFunil30(gvRows(t7,  EBMAP), true);
-    const fcr   = aggFunil30(gvRows(tcr, EBMAP), true);
-    const f10   = aggFunil30(gvRows(t10, EBMAP), true);
+    const fYt   = aggFunil30(gvRows(tYt,   { investido:_emRealIdx(tYt,2),   vendas:3, faturamento:4 }), false);
+    // Site (campanha): investido = "Em real" (idx 6), senão idx 2
+    const fSite = aggFunil30(gvRows(tSite, { investido:_emRealIdx(tSite,2), leads:3, vendas:4, faturamento:5 }), true);
+    // Ebooks: investido = "Em real" quando existir; senão a coluna de investimento (idx 2)
+    const f5    = aggFunil30(gvRows(t5,  { investido:_emRealIdx(t5,2),  leads:3, vendas:4, faturamento:5 }), true);
+    const f7    = aggFunil30(gvRows(t7,  { investido:_emRealIdx(t7,2),  leads:3, vendas:4, faturamento:5 }), true);
+    const fcr   = aggFunil30(gvRows(tcr, { investido:_emRealIdx(tcr,2), leads:3, vendas:4, faturamento:5 }), true);
+    const f10   = aggFunil30(gvRows(t10, { investido:_emRealIdx(t10,2), leads:3, vendas:4, faturamento:5 }), true);
 
     const funis = [
       ['IG Malu',                fMalu],
