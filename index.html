@@ -977,7 +977,11 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <div class="hf-tabs">
     <button class="hf-tab active" data-tab="geral" onclick="setTab(this)">Geral</button>
     <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
-    <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)">E-books</button>
+    <button class="hf-tab" data-tab="ebook7" onclick="setTab(this)">Ebook 7 Erros</button>
+    <button class="hf-tab" data-tab="ebookRemoto" onclick="setTab(this)">Ebook Remoto</button>
+    <button class="hf-tab" data-tab="impHire" onclick="setTab(this)">Impulsionar Hire</button>
+    <button class="hf-tab" data-tab="impMalu" onclick="setTab(this)">Impulsionar Malu</button>
+    <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)" style="display:none">E-books</button>
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)" style="display:none">Corredor</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
@@ -1026,6 +1030,12 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       </div>
     </div>
   </div><!-- /viewEbooks -->
+
+  <!-- ── Abas novas (Ebooks isolados + Impulsionar) — conteúdo gerado via JS ── -->
+  <div id="viewEbook7" style="display:none"></div>
+  <div id="viewEbookRemoto" style="display:none"></div>
+  <div id="viewImpHire" style="display:none"></div>
+  <div id="viewImpMalu" style="display:none"></div>
 
   <!-- ── Corredor Polonês ── -->
   <div id="viewCorredor" style="display:none">
@@ -1730,6 +1740,10 @@ function setTab(btn) {
   document.getElementById('viewCorredor').style.display  = state.tab === 'corredor'  ? '' : 'none';
   document.getElementById('viewSite').style.display      = state.tab === 'site'      ? '' : 'none';
   document.getElementById('viewYoutube').style.display   = state.tab === 'youtube'   ? '' : 'none';
+  document.getElementById('viewEbook7').style.display      = state.tab === 'ebook7'      ? '' : 'none';
+  document.getElementById('viewEbookRemoto').style.display = state.tab === 'ebookRemoto' ? '' : 'none';
+  document.getElementById('viewImpHire').style.display     = state.tab === 'impHire'     ? '' : 'none';
+  document.getElementById('viewImpMalu').style.display     = state.tab === 'impMalu'     ? '' : 'none';
   loadCurrent();
 }
 
@@ -1739,6 +1753,10 @@ async function loadCurrent() {
   else if (state.tab === 'corredor') loadCorredor();
   else if (state.tab === 'site')     loadSite();
   else if (state.tab === 'youtube')  loadYoutube();
+  else if (state.tab === 'ebook7')      loadEbookDetail('ebook7');
+  else if (state.tab === 'ebookRemoto') loadEbookDetail('ebookRemoto');
+  else if (state.tab === 'impHire')     loadImpulsionar('impHire');
+  else if (state.tab === 'impMalu')     loadImpulsionar('impMalu');
   else if (state.tab === 'audiencia') {
     // mesmos dados/cards da Geral, só os 4 funis de tráfego
     if (!_lastGeral) await loadGeral();   // popula _lastGeral
@@ -2950,6 +2968,157 @@ async function loadYoutube() {
     document.getElementById('ytVideosTbody').innerHTML = htmlV;
   }
 }
+
+/* ═══════════ ABAS NOVAS: Ebooks isolados + Impulsionar ═══════════
+   Fonte: planilha "[HIRE] - Analises". Investimento = coluna "Custo real". */
+const ANALISES_SHEET_ID = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI';
+const ANALISES_TABS = {
+  ebook7:      'Ebook 7 Erros',
+  ebookRemoto: 'Ebook Remoto',        // ← TROCAR pelo nome EXATO da aba do ebook remoto
+  impHire:     'Stract-Geral Hire',
+  impMalu:     'Stract-Geral Malu',
+};
+const _newCharts = {};
+
+const _esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const _brl = v => 'R$ ' + (isFinite(v)?v:0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const _num = v => (isFinite(v)?Math.round(v):0).toLocaleString('pt-BR');
+const _pct = x => (isFinite(x)?x*100:0).toFixed(2).replace('.',',') + '%';
+const _dmKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const _dmLabel = k => { const p=k.split('-'); return `${p[2]}/${p[1]}`; };
+
+function _labIdx(table, ...labels){
+  const cols=(table&&table.cols)||[];
+  for(const l of labels){ const t=l.trim().toLowerCase();
+    const i=cols.findIndex(c=>((c&&c.label)||'').trim().toLowerCase()===t); if(i>=0) return i; }
+  return -1;
+}
+function _cellNum(c){ return (c && typeof c.v==='number') ? c.v : _segNum(c); }
+
+// eixos padrão dos gráficos
+const _AX_COUNT = () => ({ position:'left', grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'rgba(255,255,255,.4)',font:{size:9}} });
+const _AX_MONEY = () => ({ position:'right', grid:{drawOnChartArea:false}, ticks:{color:'#f97316',font:{size:9},callback:v=>'R$'+(+v).toFixed(2).replace('.',',')} });
+const _AX_PCT   = () => ({ position:'right', grid:{drawOnChartArea:false}, ticks:{color:'#c2986a',font:{size:9},callback:v=>v+'%'} });
+function _mkNewChart(id, labels, datasets, extraScales){
+  const el=document.getElementById(id); if(!el) return;
+  if(_newCharts[id]) _newCharts[id].destroy();
+  const scales={ x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.4)',font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:12}} };
+  Object.assign(scales, extraScales||{});
+  _newCharts[id]=new Chart(el,{ data:{labels,datasets}, options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{position:'top',labels:{color:'rgba(255,255,255,.6)',font:{size:10},boxWidth:10}}, tooltip:{mode:'index',intersect:false} },
+    scales } });
+}
+
+// lê a aba filtrando pela janela de data global (mesma lógica das outras abas)
+async function _loadAnalisesRows(tab, idxMap){
+  const table=await gvizLoadFrom(ANALISES_SHEET_ID,'sheet='+encodeURIComponent(tab));
+  const dateI=_labIdx(table,'Date','Data');
+  const I={}; for(const k in idxMap){ I[k]=_labIdx(table, ...[].concat(idxMap[k])); }
+  const strKeys=['url','crit','pub','status'];
+  const rows=[];
+  for(const r of (table.rows||[])){
+    const c=r.c||[];
+    const d=_gvParseDate(c[dateI]&&c[dateI].v)||_segParseDate(c[dateI]&&c[dateI].v);
+    if(!d) continue;
+    const o={date:d};
+    for(const k in I){ const i=I[k]; if(i<0){o[k]=strKeys.includes(k)?'':0;continue;} o[k]=strKeys.includes(k)?_gvStr(c[i]):_cellNum(c[i]); }
+    rows.push(o);
+  }
+  const w=window30(rows);
+  return { rows:w.rows, resolved:I };
+}
+
+/* ── EBOOK detalhado ─────────────────────────────────────────── */
+async function loadEbookDetail(key){
+  const view=document.getElementById(key==='ebook7'?'viewEbook7':'viewEbookRemoto');
+  const tab=ANALISES_TABS[key];
+  view.innerHTML='<div style="padding:44px;text-align:center;color:rgba(255,255,255,.4)">Carregando…</div>';
+  let data;
+  try{ data=await _loadAnalisesRows(tab,{ inv:'Custo real', imp:['Impressoes','Impressões'], cli:'Cliques', leads:'Leads', pv:['Visualizacoes_LP','Visualizações_LP','Action Landing Page View'], crit:'Criativo', pub:['Publico','Público'], url:'URL' }); }
+  catch(e){ view.innerHTML='<div style="padding:44px;text-align:center;color:#f88">Erro ao carregar a aba "'+_esc(tab)+'": '+_esc(e.message)+'</div>'; return; }
+  if(data.resolved.crit<0 || data.resolved.inv<0){
+    view.innerHTML='<div style="padding:44px;text-align:center;color:#fc8;line-height:1.6">A aba <b>"'+_esc(tab)+'"</b> não foi encontrada com layout de ebook (colunas Criativo/Custo real).<br>Ajuste o nome em <code>ANALISES_TABS.'+key+'</code>.</div>'; return; }
+  renderEbookDetail(view, data.rows);
+}
+function renderEbookDetail(view, rows){
+  const S=(k)=>rows.reduce((s,r)=>s+(r[k]||0),0);
+  const tInv=S('inv'), tLeads=S('leads'), tCli=S('cli'), tPv=S('pv'), tImp=S('imp');
+  const kpis=[['Investimento',_brl(tInv)],['Leads',_num(tLeads)],['CPL',tLeads?_brl(tInv/tLeads):'—'],
+    ['Cliques no Link',_num(tCli)],['Page View',_num(tPv)],['Connect Rate',_pct(tCli?tPv/tCli:0)],['CTR',_pct(tImp?tCli/tImp:0)]];
+  const byDate={};
+  for(const r of rows){ const k=_dmKey(r.date); const o=byDate[k]=byDate[k]||{inv:0,leads:0,cli:0,pv:0,imp:0}; o.inv+=r.inv;o.leads+=r.leads;o.cli+=r.cli;o.pv+=r.pv;o.imp+=r.imp; }
+  const dk=Object.keys(byDate).sort(), lbl=dk.map(_dmLabel);
+  const dLeads=dk.map(d=>byDate[d].leads);
+  const dCpl=dk.map(d=>byDate[d].leads?+(byDate[d].inv/byDate[d].leads).toFixed(2):null);
+  const dConn=dk.map(d=>byDate[d].cli?+(byDate[d].pv/byDate[d].cli*100).toFixed(1):null);
+  const dCli=dk.map(d=>byDate[d].cli), dPv=dk.map(d=>byDate[d].pv);
+  const grp=(f)=>{ const m={}; for(const r of rows){ const k=f(r)||'—'; const o=m[k]=m[k]||{k,inv:0,imp:0,cli:0,leads:0,pv:0,url:''}; o.inv+=r.inv;o.imp+=r.imp;o.cli+=r.cli;o.leads+=r.leads;o.pv+=r.pv; if(r.url&&!o.url)o.url=r.url; } return Object.values(m).sort((a,b)=>b.inv-a.inv); };
+  const head=first=>`<tr><th>${first}</th><th class="num">Link</th><th class="num">CTR</th><th class="num">Cliques</th><th class="num">Page View</th><th class="num">Connect</th><th class="num">Leads</th><th class="num">Clk×Leads</th><th class="num">CPL</th><th class="num">Investido</th></tr>`;
+  const row=o=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.pv)}</td><td class="num">${_pct(o.cli?o.pv/o.cli:0)}</td><td class="num">${_num(o.leads)}</td><td class="num">${_pct(o.cli?o.leads/o.cli:0)}</td><td class="num">${o.leads?_brl(o.inv/o.leads):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
+  const empty='<tr><td colspan="10" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
+  const byCri=grp(r=>r.crit), byPub=grp(r=>r.pub);
+  view.innerHTML=
+    `<div class="hf-kpi-strip cols-7">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
+    `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="ebd_c1"></canvas></div></div>`+
+    `<div class="hf-chart-wrap"><div class="hf-chart-title">Connect Rate · Cliques · Page View · Leads</div><div class="hf-chart-canvas-wrap"><canvas id="ebd_c2"></canvas></div></div>`+
+    `<div class="hf-table-section"><div class="hf-table-label">Por Anúncio (Criativo)</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Criativo')}</thead><tbody>${byCri.map(row).join('')||empty}</tbody></table></div></div>`+
+    `<div class="hf-table-section"><div class="hf-table-label">Por Público</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Público')}</thead><tbody>${byPub.map(row).join('')||empty}</tbody></table></div></div>`;
+  _mkNewChart('ebd_c1', lbl,
+    [ {type:'bar',label:'Leads',data:dLeads,backgroundColor:'rgba(168,85,200,.55)',yAxisID:'y1'},
+      {type:'line',label:'CPL (R$)',data:dCpl,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,yAxisID:'y2'} ],
+    { y1:_AX_COUNT(), y2:_AX_MONEY() });
+  _mkNewChart('ebd_c2', lbl,
+    [ {type:'bar',label:'Connect Rate (%)',data:dConn,backgroundColor:'rgba(194,152,106,.5)',yAxisID:'y2'},
+      {type:'line',label:'Cliques',data:dCli,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'},
+      {type:'line',label:'Page View',data:dPv,borderColor:'#f472b6',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'},
+      {type:'line',label:'Leads',data:dLeads,borderColor:'#60a5fa',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'} ],
+    { y1:_AX_COUNT(), y2:Object.assign(_AX_PCT(),{position:'right'}) });
+}
+
+/* ── IMPULSIONAR (Hire / Malu) ───────────────────────────────── */
+async function loadImpulsionar(key){
+  const view=document.getElementById(key==='impHire'?'viewImpHire':'viewImpMalu');
+  const tab=ANALISES_TABS[key];
+  view.innerHTML='<div style="padding:44px;text-align:center;color:rgba(255,255,255,.4)">Carregando…</div>';
+  let data;
+  try{ data=await _loadAnalisesRows(tab,{ inv:'Custo real', comments:'Action Post Comments', engagement:'Action Post Engagement', save:'Action Post Save (Onsite Conversion)', clicks:'Action Link Clicks', imp:['Impressions','Impressoes'], v3s:'Action 3s Video Views', v50:'Video 50 Percent Watched Actions', v95:'Video 95 Percent Watched Actions', url:['Instagram Permalink URL','URL'], status:'Status' }); }
+  catch(e){ view.innerHTML='<div style="padding:44px;text-align:center;color:#f88">Erro ao carregar a aba "'+_esc(tab)+'": '+_esc(e.message)+'</div>'; return; }
+  renderImpulsionar(view, data.rows);
+}
+function renderImpulsionar(view, rows){
+  const S=(k)=>rows.reduce((s,r)=>s+(r[k]||0),0);
+  const tInv=S('inv'), tCom=S('comments'), t50=S('v50'), t95=S('v95'), tSave=S('save'), tClk=S('clicks');
+  const kpis=[['Investimento',_brl(tInv)],['Comentários',_num(tCom)],['Visualização 50%',_num(t50)],['Custo 50%',t50?_brl(tInv/t50):'—'],
+    ['Visualização 95%',_num(t95)],['Custo 95%',t95?_brl(tInv/t95):'—'],['Salvou',_num(tSave)],['Cliques no Link',_num(tClk)]];
+  const byDate={};
+  for(const r of rows){ const k=_dmKey(r.date); const o=byDate[k]=byDate[k]||{inv:0,v50:0,v95:0,save:0}; o.inv+=r.inv;o.v50+=r.v50;o.v95+=r.v95;o.save+=r.save; }
+  const dk=Object.keys(byDate).sort(), lbl=dk.map(_dmLabel);
+  const dInv=dk.map(d=>+byDate[d].inv.toFixed(2));
+  const dC50=dk.map(d=>byDate[d].v50?+(byDate[d].inv/byDate[d].v50).toFixed(2):null);
+  const dSave=dk.map(d=>byDate[d].save);
+  const dC95=dk.map(d=>byDate[d].v95?+(byDate[d].inv/byDate[d].v95).toFixed(2):null);
+  const grp=()=>{ const m={}; for(const r of rows){ const k=r.url||'—'; const o=m[k]=m[k]||{url:k,status:'',inv:0,engagement:0,save:0,comments:0,clicks:0,imp:0,v3s:0,v50:0}; if(r.status)o.status=r.status; o.inv+=r.inv;o.engagement+=r.engagement;o.save+=r.save;o.comments+=r.comments;o.clicks+=r.clicks;o.imp+=r.imp;o.v3s+=r.v3s;o.v50+=r.v50; } return Object.values(m).sort((a,b)=>b.inv-a.inv); };
+  const posts=grp();
+  const link=u=>u&&u!=='—'?`<a class="vid-link-btn" href="${_esc(u)}" target="_blank">🔗 post</a>`:'—';
+  const t1=posts.map(o=>`<tr><td class="num">${link(o.url)}</td><td class="num">${_esc(o.status)}</td><td class="num">${_brl(o.inv)}</td><td class="num">${_num(o.engagement)}</td><td class="num">${_num(o.save)}</td><td class="num">${_num(o.comments)}</td><td class="num">${_num(o.clicks)}</td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
+  const t2=posts.map(o=>`<tr><td class="num">${link(o.url)}</td><td class="num">${_esc(o.status)}</td><td class="num">${_num(o.imp)}</td><td class="num">${_pct(o.imp?o.v3s/o.imp:0)}</td><td class="num">${_pct(o.imp?o.v50/o.imp:0)}</td><td class="num">${_num(o.comments)}</td><td class="num">${_num(o.engagement)}</td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
+  view.innerHTML=
+    `<div class="hf-kpi-strip" style="grid-template-columns:repeat(8,1fr)">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
+    `<div class="hf-chart-wrap"><div class="hf-chart-title">Investimento por dia · Custo 50%</div><div class="hf-chart-canvas-wrap"><canvas id="imp_c1"></canvas></div></div>`+
+    `<div class="hf-chart-wrap"><div class="hf-chart-title">Salvamentos por dia · Custo 95%</div><div class="hf-chart-canvas-wrap"><canvas id="imp_c2"></canvas></div></div>`+
+    `<div class="hf-table-section"><div class="hf-table-label">Por Post</div><div class="hf-table-wrap"><table class="hf-table"><thead><tr><th class="num">Link</th><th class="num">Status</th><th class="num">Investimento</th><th class="num">Engajamento</th><th class="num">Salvou</th><th class="num">Comentários</th><th class="num">Cliques no Link</th></tr></thead><tbody>${t1}</tbody></table></div></div>`+
+    `<div class="hf-table-section"><div class="hf-table-label">Vídeo / Alcance por Post</div><div class="hf-table-wrap"><table class="hf-table"><thead><tr><th class="num">Link</th><th class="num">Status</th><th class="num">Impressões</th><th class="num">Hook Rate</th><th class="num">Taxa Visualização</th><th class="num">Comentários</th><th class="num">Engajamento</th></tr></thead><tbody>${t2}</tbody></table></div></div>`;
+  _mkNewChart('imp_c1', lbl,
+    [ {type:'bar',label:'Investimento (R$)',data:dInv,backgroundColor:'rgba(168,85,200,.55)',yAxisID:'y1'},
+      {type:'line',label:'Custo 50% (R$)',data:dC50,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,yAxisID:'y2'} ],
+    { y1:_AX_COUNT(), y2:_AX_MONEY() });
+  _mkNewChart('imp_c2', lbl,
+    [ {type:'bar',label:'Salvamentos',data:dSave,backgroundColor:'rgba(194,152,106,.5)',yAxisID:'y1'},
+      {type:'line',label:'Custo 95% (R$)',data:dC95,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,yAxisID:'y2'} ],
+    { y1:_AX_COUNT(), y2:_AX_MONEY() });
+}
+
 
 // ── Atualizar: limpa o cache gviz e recarrega a aba atual ao vivo ─────────────
 function refreshLive(){
