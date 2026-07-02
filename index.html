@@ -496,6 +496,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --purple:       #7b2d8b;
@@ -2736,16 +2737,48 @@ let _ytCostChart = null;
 
 function PCT(v) { return v == null ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%'; }
 
-async function ytDisconnect() {
-  // standalone: sem servidor — no-op
-  document.getElementById('ytSubLocked').style.display    = 'flex';
-  document.getElementById('ytSubChartWrap').style.display = 'none';
-  if (_ytSubChart) { _ytSubChart.destroy(); _ytSubChart = null; }
+/* ═══ YouTube Analytics — OAuth client-side (Google Identity Services) ═══ */
+const YT_CLIENT_ID = '';   // ← COLE aqui o OAuth Client ID (Web) do Google Cloud
+let _ytTokenClient = null, _ytToken = null;
+function _ytFmtDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function ytAuth(){
+  if (!YT_CLIENT_ID){ alert('Falta configurar o YT_CLIENT_ID (OAuth Client do Google Cloud). Me envie o Client ID que eu ligo.'); return; }
+  if (!(window.google && google.accounts && google.accounts.oauth2)){ alert('Carregando a biblioteca do Google… tente de novo em alguns segundos.'); return; }
+  if (!_ytTokenClient){
+    _ytTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: YT_CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
+      callback: (resp) => {
+        if (resp && resp.access_token){ _ytToken = resp.access_token; try{ localStorage.setItem('yt_connected','1'); }catch(e){} loadYoutube(); }
+        else { alert('Não foi possível conectar ao YouTube.'); }
+      },
+    });
+  }
+  _ytTokenClient.requestAccessToken({ prompt: _ytToken ? '' : 'consent' });
 }
 
-async function ytAuth() {
-  // standalone: sem servidor — autenticação YouTube indisponível
-  alert('Conexão com o YouTube indisponível nesta versão estática (offline).');
+async function ytDisconnect(){
+  if (_ytToken && window.google && google.accounts && google.accounts.oauth2){ try{ google.accounts.oauth2.revoke(_ytToken); }catch(e){} }
+  _ytToken = null;
+  try{ localStorage.removeItem('yt_connected'); }catch(e){}
+  document.getElementById('ytSubLocked').style.display    = 'flex';
+  document.getElementById('ytSubChartWrap').style.display = 'none';
+  if (_ytSubChart){ _ytSubChart.destroy(); _ytSubChart = null; }
+}
+
+// Inscritos ganhos/perdidos + views + watch time por dia (YouTube Analytics API v2).
+async function fetchYtAnalytics(startDate, endDate){
+  const q = new URLSearchParams({ ids:'channel==MINE', startDate, endDate,
+    metrics:'subscribersGained,subscribersLost,views,estimatedMinutesWatched', dimensions:'day', sort:'day' });
+  const r = await fetch('https://youtubeanalytics.googleapis.com/v2/reports?' + q.toString(), { headers:{ Authorization:'Bearer ' + _ytToken } });
+  if (r.status === 401 || r.status === 403){ _ytToken = null; throw new Error('auth'); }
+  if (!r.ok) throw new Error('Analytics ' + r.status);
+  const j = await r.json();
+  const rows = j.rows || [];
+  const serie = rows.map(x => ({ date:x[0], gained:x[1]||0, lost:x[2]||0, views:x[3]||0, mins:x[4]||0 }));
+  const sum = i => rows.reduce((a,x)=>a+(x[i]||0),0);
+  return { authorized:true, serie_diaria:serie, totalGained:sum(1), totalLost:sum(2), totalViews:sum(3), totalMins:sum(4) };
 }
 
 // Constrói o objeto YouTube. A aba só tem Date, Campanha, Investido, Vendas, Faturamento
@@ -2804,6 +2837,18 @@ async function loadYoutube() {
     return;
   }
   if (btn) btn.classList.remove('loading');
+
+  // YouTube Analytics (se conectado): puxa inscritos/dia e atualiza KPIs
+  if (_ytToken){
+    try{
+      const _end   = state.dateEnd   || _ytFmtDate(new Date());
+      const _start = state.dateStart || _ytFmtDate(new Date(Date.now() - 29*864e5));
+      const a = await fetchYtAnalytics(_start, _end);
+      d.analytics = a;
+      d.kpis.inscritos = a.totalGained;
+      d.kpis.custo_inscrito = a.totalGained ? (d.kpis.investido / a.totalGained) : null;
+    }catch(e){ /* token expirou/negado → mantém bloqueado */ }
+  }
 
   const k = d.kpis || {};
   [
