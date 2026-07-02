@@ -1324,7 +1324,7 @@ function gvRows(table, map, dateIdx){
 // Índice da coluna "Em real" (investimento já convertido p/ BRL). Fallback: idx informado.
 function _emRealIdx(table, fallbackIdx){
   const cols = (table && table.cols) || [];
-  const i = cols.findIndex(c => ((c && c.label) || '').trim().toLowerCase() === 'em real');
+  const i = cols.findIndex(c => { const l = ((c && c.label) || '').trim().toLowerCase(); return l === 'em real' || l === 'custo real'; });
   return i >= 0 ? i : fallbackIdx;
 }
 
