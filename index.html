@@ -1870,9 +1870,9 @@ async function loadGeral() {
 
   try {
     _resetRange();
-    const [tMalu, tHire, tYt, t5, t7, tcr, tSite] = await Promise.all([
+    const [tMalu, tHire, tYt, t7, tcr, tSite] = await Promise.all([
       gvizLoad(GIDS.ig_malu), gvizLoad(GIDS.ig_hire), gvizLoad(GIDS.youtube),
-      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr),
+      gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr),
       gvizLoad(GIDS.site_camp),
     ]);
 
@@ -1897,7 +1897,6 @@ async function loadGeral() {
     // Site (campanha): investido = "Em real" (idx 6), senão idx 2
     const fSite = aggFunil30(gvRows(tSite, { investido:_emRealIdx(tSite,2), leads:3, vendas:4, faturamento:5 }), true);
     // Ebooks: investido = "Em real" quando existir; senão a coluna de investimento (idx 2)
-    const f5    = aggFunil30(gvRows(t5,  { investido:_emRealIdx(t5,2),  leads:3, vendas:4, faturamento:5 }), true);
     const f7    = aggFunil30(gvRows(t7,  { investido:_emRealIdx(t7,2),  leads:3, vendas:4, faturamento:5 }), true);
     const fcr   = aggFunil30(gvRows(tcr, { investido:_emRealIdx(tcr,2), leads:3, vendas:4, faturamento:5 }), true);
 
@@ -1905,7 +1904,6 @@ async function loadGeral() {
       ['IG Malu',                fMalu],
       ['IG Hire',                fHire],
       ['YouTube',                fYt],
-      ['Ebook 5 Oportunidades',  f5],
       ['Ebook 7 Erros',          f7],
       ['Ebook Carreira Remota',  fcr],
       ['Site',                   fSite],
@@ -1914,7 +1912,7 @@ async function loadGeral() {
     // Colunas da Geral (todos os funis: 4 de tráfego + 4 ebooks)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, youtube: fYt, site: fSite,
-      eb_5op: f5, eb_7erros: f7, eb_cr: fcr,
+      eb_7erros: f7, eb_cr: fcr,
     };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
@@ -2028,13 +2026,12 @@ const DEFS_ALL = [
   ['ig_hire',  '📸', 'IG Hire',            'Instagram Hire Brazil',             'Novos Seguidores', 'Custo por Seguidor', 'social'],
   ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
-  ['eb_5op',   '📘', 'Ebook 5 Oportunidades', 'Cadastro · Captação',           'Leads',            'Custo por Lead',     'ebook'],
   ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
   ['eb_cr',    '📗', 'Ebook Carreira Remota', 'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
 ];
 // Audiência = só os 4 funis de tráfego (sem ebooks)
 const DEFS_AUD = DEFS_ALL.filter(d => ['ig_malu','ig_hire','youtube','site'].includes(d[0]));
-const DEFS_EB  = DEFS_ALL.filter(d => ['eb_5op','eb_7erros','eb_cr'].includes(d[0]));
+const DEFS_EB  = DEFS_ALL.filter(d => ['eb_7erros','eb_cr'].includes(d[0]));
 
 // Monta o HTML dos cards de funil a partir das defs informadas.
 function funnelCardsHTML(cols, matrix, defs){
@@ -2271,15 +2268,14 @@ async function loadEbooks() {
 
   try {
     _resetRange();
-    const [t5, t7, tcr] = await Promise.all([
-      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr),
+    const [t7, tcr] = await Promise.all([
+      gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr),
     ]);
     const ebMap = t => ({ investido:_emRealIdx(t,2), leads:3, vendas:4, faturamento:5 });
-    const eb_5op    = aggEbook30(gvRows(t5,  ebMap(t5)));
     const eb_7erros = aggEbook30(gvRows(t7,  ebMap(t7)));
     const eb_cr     = aggEbook30(gvRows(tcr, ebMap(tcr)));
 
-    const all = [eb_5op, eb_7erros, eb_cr];
+    const all = [eb_7erros, eb_cr];
     const inv = all.reduce((a,e)=>a+e.investido,0);
     const fat = all.reduce((a,e)=>a+e.faturamento,0);
     const vend = all.reduce((a,e)=>a+e.vendas,0);
@@ -2293,7 +2289,7 @@ async function loadEbooks() {
     _syncBudgetMonthFromRange();
     renderEbooks({
       somatorio,
-      ebooks: { eb_5op, eb_7erros, eb_cr },
+      ebooks: { eb_7erros, eb_cr },
       budgets: _budgetMatrix,
     });
     updateRangeLabel();
@@ -2326,7 +2322,6 @@ function renderEbooks(d) {
 
   const eb = d.ebooks || {};
   const MAP = [
-    ['eb5op',   eb.eb_5op],
     ['eb7erros', eb.eb_7erros],
     ['ebcr',    eb.eb_cr],
   ];
