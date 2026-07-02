@@ -3029,9 +3029,9 @@ async function loadEbookDetail(key){
   catch(e){ view.innerHTML='<div style="padding:44px;text-align:center;color:#f88">Erro ao carregar a aba "'+_esc(tab)+'": '+_esc(e.message)+'</div>'; return; }
   if(data.resolved.crit<0 || data.resolved.inv<0){
     view.innerHTML='<div style="padding:44px;text-align:center;color:#fc8;line-height:1.6">A aba <b>"'+_esc(tab)+'"</b> não foi encontrada com layout de ebook (colunas Criativo/Custo real).<br>Ajuste o nome em <code>ANALISES_TABS.'+key+'</code>.</div>'; return; }
-  renderEbookDetail(view, data.rows);
+  renderEbookDetail(view, data.rows, key);
 }
-function renderEbookDetail(view, rows){
+function renderEbookDetail(view, rows, pfx){
   const S=(k)=>rows.reduce((s,r)=>s+(r[k]||0),0);
   const tInv=S('inv'), tLeads=S('leads'), tCli=S('cli'), tPv=S('pv'), tImp=S('imp');
   const kpis=[['Investimento',_brl(tInv)],['Leads',_num(tLeads)],['CPL',tLeads?_brl(tInv/tLeads):'—'],
@@ -3050,16 +3050,16 @@ function renderEbookDetail(view, rows){
   const byCri=grp(r=>r.crit), byPub=grp(r=>r.pub);
   view.innerHTML=
     `<div class="hf-kpi-strip cols-7">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
-    `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="ebd_c1"></canvas></div></div>`+
-    `<div class="hf-chart-wrap"><div class="hf-chart-title">Connect Rate · Cliques · Page View · Leads</div><div class="hf-chart-canvas-wrap"><canvas id="ebd_c2"></canvas></div></div>`+
+    `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc1"></canvas></div></div>`+
+    `<div class="hf-chart-wrap"><div class="hf-chart-title">Connect Rate · Cliques · Page View · Leads</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc2"></canvas></div></div>`+
     `<div class="hf-table-section"><div class="hf-table-label">Por Anúncio (Criativo)</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Criativo')}</thead><tbody>${byCri.map(row).join('')||empty}</tbody></table></div></div>`+
     `<div class="hf-table-section"><div class="hf-table-label">Por Público</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Público')}</thead><tbody>${byPub.map(row).join('')||empty}</tbody></table></div></div>`;
-  _mkNewChart('ebd_c1', lbl,
-    [ {type:'bar',label:'Leads',data:dLeads,backgroundColor:'rgba(168,85,200,.55)',yAxisID:'y1'},
+  _mkNewChart(pfx+'_ebc1', lbl,
+    [ {type:'bar',label:'Leads',data:dLeads,backgroundColor:'rgba(168,85,200,.55)',maxBarThickness:44,yAxisID:'y1'},
       {type:'line',label:'CPL (R$)',data:dCpl,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,yAxisID:'y2'} ],
     { y1:_AX_COUNT(), y2:_AX_MONEY() });
-  _mkNewChart('ebd_c2', lbl,
-    [ {type:'bar',label:'Connect Rate (%)',data:dConn,backgroundColor:'rgba(194,152,106,.5)',yAxisID:'y2'},
+  _mkNewChart(pfx+'_ebc2', lbl,
+    [ {type:'bar',label:'Connect Rate (%)',data:dConn,backgroundColor:'rgba(194,152,106,.5)',maxBarThickness:44,yAxisID:'y2'},
       {type:'line',label:'Cliques',data:dCli,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'},
       {type:'line',label:'Page View',data:dPv,borderColor:'#f472b6',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'},
       {type:'line',label:'Leads',data:dLeads,borderColor:'#60a5fa',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'} ],
