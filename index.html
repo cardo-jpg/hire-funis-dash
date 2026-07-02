@@ -1870,9 +1870,9 @@ async function loadGeral() {
 
   try {
     _resetRange();
-    const [tMalu, tHire, tYt, t5, t7, tcr, t10, tSite] = await Promise.all([
+    const [tMalu, tHire, tYt, t5, t7, tcr, tSite] = await Promise.all([
       gvizLoad(GIDS.ig_malu), gvizLoad(GIDS.ig_hire), gvizLoad(GIDS.youtube),
-      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr), gvizLoad(GIDS.eb_10emp),
+      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr),
       gvizLoad(GIDS.site_camp),
     ]);
 
@@ -1900,7 +1900,6 @@ async function loadGeral() {
     const f5    = aggFunil30(gvRows(t5,  { investido:_emRealIdx(t5,2),  leads:3, vendas:4, faturamento:5 }), true);
     const f7    = aggFunil30(gvRows(t7,  { investido:_emRealIdx(t7,2),  leads:3, vendas:4, faturamento:5 }), true);
     const fcr   = aggFunil30(gvRows(tcr, { investido:_emRealIdx(tcr,2), leads:3, vendas:4, faturamento:5 }), true);
-    const f10   = aggFunil30(gvRows(t10, { investido:_emRealIdx(t10,2), leads:3, vendas:4, faturamento:5 }), true);
 
     const funis = [
       ['IG Malu',                fMalu],
@@ -1909,14 +1908,13 @@ async function loadGeral() {
       ['Ebook 5 Oportunidades',  f5],
       ['Ebook 7 Erros',          f7],
       ['Ebook Carreira Remota',  fcr],
-      ['Ebook 10 Empresas',      f10],
       ['Site',                   fSite],
     ];
 
     // Colunas da Geral (todos os funis: 4 de tráfego + 4 ebooks)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, youtube: fYt, site: fSite,
-      eb_5op: f5, eb_7erros: f7, eb_cr: fcr, eb_10emp: f10,
+      eb_5op: f5, eb_7erros: f7, eb_cr: fcr,
     };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
@@ -2033,11 +2031,10 @@ const DEFS_ALL = [
   ['eb_5op',   '📘', 'Ebook 5 Oportunidades', 'Cadastro · Captação',           'Leads',            'Custo por Lead',     'ebook'],
   ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
   ['eb_cr',    '📗', 'Ebook Carreira Remota', 'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
-  ['eb_10emp', '📙', 'Ebook 10 Empresas',     'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
 ];
 // Audiência = só os 4 funis de tráfego (sem ebooks)
 const DEFS_AUD = DEFS_ALL.filter(d => ['ig_malu','ig_hire','youtube','site'].includes(d[0]));
-const DEFS_EB  = DEFS_ALL.filter(d => ['eb_5op','eb_7erros','eb_cr','eb_10emp'].includes(d[0]));
+const DEFS_EB  = DEFS_ALL.filter(d => ['eb_5op','eb_7erros','eb_cr'].includes(d[0]));
 
 // Monta o HTML dos cards de funil a partir das defs informadas.
 function funnelCardsHTML(cols, matrix, defs){
@@ -2144,10 +2141,10 @@ async function loadAudiencia() {
       gvizLoad(GIDS.ig_malu), gvizLoad(GIDS.ig_hire), gvizLoad(GIDS.youtube),
     ]);
 
-    const malu = aggChannel30(gvRows(tMalu, { investido:1, seguidores:{i:2,str:false}, vendas:3, faturamento:4 }));
-    const hire = aggChannel30(gvRows(tHire, { investido:1, seguidores:{i:2,str:false}, vendas:3, faturamento:4 }));
+    const malu = aggChannel30(gvRows(tMalu, { investido:_emRealIdx(tMalu,1), seguidores:{i:2,str:false}, vendas:3, faturamento:4 }));
+    const hire = aggChannel30(gvRows(tHire, { investido:_emRealIdx(tHire,1), seguidores:{i:2,str:false}, vendas:3, faturamento:4 }));
     // YouTube: Date, Campanha, Investido, Vendas, Faturamento (sem seguidores)
-    const yt   = aggChannel30(gvRows(tYt,   { investido:2, vendas:3, faturamento:4 }));
+    const yt   = aggChannel30(gvRows(tYt,   { investido:_emRealIdx(tYt,2), vendas:3, faturamento:4 }));
     yt.seguidores = null; yt.custo_seguidor = null; yt.inscritos = null; yt.custo_inscrito = null;
 
     // Somatório do funil (canais com vendas/faturamento): malu + hire + youtube
@@ -2274,16 +2271,15 @@ async function loadEbooks() {
 
   try {
     _resetRange();
-    const [t5, t7, tcr, t10] = await Promise.all([
-      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr), gvizLoad(GIDS.eb_10emp),
+    const [t5, t7, tcr] = await Promise.all([
+      gvizLoad(GIDS.eb_5op), gvizLoad(GIDS.eb_7erros), gvizLoad(GIDS.eb_cr),
     ]);
-    const EBMAP = { investido:2, leads:3, vendas:4, faturamento:5 };
-    const eb_5op    = aggEbook30(gvRows(t5,  EBMAP));
-    const eb_7erros = aggEbook30(gvRows(t7,  EBMAP));
-    const eb_cr     = aggEbook30(gvRows(tcr, EBMAP));
-    const eb_10emp  = aggEbook30(gvRows(t10, EBMAP));
+    const ebMap = t => ({ investido:_emRealIdx(t,2), leads:3, vendas:4, faturamento:5 });
+    const eb_5op    = aggEbook30(gvRows(t5,  ebMap(t5)));
+    const eb_7erros = aggEbook30(gvRows(t7,  ebMap(t7)));
+    const eb_cr     = aggEbook30(gvRows(tcr, ebMap(tcr)));
 
-    const all = [eb_5op, eb_7erros, eb_cr, eb_10emp];
+    const all = [eb_5op, eb_7erros, eb_cr];
     const inv = all.reduce((a,e)=>a+e.investido,0);
     const fat = all.reduce((a,e)=>a+e.faturamento,0);
     const vend = all.reduce((a,e)=>a+e.vendas,0);
@@ -2297,7 +2293,7 @@ async function loadEbooks() {
     _syncBudgetMonthFromRange();
     renderEbooks({
       somatorio,
-      ebooks: { eb_5op, eb_7erros, eb_cr, eb_10emp },
+      ebooks: { eb_5op, eb_7erros, eb_cr },
       budgets: _budgetMatrix,
     });
     updateRangeLabel();
@@ -2333,7 +2329,6 @@ function renderEbooks(d) {
     ['eb5op',   eb.eb_5op],
     ['eb7erros', eb.eb_7erros],
     ['ebcr',    eb.eb_cr],
-    ['eb10emp', eb.eb_10emp],
   ];
   MAP.forEach(([pfx, ch]) => {
     if (!ch) return;
@@ -2535,7 +2530,7 @@ function _isoDM(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart
 function buildSiteData(tKw, tCamp){
   _resetRange();
   // Palavras-chave: Data, Palavras-chave, Investido, Impressões, Cliques, Leads
-  const kwRows = gvRows(tKw, { kw:{i:1,str:true}, investido:2, impressoes:3, cliques:4, leads:5 });
+  const kwRows = gvRows(tKw, { kw:{i:1,str:true}, investido:_emRealIdx(tKw,2), impressoes:3, cliques:4, leads:5 });
   const wKw = window30(kwRows); _trackRange(wKw);
 
   // KPIs (janela). "Mensagens" = Leads (não há coluna de conversão/mensagem própria).
@@ -2579,7 +2574,7 @@ function buildSiteData(tKw, tCamp){
   // Campanhas: Date, Campanha, Investido, Leads, Vendas, Faturamento
   let campanhas = [];
   if (tCamp){
-    const cRows = gvRows(tCamp, { campanha:{i:1,str:true}, investido:2, leads:3, vendas:4, faturamento:5 });
+    const cRows = gvRows(tCamp, { campanha:{i:1,str:true}, investido:_emRealIdx(tCamp,2), leads:3, vendas:4, faturamento:5 });
     const wC = window30(cRows); _trackRange(wC);
     const byC = {};
     for (const r of wC.rows){
@@ -2752,7 +2747,7 @@ async function ytAuth() {
 // (SEM inscritos/impressões/cliques). Métricas de inscritos ficam honestamente "—".
 function buildYoutubeData(tYt){
   _resetRange();
-  const rows = gvRows(tYt, { campanha:{i:1,str:true}, investido:2, vendas:3, faturamento:4 });
+  const rows = gvRows(tYt, { campanha:{i:1,str:true}, investido:_emRealIdx(tYt,2), vendas:3, faturamento:4 });
   const w = window30(rows); _trackRange(w);
   const inv = gvSum(w.rows, 'investido');
   const kpis = {
