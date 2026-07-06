@@ -976,8 +976,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   <!-- Tabs -->
   <div class="hf-tabs">
-    <button class="hf-tab active" data-tab="panorama" onclick="setTab(this)">📋 Panorama</button>
-    <button class="hf-tab" data-tab="geral" onclick="setTab(this)">Geral</button>
+    <button class="hf-tab active" data-tab="geral" onclick="setTab(this)">Geral</button>
     <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
     <button class="hf-tab" data-tab="ebook7" onclick="setTab(this)">Ebook 7 Erros</button>
     <button class="hf-tab" data-tab="ebookRemoto" onclick="setTab(this)">Ebook Remoto</button>
@@ -985,91 +984,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)" style="display:none">Corredor</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
-  </div>
-
-  <!-- ── Panorama (resumo executivo p/ reunião) ── -->
-  <div id="viewPanorama" style="display:none">
-    <style>
-      .pano-wrap{max-width:1180px;margin:0 auto;}
-      .pano-h{font-size:1.4rem;font-weight:800;color:#fff;margin:4px 0 2px;}
-      .pano-sub{color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:14px;}
-      .pano-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:20px;}
-      .pano-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
-      @media(max-width:840px){.pano-grid{grid-template-columns:1fr;}}
-      .pcard{background:linear-gradient(160deg,#1a1526,#130f1c);border:1px solid rgba(123,45,139,.28);border-left:4px solid #888;border-radius:14px;padding:17px 20px;}
-      .pcard .ph{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
-      .pcard .pic{font-size:1.25rem;}
-      .pcard .pt{font-size:.98rem;font-weight:800;color:#fff;flex:1;}
-      .pbadge{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 10px;border-radius:20px;white-space:nowrap;border:1px solid;}
-      .ptxt{font-size:.82rem;line-height:1.55;color:rgba(255,255,255,.72);margin-bottom:10px;}
-      .pnums{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
-      .pnum{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:6px 12px;}
-      .pnum b{display:block;font-size:1rem;color:#fff;font-weight:800;line-height:1.2;}
-      .pnum span{font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.42);}
-      .pnext{font-size:.75rem;border-radius:8px;padding:8px 11px;line-height:1.5;}
-      .s-ok{border-left-color:#22c55e;} .s-ok .pbadge{background:rgba(34,197,94,.14);color:#4ade80;border-color:rgba(34,197,94,.4);} .s-ok .pnext{background:rgba(34,197,94,.08);color:#8ef0b0;}
-      .s-warn{border-left-color:#eab308;} .s-warn .pbadge{background:rgba(234,179,8,.14);color:#facc15;border-color:rgba(234,179,8,.4);} .s-warn .pnext{background:rgba(234,179,8,.08);color:#f5e07a;}
-      .s-bad{border-left-color:#ef4444;} .s-bad .pbadge{background:rgba(239,68,68,.14);color:#f87171;border-color:rgba(239,68,68,.4);} .s-bad .pnext{background:rgba(239,68,68,.08);color:#fca5a5;}
-      .s-pause{border-left-color:#a855c8;} .s-pause .pbadge{background:rgba(168,85,200,.16);color:#c88ee0;border-color:rgba(168,85,200,.4);} .s-pause .pnext{background:rgba(168,85,200,.1);color:#d6b3e8;}
-      .pask{background:linear-gradient(160deg,#241729,#191220);border:1px solid rgba(255,90,31,.35);border-radius:14px;padding:16px 22px;margin-top:18px;}
-      .pask h3{font-size:.95rem;color:#ff8a5c;margin-bottom:8px;font-weight:800;}
-      .pask ul{margin:0;padding-left:18px;} .pask li{color:rgba(255,255,255,.78);font-size:.83rem;line-height:1.7;}
-    </style>
-    <div class="pano-wrap">
-      <div class="pano-h">📋 Panorama Geral · Hire Brazil</div>
-      <div class="pano-sub">Status por frente — o que rodou, onde estamos e o que precisamos decidir juntos.</div>
-      <div class="pano-legend"><span>🟢 indo bem</span><span>🟡 atenção</span><span>🔴 travado / reavaliar</span><span>⏸️ pausado / pivô</span></div>
-      <div class="pano-grid">
-
-        <div class="pcard s-warn">
-          <div class="ph"><span class="pic">📱</span><span class="pt">Seguidores · Malu</span><span class="pbadge">Testando público</span></div>
-          <div class="ptxt">Começou forte e depois <b>perdeu ritmo</b>. Estamos rodando <b>variações de público</b> pra reencontrar a captação eficiente.</div>
-          <div class="pnext">▸ Próximo passo: reforçar o impulsionamento com <b>mais posts</b>.</div>
-        </div>
-
-        <div class="pcard s-pause">
-          <div class="ph"><span class="pic">📸</span><span class="pt">Seguidores · IG Hire</span><span class="pbadge">Pausado → pivô nativo</span></div>
-          <div class="ptxt">Captou bem na <b>1ª semana</b> e depois <b>zerou</b>. Abrimos suporte na Meta (indicaram possível instabilidade); testamos mais dias, reduzimos posts e aumentamos verba conforme orientação — <b>sem sucesso</b>.</div>
-          <div class="pnext">▸ Decisão: pausamos tudo e subimos uma <b>campanha nativa</b> — outro formato, que também entrega resultado.</div>
-        </div>
-
-        <div class="pcard s-ok">
-          <div class="ph"><span class="pic">🎥</span><span class="pt">YouTube · Malu</span><span class="pbadge">Ótimo custo · 🔑 acesso</span></div>
-          <div class="pnums"><div class="pnum"><b>1.015</b><span>inscritos · 01–06/07</span></div><div class="pnum"><b>R$ 0,36</b><span>custo / inscrito</span></div></div>
-          <div class="ptxt">Performance <b>muito boa</b>.</div>
-          <div class="pnext">▸ Pendência: <b>acesso ao canal</b> (pegar na reunião) pra conectar o Analytics na dashboard.</div>
-        </div>
-
-        <div class="pcard s-bad">
-          <div class="ph"><span class="pic">🌐</span><span class="pt">Site · Google Ads</span><span class="pbadge">Reavaliar</span></div>
-          <div class="pnums"><div class="pnum"><b>~R$ 60</b><span>investido</span></div><div class="pnum"><b>0</b><span>leads</span></div></div>
-          <div class="ptxt">Estamos <b>perdendo muitos leilões por orçamento</b>. Hoje rodando só as palavras <b>HIRE</b> e <b>HIRE Internacional</b> — na campanha antiga tínhamos bem mais.</div>
-          <div class="pnext">▸ Decidir: (1) mantém ativo? (2) reabrir o leque de palavras-chave? (3) qual direcionamento / verba?</div>
-        </div>
-
-        <div class="pcard s-warn">
-          <div class="ph"><span class="pic">📕</span><span class="pt">Ebook · 7 Erros</span><span class="pbadge">Bom CPL · sem venda</span></div>
-          <div class="ptxt"><b>Bom custo por lead</b> (praticamente o mesmo da outra conta). Ainda <b>sem venda</b> neste mês.</div>
-          <div class="pnext">▸ Precisamos do <b>feedback de qualidade</b> dos leads.</div>
-        </div>
-
-        <div class="pcard s-ok">
-          <div class="ph"><span class="pic">📗</span><span class="pt">Ebook · Carreira Remota</span><span class="pbadge">Destaque</span></div>
-          <div class="ptxt"><b>Ótimo preço</b>, bom <b>volume de leads</b> e <b>2 vendas</b> — o melhor desempenho da esteira.</div>
-          <div class="pnext">▸ Também queremos o <b>feedback de qualidade</b> dos leads.</div>
-        </div>
-
-      </div>
-
-      <div class="pask">
-        <h3>🤝 O que precisamos de vocês (Hire)</h3>
-        <ul>
-          <li><b>Acesso ao canal do YouTube</b> da Malu (pra ligar o Analytics na dash).</li>
-          <li><b>Feedback da qualidade dos leads</b> — Ebook 7 Erros e Carreira Remota.</li>
-          <li><b>Site:</b> decisão de manter ativo, reabrir palavras-chave e direcionamento.</li>
-        </ul>
-      </div>
-    </div>
   </div>
 
   <!-- ── Geral (visão consolidada) ── -->
@@ -1793,7 +1707,7 @@ const state = {
   preset:    'month',
   dateStart: _localFmt(_firstOfMonth),
   dateEnd:   _localFmt(today0),
-  tab:       'panorama',
+  tab:       'geral',
 };
 
 function setPreset(btn) {
@@ -1817,7 +1731,6 @@ function setTab(btn) {
   document.querySelectorAll('.hf-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.tab = btn.dataset.tab;
-  document.getElementById('viewPanorama').style.display  = state.tab === 'panorama'  ? '' : 'none';
   document.getElementById('viewGeral').style.display     = state.tab === 'geral'     ? '' : 'none';
   document.getElementById('viewAudiencia').style.display = state.tab === 'audiencia' ? '' : 'none';
   document.getElementById('viewEbooks').style.display    = state.tab === 'ebooks'    ? '' : 'none';
@@ -1830,8 +1743,7 @@ function setTab(btn) {
 }
 
 async function loadCurrent() {
-  if      (state.tab === 'panorama') { /* conteúdo estático — sem fetch */ }
-  else if (state.tab === 'geral')    loadGeral();
+  if      (state.tab === 'geral')    loadGeral();
   else if (state.tab === 'ebooks')   { if (!_lastGeral) await loadGeral(); renderEbooks2(); }
   else if (state.tab === 'corredor') loadCorredor();
   else if (state.tab === 'site')     loadSite();
