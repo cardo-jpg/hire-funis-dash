@@ -824,6 +824,23 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-table td.camp-name { max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.79rem; color:rgba(255,255,255,.75); }
     .hf-table td.cri-name  { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.79rem; color:rgba(255,255,255,.75); }
 
+    /* ── Estratégia (matriz de ROAS) ── */
+    .est-table td { font-size:.8rem; }
+    .est-table td.est-lbl { text-align:left; font-weight:600; color:#ece8f5; white-space:nowrap; position:sticky; left:0; background:#171226; z-index:1; }
+    .est-table td.num, .est-table th.num { text-align:right; }
+    .est-table td.est-total, .est-table th.est-total { background:rgba(123,45,139,.18); font-weight:700; }
+    .est-table tr.est-origem td { background:rgba(240,200,60,.12); }
+    .est-table tr.est-origem td.est-lbl { background:rgba(240,200,60,.16); color:#ffe488; font-weight:700; }
+    .est-table tr.est-origem td.est-total { background:rgba(240,200,60,.22); }
+    .est-table tr.est-invest td.est-lbl { color:rgba(255,255,255,.45); font-weight:500; font-style:italic; }
+    .est-table tr.est-resumo td { background:rgba(70,110,220,.16); }
+    .est-table tr.est-resumo td.est-lbl { background:rgba(70,110,220,.24); color:#bcd0ff; font-weight:800; }
+    .est-table tr.est-resumo td.est-total { background:rgba(70,110,220,.28); }
+    .est-roas-top  { color:#2ee6d0; font-weight:700; }
+    .est-roas-good { color:#4ade80; font-weight:700; }
+    .est-roas-warn { color:#fbbf24; font-weight:600; }
+    .est-roas-bad  { color:rgba(248,113,113,.7); }
+
     .acao-badge {
       display:inline-block; padding:2px 8px; border-radius:4px; font-size:.68rem;
       font-weight:700; letter-spacing:.04em; text-transform:uppercase;
@@ -977,6 +994,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- Tabs -->
   <div class="hf-tabs">
     <button class="hf-tab active" data-tab="geral" onclick="setTab(this)">Geral</button>
+    <button class="hf-tab" data-tab="estrategia" onclick="setTab(this)">Estratégia</button>
     <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
     <button class="hf-tab" data-tab="ebook7" onclick="setTab(this)">Ebook 7 Erros</button>
     <button class="hf-tab" data-tab="ebookRemoto" onclick="setTab(this)">Ebook Remoto</button>
@@ -1009,6 +1027,16 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     </div>
 
   </div><!-- /viewGeral -->
+
+  <!-- ── Estratégia (Análise de ROAS por Estratégia — planilha ao vivo) ── -->
+  <div id="viewEstrategia" style="display:none">
+    <div class="hf-table-section">
+      <div class="hf-table-label">Análise de ROAS por Estratégia <span id="estrategiaUpdate" style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,.4)"></span></div>
+      <div id="estrategiaTable">
+        <div style="text-align:center;color:rgba(255,255,255,.3);padding:32px">Carregando…</div>
+      </div>
+    </div>
+  </div><!-- /viewEstrategia -->
 
   <!-- ── Audiência ── -->
   <div id="viewAudiencia" style="display:none">
@@ -1732,6 +1760,7 @@ function setTab(btn) {
   btn.classList.add('active');
   state.tab = btn.dataset.tab;
   document.getElementById('viewGeral').style.display     = state.tab === 'geral'     ? '' : 'none';
+  document.getElementById('viewEstrategia').style.display = state.tab === 'estrategia' ? '' : 'none';
   document.getElementById('viewAudiencia').style.display = state.tab === 'audiencia' ? '' : 'none';
   document.getElementById('viewEbooks').style.display    = state.tab === 'ebooks'    ? '' : 'none';
   document.getElementById('viewCorredor').style.display  = state.tab === 'corredor'  ? '' : 'none';
@@ -1744,6 +1773,7 @@ function setTab(btn) {
 
 async function loadCurrent() {
   if      (state.tab === 'geral')    loadGeral();
+  else if (state.tab === 'estrategia') loadEstrategia();
   else if (state.tab === 'ebooks')   { if (!_lastGeral) await loadGeral(); renderEbooks2(); }
   else if (state.tab === 'corredor') loadCorredor();
   else if (state.tab === 'site')     loadSite();
@@ -1756,6 +1786,134 @@ async function loadCurrent() {
     renderAudiencia2();
   }
   else                               loadGeral();
+}
+
+// ── Estratégia: matriz "Análise de ROAS por Estratégia" (planilha ao vivo) ─────
+const ESTRATEGIA_SHEET = '1bxPlxoT652sK33RsaZ7Mt0B6re4SYzS9P1gNXvFkwcg';
+const _EST_MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const _EST_STOP = ['doc de apoio','clique aqui','pausado','ebook 5 formas','lista 10 empresas'];
+
+// Classifica o número do ROAS numa faixa de cor.
+function _estRoasClass(raw){
+  const s = String(raw == null ? '' : raw).trim();
+  if (!s) return 'est-roas-bad';
+  const n = parseFloat(s.replace(/\./g,'').replace(',', '.'));
+  if (!isFinite(n) || n === 0) return 'est-roas-bad';
+  if (n >= 15) return 'est-roas-top';
+  if (n >= 3)  return 'est-roas-good';
+  if (n > 0)   return 'est-roas-warn';
+  return 'est-roas-bad';
+}
+
+function _estEsc(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Lê a célula preferindo o valor FORMATADO (.f — "R$ ..."/"4,95"); cai para .v.
+function _estCell(c, i){
+  const cell = c[i];
+  if (!cell) return '';
+  if (cell.f != null && String(cell.f).trim() !== '') return String(cell.f);
+  if (cell.v != null) return String(cell.v);
+  return '';
+}
+
+async function loadEstrategia(){
+  const box = document.getElementById('estrategiaTable');
+  if (!box) return;
+  box.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.3);padding:32px">Carregando…</div>';
+  try {
+    const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0');
+    const rows = (t && t.rows) ? t.rows : [];
+
+    // Cabeçalho (nós fornecemos — a planilha tem cabeçalho incompleto)
+    let html = '<div class="hf-table-wrap"><table class="hf-table est-table"><thead><tr>';
+    html += '<th class="est-lbl">Origem e Tag</th>';
+    _EST_MONTHS.forEach(m => { html += '<th class="num">' + m + '</th>'; });
+    html += '<th class="num est-total">TOTAL</th></tr></thead><tbody>';
+
+    let started = false, resumoIdx = 0, nRows = 0;
+    const resumoNames = ['Ebooks','Redes','Total'];
+
+    // "Atualizado" opcional — procura "10.06" ou similar nas primeiras linhas.
+    for (let ri = 0; ri < Math.min(rows.length, 3); ri++){
+      const c = rows[ri] && rows[ri].c;
+      if (!c) continue;
+      for (let ci = 5; ci <= 9; ci++){
+        const v = _estCell(c, ci);
+        if (v && /^\d{1,2}[.\/]\d{1,2}$/.test(v.trim())){
+          document.getElementById('estrategiaUpdate').textContent = '· Atualizado ' + v.trim();
+          break;
+        }
+      }
+    }
+
+    for (let ri = 0; ri < rows.length; ri++){
+      const c = rows[ri] && rows[ri].c;
+      if (!c) continue;
+      const label = (c[1] && c[1].v != null) ? String(c[1].v).trim() : '';
+      const low = label.toLowerCase();
+
+      // stop antes das estratégias pausadas / links
+      if (started && _EST_STOP.some(s => low.includes(s))) break;
+
+      // pula o cabeçalho parcial da própria planilha ("Origem e Tag")
+      if (low === 'origem e tag') continue;
+
+      let rowClass = '', displayLabel = label;
+      if (label === ''){
+        // linha de resumo (col-1 vazia com valores) — só as que aparecem antes do stop
+        const hasVals = [6,7,8].some(ci => _estCell(c, ci).trim() !== '');
+        if (!started || !hasVals) continue;
+        // ignora se qualquer valor bater num stop textual
+        rowClass = 'est-resumo';
+        displayLabel = resumoNames[resumoIdx] || 'Resumo';
+        resumoIdx++;
+      } else if (/^origem/i.test(label)){
+        if (!started) started = true;
+        rowClass = 'est-origem';
+      } else if (/^tag\s*:/i.test(label) || /^tag:/i.test(label)){
+        if (!started) started = true;
+        rowClass = '';
+      } else if (!started){
+        // ainda não começou o relatório ativo — pula
+        continue;
+      } else if (/^investimento/i.test(label)){
+        rowClass = 'est-invest';
+      } else if (/^roas/i.test(label)){
+        rowClass = 'est-roas';
+      } else {
+        rowClass = '';
+      }
+
+      const isRoas = (rowClass === 'est-roas');
+      html += '<tr class="' + rowClass + '">';
+      html += '<td class="est-lbl">' + _estEsc(displayLabel) + '</td>';
+      // cols 2..14 (12 meses + TOTAL = 13 colunas)
+      for (let ci = 2; ci <= 14; ci++){
+        const raw = _estCell(c, ci);
+        const isTotal = (ci === 14);
+        let cls = 'num' + (isTotal ? ' est-total' : '');
+        let inner = _estEsc(raw);
+        if (isRoas){
+          const rc = _estRoasClass(raw);
+          inner = '<span class="' + rc + '">' + _estEsc(raw) + '</span>';
+        }
+        html += '<td class="' + cls + '">' + inner + '</td>';
+      }
+      html += '</tr>';
+      nRows++;
+    }
+
+    html += '</tbody></table></div>';
+    if (nRows === 0){
+      box.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.35);padding:32px">Sem dados de estratégia para exibir.</div>';
+    } else {
+      box.innerHTML = html;
+    }
+  } catch(err){
+    box.innerHTML = '<div style="text-align:center;color:rgba(248,113,113,.8);padding:32px">Falha ao carregar Estratégia: ' + _estEsc(err && err.message ? err.message : err) + '</div>';
+  }
 }
 
 // ── Budget month key ──────────────────────────────────────────────────────────
