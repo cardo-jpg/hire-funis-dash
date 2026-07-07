@@ -826,15 +826,16 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
     /* ── Estratégia (matriz de ROAS) ── */
     .est-table td { font-size:.8rem; }
-    .est-table td.est-lbl { text-align:left; font-weight:600; color:#ece8f5; white-space:nowrap; position:sticky; left:0; background:#171226; z-index:1; }
+    .est-table td.est-lbl, .est-table th.est-lbl { text-align:left; font-weight:600; color:#ece8f5; white-space:nowrap; position:sticky; left:0; background:#171226; z-index:3; min-width:190px; box-shadow:2px 0 6px rgba(0,0,0,.4); }
+    .est-table th.est-lbl { z-index:4; }
     .est-table td.num, .est-table th.num { text-align:right; }
     .est-table td.est-total, .est-table th.est-total { background:rgba(123,45,139,.18); font-weight:700; }
     .est-table tr.est-origem td { background:rgba(240,200,60,.12); }
-    .est-table tr.est-origem td.est-lbl { background:rgba(240,200,60,.16); color:#ffe488; font-weight:700; }
+    .est-table tr.est-origem td.est-lbl { background:#2e2917; color:#ffe488; font-weight:700; }
     .est-table tr.est-origem td.est-total { background:rgba(240,200,60,.22); }
-    .est-table tr.est-invest td.est-lbl { color:rgba(255,255,255,.45); font-weight:500; font-style:italic; }
+    .est-table tr.est-invest td.est-lbl { color:rgba(255,255,255,.55); font-weight:500; font-style:italic; }
     .est-table tr.est-resumo td { background:rgba(70,110,220,.16); }
-    .est-table tr.est-resumo td.est-lbl { background:rgba(70,110,220,.24); color:#bcd0ff; font-weight:800; }
+    .est-table tr.est-resumo td.est-lbl { background:#1b2545; color:#bcd0ff; font-weight:800; }
     .est-table tr.est-resumo td.est-total { background:rgba(70,110,220,.28); }
     .est-roas-top  { color:#2ee6d0; font-weight:700; }
     .est-roas-good { color:#4ade80; font-weight:700; }
