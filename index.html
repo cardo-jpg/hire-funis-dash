@@ -2017,16 +2017,18 @@ function _flashSaved(msg){
 // Budget de um canal: override local tem prioridade; senão, valor da planilha
 // (mês corrente; fallback no mês mais recente com valor não-zero).
 function _geralBudget(matrix, channel){
-  const ov = _getBudgetOverride(channel);
-  if (ov != null) return ov;
+  // PLANILHA é a fonte da verdade (sincroniza pra todos os computadores).
+  // localStorage entra só como fallback se a planilha não tiver valor.
   const m = (matrix || {})[channel];
-  if (!m || typeof m !== 'object') return null;
-  const month = getBudgetMonth();
-  if (m[month] != null && m[month] !== 0) return m[month];
-  // fallback: mês mais recente COM valor não-zero (planilha pode ter meses futuros zerados)
-  const keys = Object.keys(m).filter(k => m[k] != null && m[k] !== 0).sort();
-  if (!keys.length) return null;
-  return m[keys[keys.length - 1]];
+  if (m && typeof m === 'object'){
+    const month = getBudgetMonth();
+    if (m[month] != null && m[month] !== 0) return m[month];
+    // fallback: mês mais recente COM valor não-zero
+    const keys = Object.keys(m).filter(k => m[k] != null && m[k] !== 0).sort();
+    if (keys.length) return m[keys[keys.length - 1]];
+  }
+  const ov = _getBudgetOverride(channel);
+  return (ov != null) ? ov : null;
 }
 
 let _lastGeral = null;
@@ -2074,7 +2076,7 @@ function funnelCardsHTML(cols, matrix, defs){
         </div>
         <div class="hf-v2-budget">
           <div class="hf-v2-budget-lbl">Budget Mensal</div>
-          <div class="hf-v2-budget-val">R$&nbsp;<input class="hf-v2-budget-input" type="text" inputmode="decimal" placeholder="0,00" value="${budInput}" data-ch="${key}" oninput="saveGeralBudgetLive('${key}', this.value)" onchange="saveGeralBudget('${key}', this.value)" onkeydown="if(event.key==='Enter')this.blur()"></div>
+          <div class="hf-v2-budget-val" title="A verba é definida na planilha (aba de Budget) — sincroniza para todos">R$&nbsp;${budInput || '—'}</div>
         </div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido</div><div class="hf-v2-metric-val">${BRL(f.investido)}</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${audLbl}</div><div class="hf-v2-metric-val dim">${audVal}</div></div>
