@@ -1227,12 +1227,12 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
         <div id="ytSubLocked" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:10px;color:rgba(255,255,255,.3)">
           <span style="font-size:1.6rem">🔒</span>
           <span style="font-size:.8rem;text-align:center">Conectar YouTube da Malu<br><span style="font-size:.7rem;opacity:.6">Use a conta Google pessoal da Malu</span></span>
-          <button class="yt-auth-btn" style="margin-top:4px;font-size:.75rem;padding:6px 14px" onclick="ytAuth()">Conectar</button>
+          <button class="yt-auth-btn" style="margin-top:4px;font-size:.75rem;padding:6px 14px" onclick="ytAuth(true)">Conectar</button>
         </div>
         <div class="yt-chart-canvas-wrap" id="ytSubChartWrap" style="display:none">
           <canvas id="ytSubChart"></canvas>
           <div style="text-align:right;margin-top:4px">
-            <button id="ytDisconnectBtn" onclick="ytDisconnect()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:.68rem;cursor:pointer;padding:0">↩ Trocar conta</button>
+            <button id="ytDisconnectBtn" onclick="ytSwitch()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:.68rem;cursor:pointer;padding:0">↩ Trocar conta</button>
           </div>
         </div>
       </div>
@@ -2920,7 +2920,7 @@ const YT_CLIENT_ID = '798167181549-hgvpdfql9nsq1lkd9mjh7gs0hvn1bn3s.apps.googleu
 let _ytTokenClient = null, _ytToken = null;
 function _ytFmtDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
-function ytAuth(){
+function ytAuth(force){
   if (!YT_CLIENT_ID){ alert('Falta configurar o YT_CLIENT_ID (OAuth Client do Google Cloud). Me envie o Client ID que eu ligo.'); return; }
   if (!(window.google && google.accounts && google.accounts.oauth2)){ alert('Carregando a biblioteca do Google… tente de novo em alguns segundos.'); return; }
   if (!_ytTokenClient){
@@ -2933,8 +2933,11 @@ function ytAuth(){
       },
     });
   }
-  _ytTokenClient.requestAccessToken({ prompt: _ytToken ? '' : 'consent' });
+  // force = true → sempre mostra o seletor de CONTA/CANAL do Google (pra escolher o canal da Malu, não o da Cardô)
+  _ytTokenClient.requestAccessToken({ prompt: force ? 'select_account consent' : (_ytToken ? '' : 'consent') });
 }
+// Trocar de conta/canal: força o seletor do Google
+function ytSwitch(){ _ytToken = null; ytAuth(true); }
 
 async function ytDisconnect(){
   if (_ytToken && window.google && google.accounts && google.accounts.oauth2){ try{ google.accounts.oauth2.revoke(_ytToken); }catch(e){} }
