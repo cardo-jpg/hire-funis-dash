@@ -837,10 +837,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .est-table tr.est-resumo td { background:rgba(70,110,220,.16); }
     .est-table tr.est-resumo td.est-lbl { background:#1b2545; color:#bcd0ff; font-weight:800; }
     .est-table tr.est-resumo td.est-total { background:rgba(70,110,220,.28); }
-    .est-roas-top  { color:#2ee6d0; font-weight:700; }
-    .est-roas-good { color:#4ade80; font-weight:700; }
-    .est-roas-warn { color:#fbbf24; font-weight:600; }
-    .est-roas-bad  { color:rgba(248,113,113,.7); }
+    /* ROAS como célula preenchida (estilo Excel) */
+    .est-table td.est-roas-top  { background:#2ee6d0 !important; color:#06231f !important; font-weight:800; }
+    .est-table td.est-roas-good { background:#43d47f !important; color:#06230f !important; font-weight:800; }
+    .est-table td.est-roas-warn { background:#fbbf24 !important; color:#291d00 !important; font-weight:800; }
+    .est-table td.est-roas-bad  { background:#f4696e !important; color:#2a0708 !important; font-weight:700; }
+    /* linhas de grade + cabeçalho azul (cara de Excel) */
+    .est-table td, .est-table th { border:1px solid rgba(255,255,255,.09); }
+    .est-table thead th { background:#1c2c54; color:#d3e1ff; border-color:rgba(120,150,220,.35); }
+    .est-table thead th.est-lbl { background:#1c2c54; }
 
     .acao-badge {
       display:inline-block; padding:2px 8px; border-radius:4px; font-size:.68rem;
@@ -1895,12 +1900,8 @@ async function loadEstrategia(){
         const raw = _estCell(c, ci);
         const isTotal = (ci === 14);
         let cls = 'num' + (isTotal ? ' est-total' : '');
-        let inner = _estEsc(raw);
-        if (isRoas){
-          const rc = _estRoasClass(raw);
-          inner = '<span class="' + rc + '">' + _estEsc(raw) + '</span>';
-        }
-        html += '<td class="' + cls + '">' + inner + '</td>';
+        if (isRoas && raw.trim() !== '') cls += ' ' + _estRoasClass(raw);
+        html += '<td class="' + cls + '">' + _estEsc(raw) + '</td>';
       }
       html += '</tr>';
       nRows++;
