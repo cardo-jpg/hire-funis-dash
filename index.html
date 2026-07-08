@@ -825,8 +825,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-table td.cri-name  { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.79rem; color:rgba(255,255,255,.75); }
 
     /* ── Estratégia (matriz de ROAS) ── */
-    .est-table td { font-size:.8rem; }
-    .est-table td.est-lbl, .est-table th.est-lbl { text-align:left; font-weight:600; color:#ece8f5; white-space:nowrap; position:sticky; left:0; background:#171226; z-index:3; min-width:190px; box-shadow:2px 0 6px rgba(0,0,0,.4); }
+    .est-table { width:100%; table-layout:fixed; }
+    .est-table td, .est-table th.num { font-size:.72rem; padding:5px 6px; }
+    .est-table td.est-lbl, .est-table th.est-lbl { text-align:left; font-weight:600; color:#ece8f5; white-space:normal; word-break:break-word; line-height:1.2; position:sticky; left:0; background:#171226; z-index:3; width:200px; box-shadow:2px 0 6px rgba(0,0,0,.4); }
     .est-table th.est-lbl { z-index:4; }
     .est-table td.num, .est-table th.num { text-align:right; }
     .est-table td.est-total, .est-table th.est-total { background:rgba(123,45,139,.18); font-weight:700; }
@@ -1832,10 +1833,25 @@ async function loadEstrategia(){
     const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0');
     const rows = (t && t.rows) ? t.rows : [];
 
+    // Só mostra os meses que TÊM dados (elimina meses vazios → cabe tudo sem rolagem horizontal)
+    const _activeCols = [];
+    for (let ci = 2; ci <= 13; ci++){
+      let has = false;
+      for (let ri = 0; ri < rows.length; ri++){
+        const rc = rows[ri] && rows[ri].c;
+        if (!rc) continue;
+        const lbl = (rc[1] && rc[1].v != null) ? String(rc[1].v).trim().toLowerCase() : '';
+        if (lbl === 'origem e tag') continue;
+        if (_estCell(rc, ci).trim() !== ''){ has = true; break; }
+      }
+      if (has) _activeCols.push(ci);
+    }
+    if (!_activeCols.length){ for (let ci = 2; ci <= 7; ci++) _activeCols.push(ci); }
+
     // Cabeçalho (nós fornecemos — a planilha tem cabeçalho incompleto)
     let html = '<div class="hf-table-wrap"><table class="hf-table est-table"><thead><tr>';
     html += '<th class="est-lbl">Origem e Tag</th>';
-    _EST_MONTHS.forEach(m => { html += '<th class="num">' + m + '</th>'; });
+    _activeCols.forEach(ci => { html += '<th class="num">' + _EST_MONTHS[ci-2] + '</th>'; });
     html += '<th class="num est-total">TOTAL</th></tr></thead><tbody>';
 
     let started = false, resumoIdx = 0, nRows = 0;
@@ -1896,7 +1912,7 @@ async function loadEstrategia(){
       html += '<tr class="' + rowClass + '">';
       html += '<td class="est-lbl">' + _estEsc(displayLabel) + '</td>';
       // cols 2..14 (12 meses + TOTAL = 13 colunas)
-      for (let ci = 2; ci <= 14; ci++){
+      for (const ci of _activeCols.concat([14])){
         const raw = _estCell(c, ci);
         const isTotal = (ci === 14);
         let cls = 'num' + (isTotal ? ' est-total' : '');
