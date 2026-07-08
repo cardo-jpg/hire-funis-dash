@@ -2917,27 +2917,48 @@ function PCT(v) { return v == null ? '—' : v.toLocaleString('pt-BR',{minimumFr
 
 /* ═══ YouTube Analytics — OAuth client-side (Google Identity Services) ═══ */
 const YT_CLIENT_ID = '798167181549-hgvpdfql9nsq1lkd9mjh7gs0hvn1bn3s.apps.googleusercontent.com';   // OAuth Client ID (Web) — Google Cloud cardo-sinapse / cliente "HIRE"
-let _ytTokenClient = null, _ytToken = null;
+let _ytTokenClient = null, _ytToken = null, _ytSilent = false;
 function _ytFmtDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
+function _ensureYtClient(){
+  if (_ytTokenClient) return true;
+  if (!(window.google && google.accounts && google.accounts.oauth2)) return false;
+  _ytTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: YT_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
+    callback: (resp) => {
+      if (resp && resp.access_token){ _ytToken = resp.access_token; try{ localStorage.setItem('yt_connected','1'); }catch(e){} loadYoutube(); }
+      else if (!_ytSilent){ alert('Não foi possível conectar ao YouTube.'); }
+      _ytSilent = false;
+    },
+  });
+  return true;
+}
 function ytAuth(force){
   if (!YT_CLIENT_ID){ alert('Falta configurar o YT_CLIENT_ID (OAuth Client do Google Cloud). Me envie o Client ID que eu ligo.'); return; }
-  if (!(window.google && google.accounts && google.accounts.oauth2)){ alert('Carregando a biblioteca do Google… tente de novo em alguns segundos.'); return; }
-  if (!_ytTokenClient){
-    _ytTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: YT_CLIENT_ID,
-      scope: 'https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
-      callback: (resp) => {
-        if (resp && resp.access_token){ _ytToken = resp.access_token; try{ localStorage.setItem('yt_connected','1'); }catch(e){} loadYoutube(); }
-        else { alert('Não foi possível conectar ao YouTube.'); }
-      },
-    });
-  }
+  if (!_ensureYtClient()){ alert('Carregando a biblioteca do Google… tente de novo em alguns segundos.'); return; }
+  _ytSilent = false;
   // force = true → sempre mostra o seletor de CONTA/CANAL do Google (pra escolher o canal da Malu, não o da Cardô)
   _ytTokenClient.requestAccessToken({ prompt: force ? 'select_account consent' : (_ytToken ? '' : 'consent') });
 }
 // Trocar de conta/canal: força o seletor do Google
 function ytSwitch(){ _ytToken = null; ytAuth(true); }
+// Reconecta EM SILÊNCIO (sem clique) se já foi conectado antes neste navegador e a sessão Google segue ativa.
+function ytTrySilent(){
+  try{ if (localStorage.getItem('yt_connected') !== '1') return; }catch(e){ return; }
+  if (_ytToken) return;
+  if (!_ensureYtClient()) return;
+  _ytSilent = true;
+  try{ _ytTokenClient.requestAccessToken({ prompt: '' }); }catch(e){ _ytSilent = false; }
+}
+// Ao carregar a página, espera a lib do Google e tenta reconectar sozinho.
+(function ytInitSilent(){
+  let tries = 0;
+  const iv = setInterval(() => {
+    if (window.google && google.accounts && google.accounts.oauth2){ clearInterval(iv); ytTrySilent(); }
+    else if (++tries > 60){ clearInterval(iv); }
+  }, 250);
+})();
 
 async function ytDisconnect(){
   if (_ytToken && window.google && google.accounts && google.accounts.oauth2){ try{ google.accounts.oauth2.revoke(_ytToken); }catch(e){} }
