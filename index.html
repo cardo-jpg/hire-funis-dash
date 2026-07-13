@@ -1256,8 +1256,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
               <th class="num">Inscrições</th>
               <th class="num">Impressões</th>
               <th class="num">Investido</th>
-              <th class="num">Custo/Inscrição</th>
-              <th class="num">View Rate</th>
+              <th class="num">Custo/Inscrito</th>
+              <th class="num">Taxa Conv.</th>
               <th></th>
             </tr>
           </thead>
@@ -2991,16 +2991,27 @@ async function fetchYtAnalytics(startDate, endDate){
 
 // Constrói o objeto YouTube. A aba só tem Date, Campanha, Investido, Vendas, Faturamento
 // (SEM inscritos/impressões/cliques). Métricas de inscritos ficam honestamente "—".
+// ── YouTube Ads (Google Ads / Demand Gen) — SNAPSHOT MANUAL 1–13 jul 2026 ──────
+// Fonte: Google Ads, campanha "INTERCAMBIO". Valores em US$ convertidos p/ R$ a 5,16.
+// Pra atualizar: edite os números aqui (depois dá pra migrar p/ planilha/OAuth).
+const YT_USD_BRL = 5.16;
+const YT_ADS_SNAPSHOT = {
+  periodo: '1–13 jul',
+  totais: { investido_usd: 157.33, inscritos: 2074, cliques: 2087, impressoes: 349040, cpm_usd: 0.45 },
+  ads: [
+    { nome:'AD14 - Quer sair do Brasil em 2026?',              inscritos:1500, impressoes:248501, custo_usd:111.79, taxa:9.68,  video:'https://www.youtube.com/watch?v=EUVLFEeVxII' },
+    { nome:'AD16 - Engenharia Civil',                          inscritos:306,  impressoes:58340,  custo_usd:22.55,  taxa:15.13, video:'https://youtu.be/dW8eOTfIBNM' },
+    { nome:'AD10 - Qual Currículo p/ Vagas Internacionais #2', inscritos:268,  impressoes:41871,  custo_usd:22.81,  taxa:11.29, video:'https://youtu.be/eygot1VmEIA' },
+    { nome:'AD013 - Trabalhe Remoto #2',                       inscritos:0,    impressoes:328,    custo_usd:0.18,   taxa:0,     video:'https://youtu.be/Phomw6Uh6zo' },
+    { nome:'AD15 - Entrevista internacional',                  inscritos:0,    impressoes:0,      custo_usd:0,      taxa:0,     video:'https://youtu.be/xg0JNVyYPdY' },
+  ],
+};
+
 function buildYoutubeData(tYt){
   _resetRange();
   const rows = gvRows(tYt, { campanha:{i:1,str:true}, investido:_emRealIdx(tYt,2), vendas:3, faturamento:4 });
   const w = window30(rows); _trackRange(w);
-  const inv = gvSum(w.rows, 'investido');
-  const kpis = {
-    investido: inv,
-    inscritos: null, cliques: null, custo_inscrito: null, impressoes: null, cpm: null,
-  };
-  // Série diária de investimento (sem inscritos → ins ausente, chart de custo não plota).
+  // Série diária de investimento (mantida para o gráfico de custo).
   const byDay = {};
   for (const r of w.rows){
     const key = _isoDM(r.date);
@@ -3009,17 +3020,27 @@ function buildYoutubeData(tYt){
   }
   const serie_gads = Object.values(byDay).sort((a,b)=>a.date<b.date?-1:1)
     .map(o => ({ date:o.date, ins:0, inv:o.inv }));
-  // Tabela: por campanha (investido/faturamento na janela).
-  const byC = {};
-  for (const r of w.rows){
-    const key = r.campanha || '(sem campanha)';
-    const o = byC[key] || (byC[key] = { nome:key, valor:0, vendas:0, faturamento:0 });
-    o.valor += r.investido; o.vendas += r.vendas; o.faturamento += r.faturamento;
-  }
-  const anuncios = Object.values(byC).sort((a,b)=>b.valor-a.valor).map(o => ({
-    nome:o.nome, status:'—', conversoes:null, impressoes:null,
-    valor:o.valor, custo_conv:null, taxa:null, video_url:null,
-  }));
+
+  // KPIs (total) + tabela por anúncio = snapshot manual do Google Ads (US$→R$ 5,16).
+  const snap = YT_ADS_SNAPSHOT;
+  const investido = snap.totais.investido_usd * YT_USD_BRL;
+  const kpis = {
+    investido,
+    inscritos: snap.totais.inscritos,
+    cliques:   snap.totais.cliques,
+    custo_inscrito: snap.totais.inscritos ? investido / snap.totais.inscritos : null,
+    impressoes: snap.totais.impressoes,
+    cpm: snap.totais.cpm_usd * YT_USD_BRL,
+  };
+  const anuncios = snap.ads.map(a => {
+    const valor = a.custo_usd * YT_USD_BRL;
+    return {
+      nome: a.nome, status: 'Ativo',
+      conversoes: a.inscritos, impressoes: a.impressoes,
+      valor, custo_conv: a.inscritos ? valor / a.inscritos : null,
+      taxa: a.taxa, video_url: a.video,
+    };
+  });
   return { kpis, serie_gads, anuncios, analytics: { authorized:false } };
 }
 
