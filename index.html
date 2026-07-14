@@ -2087,9 +2087,25 @@ async function loadGeral() {
     const fYt   = aggFunil30(gvRows(tYt,   { investido:_emRealIdx(tYt,2),   vendas:3, faturamento:4 }), false);
     // Site (campanha): investido = "Em real" (idx 6), senão idx 2
     const fSite = aggFunil30(gvRows(tSite, { investido:_emRealIdx(tSite,2), leads:3, vendas:4, faturamento:5 }), true);
-    // Ebooks: investido = "Em real" quando existir; senão a coluna de investimento (idx 2)
+    // Ebooks: Vendas/Faturamento vêm da planilha de funis (única fonte que tem).
     const f7    = aggFunil30(gvRows(t7,  { investido:_emRealIdx(t7,2),  leads:3, vendas:4, faturamento:5 }), true);
     const fcr   = aggFunil30(gvRows(tcr, { investido:_emRealIdx(tcr,2), leads:3, vendas:4, faturamento:5 }), true);
+
+    // Investido + Leads dos ebooks vêm da MESMA planilha Stract/Análises usada nas abas
+    // detalhadas (Ebook 7 Erros / Ebook Remoto), pra os cards baterem com as abas.
+    // Vendas/Faturamento/ROAS continuam calculados sobre a planilha de funis.
+    try {
+      const [s7, scr] = await Promise.all([
+        _loadAnalisesRows(ANALISES_TABS.ebook7,      { inv:'Custo real', leads:'Leads' }),
+        _loadAnalisesRows(ANALISES_TABS.ebookRemoto, { inv:'Custo real', leads:'Leads' }),
+      ]);
+      const sumK = (rows, k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
+      for (const [f, sr] of [[f7, s7], [fcr, scr]]){
+        f.investido = sumK(sr.rows, 'inv');
+        f.leads     = sumK(sr.rows, 'leads');
+        f.roas      = _safeDiv(f.faturamento, f.investido);
+      }
+    } catch(e){ console.warn('Ebook Stract indisponível — mantendo investido/leads da funis:', e); }
 
     const funis = [
       ['IG Malu',                fMalu],
