@@ -3012,15 +3012,15 @@ async function fetchYtAnalytics(startDate, endDate){
 // Pra atualizar: edite os números aqui (depois dá pra migrar p/ planilha/OAuth).
 const YT_USD_BRL = 5.16;
 // Snapshot manual do Google Ads (visão por campanha, 1–20 jul). "inscritos" = coluna
-// Conversões; "taxa" = Taxa de conv. A campanha de Pesquisa gera conversões de site
-// (não inscritos do YouTube) — entra no total como no gerenciador, mas ver ressalva.
+// Conversões; "taxa" = Taxa de conv. Só campanhas de YouTube — a de Pesquisa/Site
+// (conversões de site, não inscritos) foi excluída de propósito. Totais recalculados
+// sem ela: investido 358,03−39,32=318,71; inscritos 3764−8=3756; cliques 4020−261=3759.
 const YT_ADS_SNAPSHOT = {
   periodo: '1–20 jul',
-  totais: { investido_usd: 358.03, inscritos: 3764, cliques: 4020, impressoes: 584050, cpm_usd: 0.61 },
+  totais: { investido_usd: 318.71, inscritos: 3756, cliques: 3759, impressoes: 576130, cpm_usd: 0.55 },
   ads: [
     { nome:'INSCRITOS | ENGAJAMENTO | FRIO | YOUTUBE | DISTRIBUIÇÃO V2',       inscritos:3178, impressoes:506687, custo_usd:241.96, taxa:11.89, video:'' },
     { nome:'INSCRITOS | ENGAJAMENTO | FRIO | YOUTUBE | DISTRIBUIÇÃO [CLIENTE]', inscritos:578,  impressoes:69443,  custo_usd:76.76,  taxa:13.28, video:'' },
-    { nome:'[PESQUISA] [HIRE] [Site] [Cliques]',                                inscritos:8,    impressoes:7918,   custo_usd:39.32,  taxa:3.07,  video:'' },
     { nome:'INSCRITOS | ENGAJAMENTO | FRIO | YOUTUBE | DISTRIBUIÇÃO V3',        inscritos:0,    impressoes:0,      custo_usd:0,      taxa:0,     video:'' },
   ],
 };
