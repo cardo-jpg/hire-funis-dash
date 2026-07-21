@@ -3011,15 +3011,17 @@ async function fetchYtAnalytics(startDate, endDate){
 // Fonte: Google Ads, campanha "INTERCAMBIO". Valores em US$ convertidos p/ R$ a 5,16.
 // Pra atualizar: edite os números aqui (depois dá pra migrar p/ planilha/OAuth).
 const YT_USD_BRL = 5.16;
+// Snapshot manual do Google Ads (visão por campanha, 1–20 jul). "inscritos" = coluna
+// Conversões; "taxa" = Taxa de conv. A campanha de Pesquisa gera conversões de site
+// (não inscritos do YouTube) — entra no total como no gerenciador, mas ver ressalva.
 const YT_ADS_SNAPSHOT = {
-  periodo: '1–13 jul',
-  totais: { investido_usd: 157.33, inscritos: 2074, cliques: 2087, impressoes: 349040, cpm_usd: 0.45 },
+  periodo: '1–20 jul',
+  totais: { investido_usd: 358.03, inscritos: 3764, cliques: 4020, impressoes: 584050, cpm_usd: 0.61 },
   ads: [
-    { nome:'AD14 - Quer sair do Brasil em 2026?',              inscritos:1500, impressoes:248501, custo_usd:111.79, taxa:9.68,  video:'https://www.youtube.com/watch?v=EUVLFEeVxII' },
-    { nome:'AD16 - Engenharia Civil',                          inscritos:306,  impressoes:58340,  custo_usd:22.55,  taxa:15.13, video:'https://youtu.be/dW8eOTfIBNM' },
-    { nome:'AD10 - Qual Currículo p/ Vagas Internacionais #2', inscritos:268,  impressoes:41871,  custo_usd:22.81,  taxa:11.29, video:'https://youtu.be/eygot1VmEIA' },
-    { nome:'AD013 - Trabalhe Remoto #2',                       inscritos:0,    impressoes:328,    custo_usd:0.18,   taxa:0,     video:'https://youtu.be/Phomw6Uh6zo' },
-    { nome:'AD15 - Entrevista internacional',                  inscritos:0,    impressoes:0,      custo_usd:0,      taxa:0,     video:'https://youtu.be/xg0JNVyYPdY' },
+    { nome:'INSCRITOS | ENGAJAMENTO | FRIO | YOUTUBE | DISTRIBUIÇÃO V2',       inscritos:3178, impressoes:506687, custo_usd:241.96, taxa:11.89, video:'' },
+    { nome:'INSCRITOS | ENGAJAMENTO | FRIO | YOUTUBE | DISTRIBUIÇÃO [CLIENTE]', inscritos:578,  impressoes:69443,  custo_usd:76.76,  taxa:13.28, video:'' },
+    { nome:'[PESQUISA] [HIRE] [Site] [Cliques]',                                inscritos:8,    impressoes:7918,   custo_usd:39.32,  taxa:3.07,  video:'' },
+    { nome:'INSCRITOS | ENGAJAMENTO | FRIO | YOUTUBE | DISTRIBUIÇÃO V3',        inscritos:0,    impressoes:0,      custo_usd:0,      taxa:0,     video:'' },
   ],
 };
 
