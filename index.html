@@ -2735,8 +2735,12 @@ function _isoDM(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart
 // Constrói o objeto Site (mesmo shape que o render espera) a partir das abas gviz.
 function buildSiteData(tKw, tCamp){
   _resetRange();
-  // Palavras-chave: Data, Palavras-chave, Investido, Impressões, Cliques, Leads
-  const kwRows = gvRows(tKw, { kw:{i:1,str:true}, investido:_emRealIdx(tKw,2), impressoes:3, cliques:4, leads:5 });
+  // Palavras-chave: Data, Palavras-chave, Investido(US$), Impressões, Cliques, Leads, Custo Real, Dólar
+  const kwRows = gvRows(tKw, { kw:{i:1,str:true}, custoReal:_emRealIdx(tKw,2), usd:2, dolar:7, impressoes:3, cliques:4, leads:5 });
+  // Investido por palavra-chave: usa "Custo Real" (BRL) quando preenchido; senão
+  // converte o "Investido" (US$) pela cotação da linha (col Dólar, fallback 5,16).
+  // Sem isso, as palavras que geraram leads ficavam com investido 0 e o CPL sumia.
+  for (const r of kwRows) r.investido = r.custoReal > 0 ? r.custoReal : r.usd * (r.dolar > 0 ? r.dolar : 5.16);
   const wKw = window30(kwRows); _trackRange(wKw);
 
   // KPIs (janela). "Mensagens" = Leads (não há coluna de conversão/mensagem própria).
