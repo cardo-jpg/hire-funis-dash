@@ -823,6 +823,11 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-table td.num { text-align:right; }
     .hf-table td.camp-name { max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.79rem; color:rgba(255,255,255,.75); }
     .hf-table td.cri-name  { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.79rem; color:rgba(255,255,255,.75); }
+    .hf-st { display:inline-block; font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:6px; white-space:nowrap; }
+    .hf-st-on { color:#8ef0b0; background:rgba(34,197,94,.16); border:1px solid rgba(34,197,94,.4); }
+    .hf-st-off { color:#c9b8d6; background:rgba(120,90,150,.18); border:1px solid rgba(150,95,190,.35); }
+    .hf-st-bad { color:#f79a9a; background:rgba(239,68,68,.16); border:1px solid rgba(239,68,68,.45); }
+    .hf-st-none { color:rgba(255,255,255,.4); }
 
     /* ── Estratégia (matriz de ROAS) ── */
     .est-table { width:100%; table-layout:fixed; }
@@ -3323,12 +3328,22 @@ async function loadEbookDetail(key){
   const tab=ANALISES_TABS[key];
   view.innerHTML='<div style="padding:44px;text-align:center;color:rgba(255,255,255,.4)">Carregando…</div>';
   let data;
-  try{ data=await _loadAnalisesRows(tab,{ inv:'Custo real', imp:['Impressoes','Impressões'], cli:'Cliques', leads:'Leads', pv:['Visualizacoes_LP','Visualizações_LP','Action Landing Page View'], crit:'Criativo', pub:['Publico','Público'], url:'URL' }); }
+  try{ data=await _loadAnalisesRows(tab,{ inv:'Custo real', imp:['Impressoes','Impressões'], cli:'Cliques', leads:'Leads', pv:['Visualizacoes_LP','Visualizações_LP','Action Landing Page View'], crit:'Criativo', pub:['Publico','Público'], url:'URL', status:'Status' }); }
   catch(e){ view.innerHTML='<div style="padding:44px;text-align:center;color:#f88">Erro ao carregar a aba "'+_esc(tab)+'": '+_esc(e.message)+'</div>'; return; }
   if(data.resolved.crit<0 || data.resolved.inv<0){
     view.innerHTML='<div style="padding:44px;text-align:center;color:#fc8;line-height:1.6">A aba <b>"'+_esc(tab)+'"</b> não foi encontrada com layout de ebook (colunas Criativo/Custo real).<br>Ajuste o nome em <code>ANALISES_TABS.'+key+'</code>.</div>'; return; }
   renderEbookDetail(view, data.rows, key);
 }
+// Status efetivo do Meta (coluna Status do Stract) → selo. ACTIVE=ativo;
+// *PAUSED=pausado; DISAPPROVED=reprovado. rank pra pegar o mais ativo na data recente.
+function _stInfo(raw){
+  const s=String(raw||'').toUpperCase();
+  if(s==='ACTIVE')      return { t:'Ativo',     c:'hf-st-on',   r:0 };
+  if(s==='DISAPPROVED') return { t:'Reprovado', c:'hf-st-bad',  r:2 };
+  if(s.indexOf('PAUSED')>=0) return { t:'Pausado', c:'hf-st-off', r:1 };
+  return { t:'—', c:'hf-st-none', r:3 };
+}
+const _stBadge = raw => { const s=_stInfo(raw); return `<span class="hf-st ${s.c}">${s.t}</span>`; };
 function renderEbookDetail(view, rows, pfx){
   const S=(k)=>rows.reduce((s,r)=>s+(r[k]||0),0);
   const tInv=S('inv'), tLeads=S('leads'), tCli=S('cli'), tPv=S('pv'), tImp=S('imp');
@@ -3341,10 +3356,13 @@ function renderEbookDetail(view, rows, pfx){
   const dCpl=dk.map(d=>byDate[d].leads?+(byDate[d].inv/byDate[d].leads).toFixed(2):null);
   const dConn=dk.map(d=>byDate[d].cli?+(byDate[d].pv/byDate[d].cli*100).toFixed(1):null);
   const dCli=dk.map(d=>byDate[d].cli), dPv=dk.map(d=>byDate[d].pv);
-  const grp=(f)=>{ const m={}; for(const r of rows){ const k=f(r)||'—'; const o=m[k]=m[k]||{k,inv:0,imp:0,cli:0,leads:0,pv:0,url:''}; o.inv+=r.inv;o.imp+=r.imp;o.cli+=r.cli;o.leads+=r.leads;o.pv+=r.pv; if(r.url&&!o.url)o.url=r.url; } return Object.values(m).sort((a,b)=>b.inv-a.inv); };
-  const head=first=>`<tr><th>${first}</th><th class="num">Link</th><th class="num">CTR</th><th class="num">Cliques</th><th class="num">Page View</th><th class="num">Connect</th><th class="num">Leads</th><th class="num">Clk×Leads</th><th class="num">CPL</th><th class="num">Investido</th></tr>`;
-  const row=o=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.pv)}</td><td class="num">${_pct(o.cli?o.pv/o.cli:0)}</td><td class="num">${_num(o.leads)}</td><td class="num">${_pct(o.cli?o.leads/o.cli:0)}</td><td class="num">${o.leads?_brl(o.inv/o.leads):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
-  const empty='<tr><td colspan="10" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
+  const grp=(f)=>{ const m={}; for(const r of rows){ const k=f(r)||'—'; const o=m[k]=m[k]||{k,inv:0,imp:0,cli:0,leads:0,pv:0,url:'',status:'',_sd:null,_rk:9};
+    o.inv+=r.inv;o.imp+=r.imp;o.cli+=r.cli;o.leads+=r.leads;o.pv+=r.pv; if(r.url&&!o.url)o.url=r.url;
+    if(r.status){ const rk=_stInfo(r.status).r; if(!o._sd||r.date>o._sd){o._sd=r.date;o.status=r.status;o._rk=rk;} else if(o._sd&&+r.date===+o._sd&&rk<o._rk){o.status=r.status;o._rk=rk;} }
+  } return Object.values(m).sort((a,b)=>b.inv-a.inv); };
+  const head=first=>`<tr><th>${first}</th><th class="num">Status</th><th class="num">Link</th><th class="num">CTR</th><th class="num">Cliques</th><th class="num">Page View</th><th class="num">Connect</th><th class="num">Leads</th><th class="num">Clk×Leads</th><th class="num">CPL</th><th class="num">Investido</th></tr>`;
+  const row=o=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadge(o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.pv)}</td><td class="num">${_pct(o.cli?o.pv/o.cli:0)}</td><td class="num">${_num(o.leads)}</td><td class="num">${_pct(o.cli?o.leads/o.cli:0)}</td><td class="num">${o.leads?_brl(o.inv/o.leads):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
+  const empty='<tr><td colspan="11" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
   const byCri=grp(r=>r.crit), byPub=grp(r=>r.pub);
   view.innerHTML=
     `<div class="hf-kpi-strip cols-7">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
