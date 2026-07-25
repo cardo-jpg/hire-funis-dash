@@ -1213,6 +1213,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── YouTube ── -->
   <div id="viewYoutube" style="display:none">
 
+    <!-- Filtro por campanha -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:.8rem;color:rgba(255,255,255,.55)">Campanha:</span>
+      <select id="ytCampSelect" onchange="onYtCamp(this)"
+        style="background:#1a1626;color:#eee;border:1px solid rgba(168,85,200,.4);border-radius:8px;padding:7px 12px;font-size:.82rem;cursor:pointer;max-width:100%">
+        <option value="all">Todas as campanhas</option>
+      </select>
+    </div>
+
     <!-- KPI Strip -->
     <div class="hf-kpi-strip cols-6">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="yt_kpiInv">—</div></div>
@@ -1257,7 +1266,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
           <thead>
             <tr>
               <th>Anúncio</th>
-              <th class="num">Status</th>
               <th class="num">Inscrições</th>
               <th class="num">Impressões</th>
               <th class="num">Investido</th>
@@ -2943,6 +2951,7 @@ async function loadSite() {
 // ── YouTube ───────────────────────────────────────────────────────────────────
 let _ytSubChart  = null;
 let _ytCostChart = null;
+let _ytCamp = 'all';   // filtro de campanha da aba YouTube ('all' = todas)
 
 function PCT(v) { return v == null ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%'; }
 
@@ -3050,6 +3059,7 @@ function buildYoutubeData(tIns, tUrl){
 
   // 2) índices por RÓTULO (robusto a reordenar/adicionar colunas no Stract)
   const dateI = _labIdx(tIns, 'Date','Data');
+  const campI = _labIdx(tIns, 'Campanha','Campaign Name','Campaign','Campanhas');
   const nameI = _labIdx(tIns, 'ad name','Ad Name','Anuncio','Anúncio');
   const invI  = _labIdx(tIns, 'Investido Dolar','Investido Dólar','Cost','Custo','Investido');
   const insI  = _labIdx(tIns, 'Inscritos','Conversions','Conversões','Inscrições');
@@ -3066,6 +3076,7 @@ function buildYoutubeData(tIns, tUrl){
     if (!d) continue;
     rows.push({
       date: d,
+      campanha: campI>=0 ? _gvStr(c[campI]).trim() : '',
       nome: _gvStr(c[nameI]).trim(),
       inv_usd: _cellNum(c[invI]),
       ins: _cellNum(c[insI]),
@@ -3076,7 +3087,11 @@ function buildYoutubeData(tIns, tUrl){
   }
   _resetRange();
   const w = window30(rows); _trackRange(w);
-  const wr = w.rows;
+  const wAll = w.rows;
+  // lista de campanhas (da janela inteira, antes do filtro) p/ popular o dropdown
+  const campaigns = [...new Set(wAll.map(r=>r.campanha).filter(Boolean))].sort();
+  // aplica o filtro de campanha selecionado
+  const wr = (_ytCamp && _ytCamp !== 'all') ? wAll.filter(r=>r.campanha === _ytCamp) : wAll;
 
   // 4) série diária (inscritos + investimento R$) para o gráfico de custo
   const byDay = {};
@@ -3128,7 +3143,30 @@ function buildYoutubeData(tIns, tUrl){
     cpm: (hasImp && impressoes) ? investido / impressoes * 1000 : null,
   };
 
-  return { kpis, serie_gads, anuncios, analytics: { authorized:false } };
+  return { kpis, serie_gads, anuncios, campaigns, analytics: { authorized:false } };
+}
+
+// Popula o <select> de campanha (rótulo curto = último segmento após "|").
+function _ytFillCampSelect(campaigns){
+  const sel = document.getElementById('ytCampSelect');
+  if (!sel) return;
+  const cur = _ytCamp;
+  const opts = ['<option value="all">Todas as campanhas</option>'].concat(
+    (campaigns||[]).map(c => {
+      const lb = (String(c).split('|').pop() || c).trim() || c;
+      return `<option value="${_esc(c)}">${_esc(lb)}</option>`;
+    })
+  );
+  sel.innerHTML = opts.join('');
+  // se a campanha filtrada ainda existe, mantém; senão volta pra "Todas"
+  sel.value = (campaigns||[]).includes(cur) ? cur : 'all';
+  if (sel.value === 'all') _ytCamp = 'all';
+}
+
+// Troca de campanha → re-renderiza a aba (gviz vem do cache, é instantâneo).
+function onYtCamp(sel){
+  _ytCamp = sel.value || 'all';
+  loadYoutube();
 }
 
 async function loadYoutube() {
@@ -3143,6 +3181,7 @@ async function loadYoutube() {
       gvizLoadFrom(SHEET_ID, 'sheet=URL%20Youtube'),
     ]);
     d = buildYoutubeData(tIns, tUrl);
+    _ytFillCampSelect(d.campaigns);
     _syncBudgetMonthFromRange();
     updateRangeLabel();
     _syncDateInputsToData();
@@ -3291,12 +3330,10 @@ async function loadYoutube() {
   }
 
   // ── Table: Anúncios ──────────────────────────────────────────────────────────
-  const STATUS_CLS = { 'Ativo':'status-ativo', 'Pausado':'status-pausado', 'Removido':'status-removido' };
   const anuncios = d.anuncios || [];
   let htmlA = anuncios.map(a => `
     <tr>
       <td class="camp-name" title="${a.nome}">${a.nome}</td>
-      <td class="num"><span class="${STATUS_CLS[a.status]||''}">${a.status}</span></td>
       <td class="num">${NUM(a.conversoes)}</td>
       <td class="num">${NUM(a.impressoes)}</td>
       <td class="num">${BRL(a.valor)}</td>
