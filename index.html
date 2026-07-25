@@ -1288,7 +1288,7 @@ const GIDS = {
   ig_malu:'1908625822', ig_hire:'1758274680',
   eb_5op:'491256637', eb_7erros:'1570522981', eb_cr:'48918871', eb_10emp:'158106962',
   site_kw:'1598644082', site_camp:'2007620725',
-  youtube:'1098222347', budget:'1387283031',
+  youtube:'1098222347', youtube_ads:'400478401', budget:'1387283031',
 };
 
 let _gvizCache = {};
@@ -3016,60 +3016,118 @@ async function fetchYtAnalytics(startDate, endDate){
 
 // Constrói o objeto YouTube. A aba só tem Date, Campanha, Investido, Vendas, Faturamento
 // (SEM inscritos/impressões/cliques). Métricas de inscritos ficam honestamente "—".
-// ── YouTube Ads (Google Ads / Demand Gen) — SNAPSHOT MANUAL 1–13 jul 2026 ──────
-// Fonte: Google Ads, campanha "INTERCAMBIO". Valores em US$ convertidos p/ R$ a 5,16.
-// Pra atualizar: edite os números aqui (depois dá pra migrar p/ planilha/OAuth).
+// ── YouTube Ads (Google Ads / Demand Gen) — AO VIVO via Stract ────────────────
+// Aba "Youtube Inscritos" (GIDS.youtube_ads): Date, Campanha, Investido Dolar (US$),
+// Inscritos, ad name — atualiza sozinha todo dia. Aba "URL Youtube": ad name → link
+// do vídeo (mapa manual, casado por nome). Valores em US$ convertidos p/ R$ a 5,16.
+// Impressões/Cliques/CPM/Taxa/Status aparecem AUTOMÁTICO se essas colunas forem
+// adicionadas no relatório do Stract (leitura por rótulo). Sem elas → "—" / inferido.
 const YT_USD_BRL = 5.16;
-// Snapshot manual do Google Ads (visão por ANÚNCIO). "inscritos" = Conversões;
-// "taxa" = Taxa de conv. Só anúncios de YouTube — a campanha de Pesquisa/Site (de
-// cliente, sem "DISTRIBUIÇÃO" no nome) não entra. Atualizar drillando na campanha
-// → aba Anúncios no gerenciador.
-const YT_ADS_SNAPSHOT = {
-  periodo: '1–13 jul',
-  totais: { investido_usd: 157.33, inscritos: 2074, cliques: 2087, impressoes: 349040, cpm_usd: 0.45 },
-  ads: [
-    { nome:'AD14 - Quer sair do Brasil em 2026?',              inscritos:1500, impressoes:248501, custo_usd:111.79, taxa:9.68,  video:'https://www.youtube.com/watch?v=EUVLFEeVxII' },
-    { nome:'AD16 - Engenharia Civil',                          inscritos:306,  impressoes:58340,  custo_usd:22.55,  taxa:15.13, video:'https://youtu.be/dW8eOTfIBNM' },
-    { nome:'AD10 - Qual Currículo p/ Vagas Internacionais #2', inscritos:268,  impressoes:41871,  custo_usd:22.81,  taxa:11.29, video:'https://youtu.be/eygot1VmEIA' },
-    { nome:'AD013 - Trabalhe Remoto #2',                       inscritos:0,    impressoes:328,    custo_usd:0.18,   taxa:0,     video:'https://youtu.be/Phomw6Uh6zo' },
-    { nome:'AD15 - Entrevista internacional',                  inscritos:0,    impressoes:0,      custo_usd:0,      taxa:0,     video:'https://youtu.be/xg0JNVyYPdY' },
-  ],
-};
 
-function buildYoutubeData(tYt){
-  _resetRange();
-  const rows = gvRows(tYt, { campanha:{i:1,str:true}, investido:_emRealIdx(tYt,2), vendas:3, faturamento:4 });
-  const w = window30(rows); _trackRange(w);
-  // Série diária de investimento (mantida para o gráfico de custo).
-  const byDay = {};
-  for (const r of w.rows){
-    const key = _isoDM(r.date);
-    const o = byDay[key] || (byDay[key] = { date:key, inv:0 });
-    o.inv += r.investido;
+// normaliza ad name pra casar as duas abas (trim + colapsa espaços + caixa baixa)
+function _ytNorm(s){ return String(s||'').trim().replace(/\s+/g,' ').toLowerCase(); }
+
+// Status real do anúncio (col "Ad Status" do Stract) se existir; senão infere por
+// gasto recente. ENABLED→Ativo, PAUSED→Pausado, REMOVED→Removido.
+function _ytStatus(raw, ativoInferido){
+  const s = String(raw||'').toUpperCase();
+  if (s){
+    if (s.indexOf('ENABLE')>=0 || s==='ACTIVE')       return 'Ativo';
+    if (s.indexOf('REMOV')>=0)                          return 'Removido';
+    if (s.indexOf('PAUS')>=0 || s.indexOf('DISABLE')>=0) return 'Pausado';
   }
-  const serie_gads = Object.values(byDay).sort((a,b)=>a.date<b.date?-1:1)
-    .map(o => ({ date:o.date, ins:0, inv:o.inv }));
+  return ativoInferido ? 'Ativo' : 'Pausado';
+}
 
-  // KPIs (total) + tabela por anúncio = snapshot manual do Google Ads (US$→R$ 5,16).
-  const snap = YT_ADS_SNAPSHOT;
-  const investido = snap.totais.investido_usd * YT_USD_BRL;
+function buildYoutubeData(tIns, tUrl){
+  // 1) mapa ad name → URL do vídeo (aba "URL Youtube")
+  const urlMap = {};
+  for (const r of (tUrl && tUrl.rows || [])){
+    const c = r.c || [];
+    const nome = _gvStr(c[0]).trim(), url = _gvStr(c[1]).trim();
+    if (nome && /^https?:\/\//i.test(url)) urlMap[_ytNorm(nome)] = url;
+  }
+
+  // 2) índices por RÓTULO (robusto a reordenar/adicionar colunas no Stract)
+  const dateI = _labIdx(tIns, 'Date','Data');
+  const nameI = _labIdx(tIns, 'ad name','Ad Name','Anuncio','Anúncio');
+  const invI  = _labIdx(tIns, 'Investido Dolar','Investido Dólar','Cost','Custo','Investido');
+  const insI  = _labIdx(tIns, 'Inscritos','Conversions','Conversões','Inscrições');
+  const impI  = _labIdx(tIns, 'Impressions','Impressões','Impressoes');
+  const cliI  = _labIdx(tIns, 'Clicks','Cliques','Interactions','Interações','Interacoes');
+  const statI = _labIdx(tIns, 'Ad Status','Status','Ad Group Status');
+  const hasImp = impI >= 0, hasCli = cliI >= 0;
+
+  // 3) linhas dentro da janela de data global
+  const rows = [];
+  for (const r of (tIns && tIns.rows || [])){
+    const c = r.c || [];
+    const d = _gvParseDate(c[dateI] && c[dateI].v);
+    if (!d) continue;
+    rows.push({
+      date: d,
+      nome: _gvStr(c[nameI]).trim(),
+      inv_usd: _cellNum(c[invI]),
+      ins: _cellNum(c[insI]),
+      imp: hasImp ? _cellNum(c[impI]) : 0,
+      cli: hasCli ? _cellNum(c[cliI]) : 0,
+      statusRaw: statI>=0 ? _gvStr(c[statI]) : '',
+    });
+  }
+  _resetRange();
+  const w = window30(rows); _trackRange(w);
+  const wr = w.rows;
+
+  // 4) série diária (inscritos + investimento R$) para o gráfico de custo
+  const byDay = {};
+  for (const r of wr){
+    const key = _isoDM(r.date);
+    const o = byDay[key] || (byDay[key] = { date:key, ins:0, inv:0 });
+    o.ins += r.ins; o.inv += r.inv_usd * YT_USD_BRL;
+  }
+  const serie_gads = Object.values(byDay).sort((a,b)=>a.date<b.date?-1:1);
+
+  // 5) agrega por anúncio (soma na janela) + status do registro mais recente
+  const byAd = {};
+  for (const r of wr){
+    const k = r.nome || '(sem nome)';
+    const o = byAd[k] || (byAd[k] = { nome:k, inv_usd:0, ins:0, imp:0, cli:0, last:null, statusRaw:'' });
+    o.inv_usd += r.inv_usd; o.ins += r.ins; o.imp += r.imp; o.cli += r.cli;
+    if (!o.last || r.date >= o.last){ o.last = r.date; if (r.statusRaw) o.statusRaw = r.statusRaw; }
+  }
+  const maxD = w.end;
+  const recente = maxD ? new Date(maxD.getFullYear(), maxD.getMonth(), maxD.getDate()-2) : null;
+  const anuncios = Object.values(byAd)
+    .sort((a,b)=> b.inv_usd - a.inv_usd)
+    .map(a => {
+      const valor = a.inv_usd * YT_USD_BRL;
+      const ativoInf = recente ? (a.last >= recente) : false;
+      return {
+        nome: a.nome,
+        status: _ytStatus(a.statusRaw, ativoInf),
+        conversoes: a.ins,
+        impressoes: hasImp ? a.imp : null,
+        valor,
+        custo_conv: a.ins ? valor / a.ins : null,
+        taxa: hasCli ? (a.cli ? a.ins / a.cli * 100 : 0) : null,
+        video_url: urlMap[_ytNorm(a.nome)] || null,
+      };
+    });
+
+  // 6) KPIs totais (janela)
+  const investido  = wr.reduce((s,r)=>s + r.inv_usd, 0) * YT_USD_BRL;
+  const inscritos  = wr.reduce((s,r)=>s + r.ins, 0);
+  const impressoes = hasImp ? wr.reduce((s,r)=>s + r.imp, 0) : null;
+  const cliques    = hasCli ? wr.reduce((s,r)=>s + r.cli, 0) : null;
   const kpis = {
     investido,
-    inscritos: snap.totais.inscritos,
-    cliques:   snap.totais.cliques,
-    custo_inscrito: snap.totais.inscritos ? investido / snap.totais.inscritos : null,
-    impressoes: snap.totais.impressoes,
-    cpm: snap.totais.cpm_usd * YT_USD_BRL,
+    inscritos,
+    cliques,
+    custo_inscrito: inscritos ? investido / inscritos : null,
+    impressoes,
+    cpm: (hasImp && impressoes) ? investido / impressoes * 1000 : null,
   };
-  const anuncios = snap.ads.map(a => {
-    const valor = a.custo_usd * YT_USD_BRL;
-    return {
-      nome: a.nome, status: 'Ativo',
-      conversoes: a.inscritos, impressoes: a.impressoes,
-      valor, custo_conv: a.inscritos ? valor / a.inscritos : null,
-      taxa: a.taxa, video_url: a.video,
-    };
-  });
+
   return { kpis, serie_gads, anuncios, analytics: { authorized:false } };
 }
 
@@ -3080,8 +3138,11 @@ async function loadYoutube() {
 
   let d;
   try {
-    const tYt = await gvizLoad(GIDS.youtube);
-    d = buildYoutubeData(tYt);
+    const [tIns, tUrl] = await Promise.all([
+      gvizLoad(GIDS.youtube_ads),
+      gvizLoadFrom(SHEET_ID, 'sheet=URL%20Youtube'),
+    ]);
+    d = buildYoutubeData(tIns, tUrl);
     _syncBudgetMonthFromRange();
     updateRangeLabel();
     _syncDateInputsToData();
