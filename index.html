@@ -1234,24 +1234,14 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
     <!-- Charts row -->
     <div class="yt-charts-row" id="ytChartsRow">
-      <!-- Inscritos chart: full-width when no Analytics; half-width when authorized -->
-      <div class="yt-chart-card" id="ytSubCard">
-        <div class="yt-chart-title">Inscritos YouTube</div>
-        <!-- locked placeholder (shown when not authorized) -->
-        <div id="ytSubLocked" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:10px;color:rgba(255,255,255,.3)">
-          <span style="font-size:1.6rem">🔒</span>
-          <span style="font-size:.8rem;text-align:center">Conectar YouTube da Malu<br><span style="font-size:.7rem;opacity:.6">Use a conta Google pessoal da Malu</span></span>
-          <button class="yt-auth-btn" style="margin-top:4px;font-size:.75rem;padding:6px 14px" onclick="ytAuth(true)">Conectar</button>
-        </div>
-        <div class="yt-chart-canvas-wrap" id="ytSubChartWrap" style="display:none">
-          <canvas id="ytSubChart"></canvas>
-          <div style="text-align:right;margin-top:4px">
-            <button id="ytDisconnectBtn" onclick="ytSwitch()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:.68rem;cursor:pointer;padding:0">↩ Trocar conta</button>
-          </div>
+      <div class="yt-chart-card">
+        <div class="yt-chart-title">Inscrições por Anúncio</div>
+        <div class="yt-chart-canvas-wrap">
+          <canvas id="ytByAdChart"></canvas>
         </div>
       </div>
       <div class="yt-chart-card">
-        <div class="yt-chart-title">Custo por Inscritos YouTube</div>
+        <div class="yt-chart-title">Custo por Inscrito · por dia</div>
         <div class="yt-chart-canvas-wrap">
           <canvas id="ytCostChart"></canvas>
         </div>
@@ -2951,7 +2941,9 @@ async function loadSite() {
 // ── YouTube ───────────────────────────────────────────────────────────────────
 let _ytSubChart  = null;
 let _ytCostChart = null;
+let _ytByAdChart = null;
 let _ytCamp = 'all';   // filtro de campanha da aba YouTube ('all' = todas)
+const _ytShort = s => { s = String(s||''); return s.length > 26 ? s.slice(0,24)+'…' : s; };
 
 function PCT(v) { return v == null ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%'; }
 
@@ -3004,8 +2996,8 @@ async function ytDisconnect(){
   if (_ytToken && window.google && google.accounts && google.accounts.oauth2){ try{ google.accounts.oauth2.revoke(_ytToken); }catch(e){} }
   _ytToken = null;
   try{ localStorage.removeItem('yt_connected'); }catch(e){}
-  document.getElementById('ytSubLocked').style.display    = 'flex';
-  document.getElementById('ytSubChartWrap').style.display = 'none';
+  const _sl=document.getElementById('ytSubLocked'); if(_sl) _sl.style.display='flex';
+  const _sw=document.getElementById('ytSubChartWrap'); if(_sw) _sw.style.display='none';
   if (_ytSubChart){ _ytSubChart.destroy(); _ytSubChart = null; }
 }
 
@@ -3222,17 +3214,47 @@ async function loadYoutube() {
     if (el && val !== '—') el.classList.remove('dash');
   });
 
-  // ── Authorization state ──────────────────────────────────────────────────────
+  // ── Authorization state (OAuth do YouTube Analytics — dormant) ───────────────
   const analytics  = d.analytics || {};
   const authorized = analytics.authorized;
 
-  // Inscritos card: show lock or chart
-  document.getElementById('ytSubLocked').style.display    = authorized ? 'none' : 'flex';
-  document.getElementById('ytSubChartWrap').style.display = authorized ? ''     : 'none';
-
-  // ── Chart 1: Inscritos (YouTube Analytics daily) ──────────────────────────
   if (_ytSubChart)  { _ytSubChart.destroy();  _ytSubChart  = null; }
   if (_ytCostChart) { _ytCostChart.destroy(); _ytCostChart = null; }
+  if (_ytByAdChart) { _ytByAdChart.destroy(); _ytByAdChart = null; }
+
+  // ── Chart: Inscrições por Anúncio (barra horizontal, dados reais do Stract) ──
+  const cAd = document.getElementById('ytByAdChart');
+  if (cAd) {
+    const top = (d.anuncios||[]).filter(a => a.conversoes > 0)
+      .sort((a,b) => b.conversoes - a.conversoes).slice(0, 8);
+    _ytByAdChart = new Chart(cAd, {
+      type: 'bar',
+      data: {
+        labels: top.map(a => _ytShort(a.nome)),
+        datasets: [{
+          label: 'Inscrições',
+          data: top.map(a => a.conversoes),
+          backgroundColor: 'rgba(168,85,200,.55)',
+          borderColor: 'rgba(168,85,200,.95)',
+          borderWidth: 1, borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            title: items => (top[items[0].dataIndex] || {}).nome || '',
+            label: ctx => ' ' + NUM(ctx.parsed.x) + ' inscrições',
+          } },
+        },
+        scales: {
+          x: { grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'rgba(255,255,255,.4)',font:{size:10}} },
+          y: { grid:{display:false}, ticks:{color:'rgba(255,255,255,.6)',font:{size:10}} },
+        },
+      },
+    });
+  }
 
   const subSerie = (analytics.serie_diaria || []);
   const gSerie   = (d.serie_gads || []);
