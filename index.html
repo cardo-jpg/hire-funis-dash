@@ -1541,6 +1541,9 @@ function updateRangeLabel(){
 
 // Orçamento (matriz) — best-effort. O cabeçalho da aba vem colapsado nas labels
 // das colunas como listas paralelas: "channel a b c", "month m m m", "budget x y z".
+// Normaliza nomes de canal da planilha pra chave que a dash usa (evita descompasso de nome).
+const _CH_ALIAS = { ig_internacional:'ig_int', ig_inter:'ig_int', igint:'ig_int', ig_int_:'ig_int' };
+const _normCh = c => { c = (c||'').trim(); return _CH_ALIAS[c.toLowerCase()] || c; };
 function parseBudgetMatrix(table){
   const out = {};
   try {
@@ -1549,13 +1552,13 @@ function parseBudgetMatrix(table){
     const chs = lab(0).slice(1), mos = lab(1).slice(1), bus = lab(2).slice(1);
     const n = Math.min(chs.length, mos.length, bus.length);
     for (let i = 0; i < n; i++){
-      const ch = chs[i], mo = mos[i], bv = parseFloat(bus[i]);
+      const ch = _normCh(chs[i]), mo = mos[i], bv = parseFloat(bus[i]);
       if (!ch || !mo) continue;
       (out[ch] = out[ch] || {})[mo] = isNaN(bv) ? 0 : bv;
     }
     for (const r of (table.rows || [])){
       const c = r.c || [];
-      const ch = _gvStr(c[0]), mo = _gvStr(c[1]), bv = _gvNum(c[2]);
+      const ch = _normCh(_gvStr(c[0])), mo = _gvStr(c[1]), bv = _gvNum(c[2]);
       if (ch && mo) (out[ch] = out[ch] || {})[mo] = bv;
     }
   } catch(e){ /* orçamento neutro se a matriz mudar de forma */ }
