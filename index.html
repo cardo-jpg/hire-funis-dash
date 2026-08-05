@@ -3081,7 +3081,16 @@ function buildYoutubeData(tIns, tUrl){
     });
   }
   _resetRange();
-  const w = window30(rows); _trackRange(w);
+  let w = window30(rows);
+  // O YouTube (Stract) tem timeline PRÓPRIA e pode estar atrás do filtro global
+  // (ex.: filtro em agosto, mas o Stract só alimentou até julho). Se o filtro
+  // zerar a série, cai pro range próprio dela pra a aba não ficar vazia.
+  if (!w.rows.length && rows.length){
+    const _sf=_fStart, _se=_fEnd; _fStart=_fEnd=null;
+    w = window30(rows);
+    _fStart=_sf; _fEnd=_se;
+  }
+  _trackRange(w);
   const wAll = w.rows;
   // lista de campanhas (da janela inteira, antes do filtro) p/ popular o dropdown
   const campaigns = [...new Set(wAll.map(r=>r.campanha).filter(Boolean))].sort();
