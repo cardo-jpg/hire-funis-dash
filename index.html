@@ -806,6 +806,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .crm-k .cv{ font-size:1.7rem; font-weight:800; color:#c898ea; margin-top:3px; line-height:1; }
     .crm-k .cv.ok{ color:#6ee7a0; }
     .crm-k .cn{ font-size:.7rem; color:rgba(255,255,255,.4); margin-top:4px; }
+    .crm-prop{ background:rgba(168,85,200,.12); border:1px solid rgba(168,85,200,.3); border-radius:10px; padding:11px 15px; margin-bottom:16px; font-size:.9rem; color:rgba(255,255,255,.85); }
+    .crm-prop b{ color:#fff; } .crm-prop b.ok{ color:#6ee7a0; }
     .crm-bars{ display:flex; flex-direction:column; gap:9px; }
     .crm-bar{ display:grid; grid-template-columns:88px 1fr 78px; align-items:center; gap:12px; }
     .crm-bar .crm-bl{ font-size:.82rem; color:rgba(255,255,255,.8); }
@@ -3529,6 +3531,8 @@ function renderEbookDetail(view, rows, pfx, crm){
   let crmBlock='';
   if(crm){
     const tot=crm.total, q=crm.crm, pct=tot?Math.round(q/tot*100):0, ORD=['Fluente','Me viro','Básico','Zero'];
+    const aprov = tLeads ? (q/tLeads*100) : 0;
+    const aprovStr = tLeads ? (aprov>=10?Math.round(aprov):aprov.toFixed(1).replace('.',','))+'%' : '—';
     const lv=Object.entries(crm.lvls).sort((a,b)=>((ORD.indexOf(a[0])+1)||99)-((ORD.indexOf(b[0])+1)||99));
     const mx=Math.max(1,...lv.map(x=>x[1]));
     const bars=lv.map(([k,n])=>{ const ok=/fluente|me viro/i.test(k);
@@ -3541,6 +3545,7 @@ function renderEbookDetail(view, rows, pfx, crm){
         <div class="crm-k"><div class="cl">Inglês interm+</div><div class="cv ok">${_num(q)}</div><div class="cn">caem no CRM</div></div>
         <div class="crm-k"><div class="cl">% qualificação</div><div class="cv ok">${tot?pct+'%':'—'}</div><div class="cn">interm+ / capturados</div></div>
       </div>
+      <div class="crm-prop">📊 <b>Aproveitamento</b> — de <b>${_num(tLeads)}</b> leads no Meta, <b>${_num(q)}</b> foram pro CRM (inglês interm+): <b class="ok">${aprovStr}</b> aproveitado</div>
       <div class="crm-bars">${bars||'<div style="color:rgba(255,255,255,.35);font-size:.85rem">Sem leads capturados ainda (automação enchendo).</div>'}</div>
     </div>`;
   }
