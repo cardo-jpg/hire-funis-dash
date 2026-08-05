@@ -3428,16 +3428,18 @@ const CRM_TABS = {
 };
 const _crmInterm = v => /fluente|me viro/i.test(v);
 const _crmLvl = v => { v=String(v||''); return /fluente/i.test(v)?'Fluente':/me viro/i.test(v)?'Me viro':/travo|entendo/i.test(v)?'Básico':/zero|não falo/i.test(v)?'Zero':(v.trim()||'—'); };
-// lê uma aba do CRM e devolve os níveis de inglês (1 por lead com email).
+const _crmDk = c => { const d=String((c&&c.v)||'').match(/Date\((\d+),(\d+),(\d+)/); return d ? d[1]+'-'+String(+d[2]+1).padStart(2,'0')+'-'+String(+d[3]).padStart(2,'0') : ''; };
+// lê uma aba do CRM e devolve {lvl, dk} por lead com email.
 function _crmParse(table){
   if(!table) return [];
   let iIng=(table.cols||[]).findIndex(c=>/ingl/i.test((c&&c.label)||''));
   let iMail=(table.cols||[]).findIndex(c=>/mail/i.test((c&&c.label)||''));
+  let iDate=(table.cols||[]).findIndex(c=>/date|data/i.test((c&&c.label)||''));
   let data=table.rows||[];
-  if(iIng<0){ const h=((data[0]&&data[0].c)||[]).map(_gvStr); iIng=h.findIndex(x=>/ingl/i.test(x)); if(iMail<0)iMail=h.findIndex(x=>/mail/i.test(x)); data=data.slice(1); }
-  if(iMail<0) iMail=2; if(iIng<0) iIng=4;
+  if(iIng<0){ const h=((data[0]&&data[0].c)||[]).map(_gvStr); iIng=h.findIndex(x=>/ingl/i.test(x)); if(iMail<0)iMail=h.findIndex(x=>/mail/i.test(x)); if(iDate<0)iDate=h.findIndex(x=>/data|date/i.test(x)); data=data.slice(1); }
+  if(iMail<0) iMail=2; if(iIng<0) iIng=4; if(iDate<0) iDate=0;
   const out=[];
-  for(const r of data){ const c=r.c||[]; if(!/@/.test(_gvStr(c[iMail]))) continue; out.push(_gvStr(c[iIng])); }
+  for(const r of data){ const c=r.c||[]; if(!/@/.test(_gvStr(c[iMail]))) continue; out.push({ lvl:_gvStr(c[iIng]), dk:_crmDk(c[iDate]) }); }
   return out;
 }
 async function _loadCrm(key){
@@ -3447,8 +3449,8 @@ async function _loadCrm(key){
     gvizLoadFrom(CRM_SHEET_ID,'sheet='+encodeURIComponent(T.org)).catch(()=>null),
   ]);
   const ads=_crmParse(tA), org=_crmParse(tO), all=ads.concat(org);
-  const lvls={}; all.forEach(v=>{ const k=_crmLvl(v); lvls[k]=(lvls[k]||0)+1; });
-  return { adsN:ads.length, orgN:org.length, total:all.length, crm:all.filter(_crmInterm).length, lvls };
+  const lvls={}; all.forEach(x=>{ const k=_crmLvl(x.lvl); lvls[k]=(lvls[k]||0)+1; });
+  return { adsN:ads.length, orgN:org.length, total:all.length, crm:all.filter(x=>_crmInterm(x.lvl)).length, lvls, leads:all };
 }
 const _newCharts = {};
 
@@ -3531,8 +3533,16 @@ function renderEbookDetail(view, rows, pfx, crm){
   let crmBlock='';
   if(crm){
     const tot=crm.total, q=crm.crm, pct=tot?Math.round(q/tot*100):0, ORD=['Fluente','Me viro','Básico','Zero'];
-    const aprov = tLeads ? (q/tLeads*100) : 0;
-    const aprovStr = tLeads ? (aprov>=10?Math.round(aprov):aprov.toFixed(1).replace('.',','))+'%' : '—';
+    // Aproveitamento no MESMO PERÍODO: só os dias que o CRM capturou, vs Meta leads nesses dias.
+    const metaBy={};
+    for(const r of rows){ const d=r.date; if(!d) continue; const dk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); metaBy[dk]=(metaBy[dk]||0)+(r.leads||0); }
+    const _cdias=[...new Set((crm.leads||[]).map(l=>l.dk).filter(Boolean))].filter(dk=>metaBy[dk]!=null).sort();
+    let metaP=0, crmQ=0;
+    for(const dk of _cdias){ metaP+=metaBy[dk]; crmQ+=(crm.leads||[]).filter(l=>l.dk===dk && _crmInterm(l.lvl)).length; }
+    const aprov = metaP ? crmQ/metaP*100 : 0;
+    const aprovStr = metaP ? (aprov>=10?Math.round(aprov):aprov.toFixed(1).replace('.',','))+'%' : '—';
+    const _dm=dk=>dk.slice(8)+'/'+dk.slice(5,7);
+    const perLbl = _cdias.length ? (_cdias[0]===_cdias[_cdias.length-1] ? _dm(_cdias[0]) : _dm(_cdias[0])+'–'+_dm(_cdias[_cdias.length-1])) : '';
     const lv=Object.entries(crm.lvls).sort((a,b)=>((ORD.indexOf(a[0])+1)||99)-((ORD.indexOf(b[0])+1)||99));
     const mx=Math.max(1,...lv.map(x=>x[1]));
     const bars=lv.map(([k,n])=>{ const ok=/fluente|me viro/i.test(k);
@@ -3545,7 +3555,7 @@ function renderEbookDetail(view, rows, pfx, crm){
         <div class="crm-k"><div class="cl">Inglês interm+</div><div class="cv ok">${_num(q)}</div><div class="cn">caem no CRM</div></div>
         <div class="crm-k"><div class="cl">% qualificação</div><div class="cv ok">${tot?pct+'%':'—'}</div><div class="cn">interm+ / capturados</div></div>
       </div>
-      <div class="crm-prop">📊 <b>Aproveitamento</b> — de <b>${_num(tLeads)}</b> leads no Meta, <b>${_num(q)}</b> foram pro CRM (inglês interm+): <b class="ok">${aprovStr}</b> aproveitado</div>
+      <div class="crm-prop">📊 <b>Aproveitamento</b>${perLbl?' <span style="opacity:.65">('+perLbl+')</span>':''} — de <b>${_num(metaP)}</b> leads no Meta, <b>${_num(crmQ)}</b> foram pro CRM (inglês interm+): <b class="ok">${aprovStr}</b> aproveitado</div>
       <div class="crm-bars">${bars||'<div style="color:rgba(255,255,255,.35);font-size:.85rem">Sem leads capturados ainda (automação enchendo).</div>'}</div>
     </div>`;
   }
