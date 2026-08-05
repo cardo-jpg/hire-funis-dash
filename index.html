@@ -3448,9 +3448,11 @@ async function _loadCrm(key){
     gvizLoadFrom(CRM_SHEET_ID,'sheet='+encodeURIComponent(T.ads)).catch(()=>null),
     gvizLoadFrom(CRM_SHEET_ID,'sheet='+encodeURIComponent(T.org)).catch(()=>null),
   ]);
-  const ads=_crmParse(tA), org=_crmParse(tO), all=ads.concat(org);
-  const lvls={}; all.forEach(x=>{ const k=_crmLvl(x.lvl); lvls[k]=(lvls[k]||0)+1; });
-  return { adsN:ads.length, orgN:org.length, total:all.length, crm:all.filter(x=>_crmInterm(x.lvl)).length, lvls, leads:all };
+  const ads=_crmParse(tA), org=_crmParse(tO);
+  ads.forEach(x=>x.src='ads'); org.forEach(x=>x.src='org');
+  const all=ads.concat(org);
+  // total/crm/lvls/adsN/orgN são recalculados no render conforme o filtro de data global.
+  return { leads:all };
 }
 const _newCharts = {};
 
@@ -3532,18 +3534,27 @@ function renderEbookDetail(view, rows, pfx, crm){
   // Bloco comparativo Ebook → CRM (leads gerados × capturados × inglês interm+).
   let crmBlock='';
   if(crm){
-    const tot=crm.total, q=crm.crm, pct=tot?Math.round(q/tot*100):0, ORD=['Fluente','Me viro','Básico','Zero'];
-    // Aproveitamento no MESMO PERÍODO: só os dias que o CRM capturou, vs Meta leads nesses dias.
+    const ORD=['Fluente','Me viro','Básico','Zero'];
+    // Todos os leads do CRM filtrados pelo MESMO intervalo do filtro de data global
+    // (rows já vem filtrado por window30; aqui aplico o mesmo [_fStart,_fEnd] nos leads).
+    const _dkDate=dk=>{ const p=dk.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); };
+    const inFilter=dk=>{ if(!dk) return false; const d=_dkDate(dk);
+      if(_fStart && d<_fStart) return false; if(_fEnd && d>_fEnd) return false; return true; };
+    const leadsF=(crm.leads||[]).filter(l=>inFilter(l.dk));
+    const adsN=leadsF.filter(l=>l.src==='ads').length, orgN=leadsF.filter(l=>l.src==='org').length;
+    const tot=leadsF.length, q=leadsF.filter(l=>_crmInterm(l.lvl)).length, pct=tot?Math.round(q/tot*100):0;
+    const lvls={}; leadsF.forEach(x=>{ const k=_crmLvl(x.lvl); lvls[k]=(lvls[k]||0)+1; });
+    // Aproveitamento no MESMO PERÍODO: dias (dentro do filtro) que o CRM capturou, vs Meta leads nesses dias.
     const metaBy={};
     for(const r of rows){ const d=r.date; if(!d) continue; const dk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); metaBy[dk]=(metaBy[dk]||0)+(r.leads||0); }
-    const _cdias=[...new Set((crm.leads||[]).map(l=>l.dk).filter(Boolean))].filter(dk=>metaBy[dk]!=null).sort();
+    const _cdias=[...new Set(leadsF.map(l=>l.dk).filter(Boolean))].filter(dk=>metaBy[dk]!=null).sort();
     let metaP=0, crmQ=0;
-    for(const dk of _cdias){ metaP+=metaBy[dk]; crmQ+=(crm.leads||[]).filter(l=>l.dk===dk && _crmInterm(l.lvl)).length; }
+    for(const dk of _cdias){ metaP+=metaBy[dk]; crmQ+=leadsF.filter(l=>l.dk===dk && _crmInterm(l.lvl)).length; }
     const aprov = metaP ? crmQ/metaP*100 : 0;
     const aprovStr = metaP ? (aprov>=10?Math.round(aprov):aprov.toFixed(1).replace('.',','))+'%' : '—';
     const _dm=dk=>dk.slice(8)+'/'+dk.slice(5,7);
     const perLbl = _cdias.length ? (_cdias[0]===_cdias[_cdias.length-1] ? _dm(_cdias[0]) : _dm(_cdias[0])+'–'+_dm(_cdias[_cdias.length-1])) : '';
-    const lv=Object.entries(crm.lvls).sort((a,b)=>((ORD.indexOf(a[0])+1)||99)-((ORD.indexOf(b[0])+1)||99));
+    const lv=Object.entries(lvls).sort((a,b)=>((ORD.indexOf(a[0])+1)||99)-((ORD.indexOf(b[0])+1)||99));
     const mx=Math.max(1,...lv.map(x=>x[1]));
     const bars=lv.map(([k,n])=>{ const ok=/fluente|me viro/i.test(k);
       return `<div class="crm-bar"><div class="crm-bl">${_esc(k)}</div><div class="crm-bt"><div class="crm-bf${ok?' ok':''}" style="width:${Math.round(n/mx*100)}%"></div></div><div class="crm-bn">${n} · ${tot?Math.round(n/tot*100):0}%</div></div>`; }).join('');
@@ -3551,7 +3562,7 @@ function renderEbookDetail(view, rows, pfx, crm){
       <div class="hf-chart-title">🎯 Ebook → CRM · qualificação por inglês</div>
       <div class="crm-kpis">
         <div class="crm-k"><div class="cl">Leads gerados (ads)</div><div class="cv">${_num(tLeads)}</div><div class="cn">Meta reporta</div></div>
-        <div class="crm-k"><div class="cl">Capturados no CRM</div><div class="cv">${_num(tot)}</div><div class="cn">ads ${crm.adsN} · org ${crm.orgN}</div></div>
+        <div class="crm-k"><div class="cl">Capturados no CRM</div><div class="cv">${_num(tot)}</div><div class="cn">ads ${adsN} · org ${orgN}</div></div>
         <div class="crm-k"><div class="cl">Inglês interm+</div><div class="cv ok">${_num(q)}</div><div class="cn">caem no CRM</div></div>
         <div class="crm-k"><div class="cl">% qualificação</div><div class="cv ok">${tot?pct+'%':'—'}</div><div class="cn">interm+ / capturados</div></div>
       </div>
