@@ -3540,8 +3540,10 @@ function renderEbookDetail(view, rows, pfx, crm){
     const _dkDate=dk=>{ const p=dk.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); };
     const inFilter=dk=>{ if(!dk) return false; const d=_dkDate(dk);
       if(_fStart && d<_fStart) return false; if(_fEnd && d>_fEnd) return false; return true; };
-    const leadsF=(crm.leads||[]).filter(l=>inFilter(l.dk));
-    const adsN=leadsF.filter(l=>l.src==='ads').length, orgN=leadsF.filter(l=>l.src==='org').length;
+    // SÓ leads de ADS: o Meta reporta leads de anúncio, então a comparação é ads↔ads (org fica fora da conta).
+    const leadsFilt=(crm.leads||[]).filter(l=>inFilter(l.dk));
+    const leadsF=leadsFilt.filter(l=>l.src==='ads');
+    const orgN=leadsFilt.filter(l=>l.src==='org').length;
     const tot=leadsF.length, q=leadsF.filter(l=>_crmInterm(l.lvl)).length, pct=tot?Math.round(q/tot*100):0;
     const lvls={}; leadsF.forEach(x=>{ const k=_crmLvl(x.lvl); lvls[k]=(lvls[k]||0)+1; });
     // Aproveitamento no MESMO PERÍODO: dias (dentro do filtro) que o CRM capturou, vs Meta leads nesses dias.
@@ -3562,7 +3564,7 @@ function renderEbookDetail(view, rows, pfx, crm){
       <div class="hf-chart-title">🎯 Ebook → CRM · qualificação por inglês</div>
       <div class="crm-kpis">
         <div class="crm-k"><div class="cl">Leads gerados (ads)</div><div class="cv">${_num(tLeads)}</div><div class="cn">Meta reporta</div></div>
-        <div class="crm-k"><div class="cl">Capturados no CRM</div><div class="cv">${_num(tot)}</div><div class="cn">ads ${adsN} · org ${orgN}</div></div>
+        <div class="crm-k"><div class="cl">Capturados no CRM (ads)</div><div class="cv">${_num(tot)}</div><div class="cn">${orgN?'+ '+orgN+' de orgânico (fora da conta)':'só ads'}</div></div>
         <div class="crm-k"><div class="cl">Inglês interm+</div><div class="cv ok">${_num(q)}</div><div class="cn">caem no CRM</div></div>
         <div class="crm-k"><div class="cl">% qualificação</div><div class="cv ok">${tot?pct+'%':'—'}</div><div class="cn">interm+ / capturados</div></div>
       </div>
