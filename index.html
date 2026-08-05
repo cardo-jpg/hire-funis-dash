@@ -798,6 +798,21 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-chart-title { font-size:.72rem; font-weight:700; text-transform:uppercase;
       letter-spacing:.07em; color:rgba(255,255,255,.5); margin-bottom:14px; }
     .hf-chart-canvas-wrap { position:relative; height:220px; }
+    .crm-block{ border-color:rgba(168,85,200,.45); }
+    .crm-kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+    @media(max-width:760px){ .crm-kpis{ grid-template-columns:repeat(2,1fr); } }
+    .crm-k{ background:rgba(255,255,255,.03); border:1px solid rgba(123,45,139,.3); border-radius:12px; padding:13px 15px; }
+    .crm-k .cl{ font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.5); font-weight:700; }
+    .crm-k .cv{ font-size:1.7rem; font-weight:800; color:#c898ea; margin-top:3px; line-height:1; }
+    .crm-k .cv.ok{ color:#6ee7a0; }
+    .crm-k .cn{ font-size:.7rem; color:rgba(255,255,255,.4); margin-top:4px; }
+    .crm-bars{ display:flex; flex-direction:column; gap:9px; }
+    .crm-bar{ display:grid; grid-template-columns:88px 1fr 78px; align-items:center; gap:12px; }
+    .crm-bar .crm-bl{ font-size:.82rem; color:rgba(255,255,255,.8); }
+    .crm-bar .crm-bt{ height:14px; background:rgba(255,255,255,.06); border-radius:7px; overflow:hidden; }
+    .crm-bar .crm-bf{ height:100%; border-radius:7px; background:rgba(168,85,200,.55); transition:width .3s; }
+    .crm-bar .crm-bf.ok{ background:#4ea87a; }
+    .crm-bar .crm-bn{ font-size:.78rem; color:rgba(255,255,255,.55); font-variant-numeric:tabular-nums; text-align:right; }
 
     .hf-table-section { margin-bottom:20px; }
     .hf-table-label {
@@ -3403,6 +3418,36 @@ const ANALISES_TABS = {
   ebook7:      'Ebook 7 Erros',
   ebookRemoto: 'Ebook CM',            // nome real da aba na planilha
 };
+// ── CRM (leads capturados por ebook, separados ADS/ORG) — só cai no CRM inglês interm+ ──
+const CRM_SHEET_ID = '1ZFipQ_rdpSs_SJWzB8FbwyqIrcqD4PcvUI29pdYLkfY';
+const CRM_TABS = {
+  ebook7:      { ads:'[MALU][ADS] EBOOK 7 ERROS',                                    org:'[MALU][ORG] EBOOK 7 ERROS' },
+  ebookRemoto: { ads:'[HIRE][ADS] Como Conquistar Uma Vaga Internacional Remota',    org:'[HIRE][ORG] Como Conquistar Uma Vaga Internacional Remota' },
+};
+const _crmInterm = v => /fluente|me viro/i.test(v);
+const _crmLvl = v => { v=String(v||''); return /fluente/i.test(v)?'Fluente':/me viro/i.test(v)?'Me viro':/travo|entendo/i.test(v)?'Básico':/zero|não falo/i.test(v)?'Zero':(v.trim()||'—'); };
+// lê uma aba do CRM e devolve os níveis de inglês (1 por lead com email).
+function _crmParse(table){
+  if(!table) return [];
+  let iIng=(table.cols||[]).findIndex(c=>/ingl/i.test((c&&c.label)||''));
+  let iMail=(table.cols||[]).findIndex(c=>/mail/i.test((c&&c.label)||''));
+  let data=table.rows||[];
+  if(iIng<0){ const h=((data[0]&&data[0].c)||[]).map(_gvStr); iIng=h.findIndex(x=>/ingl/i.test(x)); if(iMail<0)iMail=h.findIndex(x=>/mail/i.test(x)); data=data.slice(1); }
+  if(iMail<0) iMail=2; if(iIng<0) iIng=4;
+  const out=[];
+  for(const r of data){ const c=r.c||[]; if(!/@/.test(_gvStr(c[iMail]))) continue; out.push(_gvStr(c[iIng])); }
+  return out;
+}
+async function _loadCrm(key){
+  const T=CRM_TABS[key]; if(!T) return null;
+  const [tA,tO]=await Promise.all([
+    gvizLoadFrom(CRM_SHEET_ID,'sheet='+encodeURIComponent(T.ads)).catch(()=>null),
+    gvizLoadFrom(CRM_SHEET_ID,'sheet='+encodeURIComponent(T.org)).catch(()=>null),
+  ]);
+  const ads=_crmParse(tA), org=_crmParse(tO), all=ads.concat(org);
+  const lvls={}; all.forEach(v=>{ const k=_crmLvl(v); lvls[k]=(lvls[k]||0)+1; });
+  return { adsN:ads.length, orgN:org.length, total:all.length, crm:all.filter(_crmInterm).length, lvls };
+}
 const _newCharts = {};
 
 const _esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -3464,7 +3509,8 @@ async function loadEbookDetail(key){
   catch(e){ view.innerHTML='<div style="padding:44px;text-align:center;color:#f88">Erro ao carregar a aba "'+_esc(tab)+'": '+_esc(e.message)+'</div>'; return; }
   if(data.resolved.crit<0 || data.resolved.inv<0){
     view.innerHTML='<div style="padding:44px;text-align:center;color:#fc8;line-height:1.6">A aba <b>"'+_esc(tab)+'"</b> não foi encontrada com layout de ebook (colunas Criativo/Custo real).<br>Ajuste o nome em <code>ANALISES_TABS.'+key+'</code>.</div>'; return; }
-  renderEbookDetail(view, data.rows, key);
+  let crm=null; try{ crm=await _loadCrm(key); }catch(e){ crm=null; }
+  renderEbookDetail(view, data.rows, key, crm);
 }
 // Status efetivo do Meta (coluna Status do Stract) → selo. ACTIVE=ativo;
 // *PAUSED=pausado; DISAPPROVED=reprovado. rank pra pegar o mais ativo na data recente.
@@ -3476,9 +3522,28 @@ function _stInfo(raw){
   return { t:'—', c:'hf-st-none', r:3 };
 }
 const _stBadge = raw => { const s=_stInfo(raw); return `<span class="hf-st ${s.c}">${s.t}</span>`; };
-function renderEbookDetail(view, rows, pfx){
+function renderEbookDetail(view, rows, pfx, crm){
   const S=(k)=>rows.reduce((s,r)=>s+(r[k]||0),0);
   const tInv=S('inv'), tLeads=S('leads'), tCli=S('cli'), tPv=S('pv'), tImp=S('imp');
+  // Bloco comparativo Ebook → CRM (leads gerados × capturados × inglês interm+).
+  let crmBlock='';
+  if(crm){
+    const tot=crm.total, q=crm.crm, pct=tot?Math.round(q/tot*100):0, ORD=['Fluente','Me viro','Básico','Zero'];
+    const lv=Object.entries(crm.lvls).sort((a,b)=>((ORD.indexOf(a[0])+1)||99)-((ORD.indexOf(b[0])+1)||99));
+    const mx=Math.max(1,...lv.map(x=>x[1]));
+    const bars=lv.map(([k,n])=>{ const ok=/fluente|me viro/i.test(k);
+      return `<div class="crm-bar"><div class="crm-bl">${_esc(k)}</div><div class="crm-bt"><div class="crm-bf${ok?' ok':''}" style="width:${Math.round(n/mx*100)}%"></div></div><div class="crm-bn">${n} · ${tot?Math.round(n/tot*100):0}%</div></div>`; }).join('');
+    crmBlock=`<div class="hf-chart-wrap crm-block">
+      <div class="hf-chart-title">🎯 Ebook → CRM · qualificação por inglês</div>
+      <div class="crm-kpis">
+        <div class="crm-k"><div class="cl">Leads gerados (ads)</div><div class="cv">${_num(tLeads)}</div><div class="cn">Meta reporta</div></div>
+        <div class="crm-k"><div class="cl">Capturados no CRM</div><div class="cv">${_num(tot)}</div><div class="cn">ads ${crm.adsN} · org ${crm.orgN}</div></div>
+        <div class="crm-k"><div class="cl">Inglês interm+</div><div class="cv ok">${_num(q)}</div><div class="cn">caem no CRM</div></div>
+        <div class="crm-k"><div class="cl">% qualificação</div><div class="cv ok">${tot?pct+'%':'—'}</div><div class="cn">interm+ / capturados</div></div>
+      </div>
+      <div class="crm-bars">${bars||'<div style="color:rgba(255,255,255,.35);font-size:.85rem">Sem leads capturados ainda (automação enchendo).</div>'}</div>
+    </div>`;
+  }
   const kpis=[['Investimento',_brl(tInv)],['Leads',_num(tLeads)],['CPL',tLeads?_brl(tInv/tLeads):'—'],
     ['Cliques no Link',_num(tCli)],['Page View',_num(tPv)],['Connect Rate',_pct(tCli?tPv/tCli:0)],['CTR',_pct(tImp?tCli/tImp:0)]];
   const byDate={};
@@ -3496,7 +3561,7 @@ function renderEbookDetail(view, rows, pfx){
   const row=o=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadge(o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.pv)}</td><td class="num">${_pct(o.cli?o.pv/o.cli:0)}</td><td class="num">${_num(o.leads)}</td><td class="num">${_pct(o.cli?o.leads/o.cli:0)}</td><td class="num">${o.leads?_brl(o.inv/o.leads):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
   const empty='<tr><td colspan="11" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
   const byCri=grp(r=>r.crit), byPub=grp(r=>r.pub);
-  view.innerHTML=
+  view.innerHTML= crmBlock +
     `<div class="hf-kpi-strip cols-7">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc1"></canvas></div></div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Connect Rate · Cliques · Page View · Leads</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc2"></canvas></div></div>`+
