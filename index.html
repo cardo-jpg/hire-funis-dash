@@ -896,6 +896,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
     /* ── YouTube tab ── */
     .hf-kpi-strip.cols-6 { grid-template-columns:repeat(6,1fr); }
+    .hf-kpi-strip.cols-5 { grid-template-columns:repeat(5,1fr); }
     .yt-setup-box {
       display:flex; flex-direction:column; align-items:center; gap:12px;
       background:rgba(123,45,139,.12); border:1px dashed rgba(168,85,200,.3);
@@ -3573,7 +3574,7 @@ function renderEbookDetail(view, rows, pfx, crm){
     </div>`;
   }
   const kpis=[['Investimento',_brl(tInv)],['Leads',_num(tLeads)],['CPL',tLeads?_brl(tInv/tLeads):'—'],
-    ['Cliques no Link',_num(tCli)],['Page View',_num(tPv)],['Connect Rate',_pct(tCli?tPv/tCli:0)],['CTR',_pct(tImp?tCli/tImp:0)]];
+    ['Cliques no Link',_num(tCli)],['CTR',_pct(tImp?tCli/tImp:0)]];
   const byDate={};
   for(const r of rows){ const k=_dmKey(r.date); const o=byDate[k]=byDate[k]||{inv:0,leads:0,cli:0,pv:0,imp:0}; o.inv+=r.inv;o.leads+=r.leads;o.cli+=r.cli;o.pv+=r.pv;o.imp+=r.imp; }
   const dk=Object.keys(byDate).sort(), lbl=dk.map(_dmLabel);
@@ -3585,14 +3586,14 @@ function renderEbookDetail(view, rows, pfx, crm){
     o.inv+=r.inv;o.imp+=r.imp;o.cli+=r.cli;o.leads+=r.leads;o.pv+=r.pv; if(r.url&&!o.url)o.url=r.url;
     if(r.status){ const rk=_stInfo(r.status).r; if(!o._sd||r.date>o._sd){o._sd=r.date;o.status=r.status;o._rk=rk;} else if(o._sd&&+r.date===+o._sd&&rk<o._rk){o.status=r.status;o._rk=rk;} }
   } return Object.values(m).sort((a,b)=>b.inv-a.inv); };
-  const head=first=>`<tr><th>${first}</th><th class="num">Status</th><th class="num">Link</th><th class="num">CTR</th><th class="num">Cliques</th><th class="num">Page View</th><th class="num">Connect</th><th class="num">Leads</th><th class="num">Clk×Leads</th><th class="num">CPL</th><th class="num">Investido</th></tr>`;
-  const row=o=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadge(o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.pv)}</td><td class="num">${_pct(o.cli?o.pv/o.cli:0)}</td><td class="num">${_num(o.leads)}</td><td class="num">${_pct(o.cli?o.leads/o.cli:0)}</td><td class="num">${o.leads?_brl(o.inv/o.leads):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
-  const empty='<tr><td colspan="11" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
+  const head=first=>`<tr><th>${first}</th><th class="num">Status</th><th class="num">Link</th><th class="num">CTR</th><th class="num">Cliques</th><th class="num">Leads</th><th class="num">Clk×Leads</th><th class="num">CPL</th><th class="num">Investido</th></tr>`;
+  const row=o=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadge(o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.leads)}</td><td class="num">${_pct(o.cli?o.leads/o.cli:0)}</td><td class="num">${o.leads?_brl(o.inv/o.leads):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
+  const empty='<tr><td colspan="9" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
   const byCri=grp(r=>r.crit), byPub=grp(r=>r.pub);
   view.innerHTML= crmBlock +
-    `<div class="hf-kpi-strip cols-7">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
+    `<div class="hf-kpi-strip cols-5">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc1"></canvas></div></div>`+
-    `<div class="hf-chart-wrap"><div class="hf-chart-title">Connect Rate · Cliques · Page View · Leads</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc2"></canvas></div></div>`+
+    `<div class="hf-chart-wrap"><div class="hf-chart-title">Cliques · Leads por dia</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc2"></canvas></div></div>`+
     `<div class="hf-table-section"><div class="hf-table-label">Por Anúncio (Criativo)</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Criativo')}</thead><tbody>${byCri.map(row).join('')||empty}</tbody></table></div></div>`+
     `<div class="hf-table-section"><div class="hf-table-label">Por Público</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Público')}</thead><tbody>${byPub.map(row).join('')||empty}</tbody></table></div></div>`;
   _mkNewChart(pfx+'_ebc1', lbl,
@@ -3600,11 +3601,9 @@ function renderEbookDetail(view, rows, pfx, crm){
       {type:'line',label:'CPL (R$)',data:dCpl,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,yAxisID:'y2'} ],
     { y1:_AX_COUNT(), y2:_AX_MONEY() });
   _mkNewChart(pfx+'_ebc2', lbl,
-    [ {type:'bar',label:'Connect Rate (%)',data:dConn,backgroundColor:'rgba(194,152,106,.5)',maxBarThickness:44,yAxisID:'y2'},
-      {type:'line',label:'Cliques',data:dCli,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'},
-      {type:'line',label:'Page View',data:dPv,borderColor:'#f472b6',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'},
+    [ {type:'bar',label:'Cliques',data:dCli,backgroundColor:'rgba(249,115,22,.45)',maxBarThickness:44,yAxisID:'y1'},
       {type:'line',label:'Leads',data:dLeads,borderColor:'#60a5fa',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1'} ],
-    { y1:_AX_COUNT(), y2:Object.assign(_AX_PCT(),{position:'right'}) });
+    { y1:_AX_COUNT() });
 }
 
 /* ── IMPULSIONAR (Hire / Malu) ───────────────────────────────── */
