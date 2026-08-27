@@ -3417,6 +3417,7 @@ async function loadYoutube() {
 /* ═══════════ ABAS NOVAS: Ebooks isolados + Impulsionar ═══════════
    Fonte: planilha "[HIRE] - Analises". Investimento = coluna "Custo real". */
 const ANALISES_SHEET_ID = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI';
+const ANALISES_COT = 5.19;   // US$→R$ fallback quando a coluna 'Custo real' vem vazia/errada
 const ANALISES_TABS = {
   ebook7:      'Ebook 7 Erros',
   ebookRemoto: 'Ebook CM',            // nome real da aba na planilha
@@ -3491,6 +3492,7 @@ function _mkNewChart(id, labels, datasets, extraScales){
 async function _loadAnalisesRows(tab, idxMap){
   const table=await gvizLoadFrom(ANALISES_SHEET_ID,'sheet='+encodeURIComponent(tab));
   const dateI=_labIdx(table,'Date','Data');
+  const invI=_labIdx(table,'Investido');   // US$ bruto — fallback do 'Custo real'
   const I={}; for(const k in idxMap){ I[k]=_labIdx(table, ...[].concat(idxMap[k])); }
   const strKeys=['url','crit','pub','status'];
   const rows=[];
@@ -3500,6 +3502,9 @@ async function _loadAnalisesRows(tab, idxMap){
     if(!d) continue;
     const o={date:d};
     for(const k in I){ const i=I[k]; if(i<0){o[k]=strKeys.includes(k)?'':0;continue;} o[k]=strKeys.includes(k)?_gvStr(c[i]):_cellNum(c[i]); }
+    // 'Custo real' (R$) às vezes vem VAZIA ou não-convertida (menor que o Investido em
+    // US$). Nesses casos cai no Investido × cotação — senão o criativo zera o gasto.
+    if(('inv' in I) && invI>=0){ const usd=_cellNum(c[invI]); if(usd>0 && !(o.inv>=usd*2)) o.inv=usd*ANALISES_COT; }
     rows.push(o);
   }
   const w=window30(rows);
