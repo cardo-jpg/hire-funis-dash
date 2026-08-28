@@ -845,6 +845,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-st-off { color:#c9b8d6; background:rgba(120,90,150,.18); border:1px solid rgba(150,95,190,.35); }
     .hf-st-bad { color:#f79a9a; background:rgba(239,68,68,.16); border:1px solid rgba(239,68,68,.45); }
     .hf-st-none { color:rgba(255,255,255,.4); }
+    .hf-stclk { cursor:pointer; user-select:none; transition:filter .12s; }
+    .hf-stclk:hover { filter:brightness(1.25); }
+    .hf-st-man { box-shadow:0 0 0 1px rgba(255,255,255,.28) inset; }
 
     /* ── Estratégia (matriz de ROAS) ── */
     .est-table { width:100%; table-layout:fixed; }
@@ -3526,6 +3529,7 @@ async function loadEbookDetail(key){
   if(data.resolved.crit<0 || data.resolved.inv<0){
     view.innerHTML='<div style="padding:44px;text-align:center;color:#fc8;line-height:1.6">A aba <b>"'+_esc(tab)+'"</b> não foi encontrada com layout de ebook (colunas Criativo/Custo real).<br>Ajuste o nome em <code>ANALISES_TABS.'+key+'</code>.</div>'; return; }
   let crm=null; try{ crm=await _loadCrm(key); }catch(e){ crm=null; }
+  await _loadOvr();
   renderEbookDetail(view, data.rows, key, crm);
 }
 // Status efetivo do Meta (coluna Status do Stract) → selo. ACTIVE=ativo;
@@ -3538,6 +3542,47 @@ function _stInfo(raw){
   return { t:'—', c:'hf-st-none', r:3 };
 }
 const _stBadge = raw => { const s=_stInfo(raw); return `<span class="hf-st ${s.c}">${s.t}</span>`; };
+
+// ── Override manual de status (marca Ativo/Pausado na mão, salvo no cardo-sinapse ──
+// e sincronizado entre PCs). O status continua vindo do Stract; o override só
+// sobrepõe quando existe — resolve o atraso de ~1 dia do Stract vs Meta.
+const OVR_API='https://sinapse.cardomarketing.com.br/api/dash-overrides';
+const OVR_SCOPE='hire-funis';
+let STATUS_OVR={}, _ovrLoaded=false, _ovrTmr=null;
+async function _loadOvr(){
+  if(_ovrLoaded) return;
+  try{ const r=await fetch(OVR_API+'?scope='+OVR_SCOPE,{cache:'no-store'}); const j=await r.json();
+    if(j&&j.ok&&j.data&&typeof j.data==='object') STATUS_OVR=j.data; }catch(e){/* offline → sem override */}
+  _ovrLoaded=true;
+}
+function _saveOvr(tries){
+  clearTimeout(_ovrTmr);
+  _ovrTmr=setTimeout(()=>{
+    fetch(OVR_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope:OVR_SCOPE,data:STATUS_OVR})})
+      .then(r=>r.json()).then(j=>{ if(!(j&&j.ok)) throw 0; })
+      .catch(()=>{ if((tries||0)<4) setTimeout(()=>_saveOvr((tries||0)+1),1200); });
+  },350);
+}
+function _effInfo(type,name,autoRaw){
+  const o=STATUS_OVR[type+':'+name];
+  if(o==='on')  return {t:'Ativo',   c:'hf-st-on',  man:true};
+  if(o==='off') return {t:'Pausado', c:'hf-st-off', man:true};
+  const s=_stInfo(autoRaw); return {t:s.t, c:s.c, man:false};
+}
+// Selo clicável: Stract → Pausado → Ativo → volta ao Stract.
+function _stBadgeClk(type,name,autoRaw){
+  const e=_effInfo(type,name,autoRaw);
+  const tip=e.man?'manual — clique: Pausado → Ativo → voltar ao Stract':'status do Stract — clique p/ marcar manual';
+  return `<span class="hf-st ${e.c} hf-stclk${e.man?' hf-st-man':''}" title="${tip}" data-nm="${_esc(name)}" data-auto="${_esc(autoRaw||'')}" onclick="_cycleStatus('${type}',this)">${e.t}${e.man?' ✎':''}</span>`;
+}
+function _cycleStatus(type,el){
+  const name=el.getAttribute('data-nm'); if(name==null) return;
+  const k=type+':'+name, cur=STATUS_OVR[k];
+  let next; if(cur===undefined) next='off'; else if(cur==='off') next='on'; else next=undefined;
+  if(next===undefined) delete STATUS_OVR[k]; else STATUS_OVR[k]=next;
+  _saveOvr();
+  el.outerHTML=_stBadgeClk(type, name, el.getAttribute('data-auto')||'');
+}
 function renderEbookDetail(view, rows, pfx, crm){
   const S=(k)=>rows.reduce((s,r)=>s+(r[k]||0),0);
   const tInv=S('inv'), tLeads=S('leads'), tCli=S('cli'), tPv=S('pv'), tImp=S('imp');
@@ -3603,7 +3648,7 @@ function renderEbookDetail(view, rows, pfx, crm){
     if(r.status){ const rk=_stInfo(r.status).r; if(!o._sd||r.date>o._sd){o._sd=r.date;o.status=r.status;o._rk=rk;} else if(o._sd&&+r.date===+o._sd&&rk<o._rk){o.status=r.status;o._rk=rk;} }
   } const arr=Object.values(m); for(const o of arr){ o.est=o.leads>0?0:_estLeads(o.inv,o.cli); o.leadsT=o.leads+o.est; } return arr.sort((a,b)=>b.inv-a.inv); };
   const head=first=>`<tr><th>${first}</th><th class="num">Status</th><th class="num">Link</th><th class="num">CTR</th><th class="num">Cliques</th><th class="num">Leads</th><th class="num">Clk×Leads</th><th class="num">CPL</th><th class="num">Investido</th></tr>`;
-  const row=o=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadge(o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.leadsT)}</td><td class="num">${_pct(o.cli?o.leadsT/o.cli:0)}</td><td class="num">${o.leadsT?_brl(o.inv/o.leadsT):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
+  const row=(o,type)=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadgeClk(type,o.k,o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.leadsT)}</td><td class="num">${_pct(o.cli?o.leadsT/o.cli:0)}</td><td class="num">${o.leadsT?_brl(o.inv/o.leadsT):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
   const empty='<tr><td colspan="9" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
   const byCri=grp(r=>r.crit), byPub=grp(r=>r.pub);
   const estTotal=byCri.reduce((s,o)=>s+(o.est||0),0), tLeadsT=tLeads+estTotal;
@@ -3614,8 +3659,8 @@ function renderEbookDetail(view, rows, pfx, crm){
     `<div class="hf-kpi-strip cols-5">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc1"></canvas></div></div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Cliques · Leads por dia</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc2"></canvas></div></div>`+
-    `<div class="hf-table-section"><div class="hf-table-label">Por Anúncio (Criativo)</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Criativo')}</thead><tbody>${byCri.map(row).join('')||empty}</tbody></table></div></div>`+
-    `<div class="hf-table-section"><div class="hf-table-label">Por Público</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Público')}</thead><tbody>${byPub.map(row).join('')||empty}</tbody></table></div></div>`;
+    `<div class="hf-table-section"><div class="hf-table-label">Por Anúncio (Criativo)</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Criativo')}</thead><tbody>${byCri.map(o=>row(o,pfx+':cri')).join('')||empty}</tbody></table></div></div>`+
+    `<div class="hf-table-section"><div class="hf-table-label">Por Público</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Público')}</thead><tbody>${byPub.map(o=>row(o,pfx+':pub')).join('')||empty}</tbody></table></div></div>`;
   _mkNewChart(pfx+'_ebc1', lbl,
     [ {type:'bar',label:'Leads',data:dLeads,backgroundColor:'rgba(168,85,200,.55)',maxBarThickness:44,yAxisID:'y1'},
       {type:'line',label:'CPL (R$)',data:dCpl,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,yAxisID:'y2'} ],
