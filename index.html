@@ -1439,7 +1439,11 @@ function window30(rows){
   // rastreia o intervalo absoluto dos dados (pra pré-preencher os inputs)
   if (!_dataMin || mn < _dataMin) _dataMin = mn;
   if (!_dataMax || mx > _dataMax) _dataMax = mx;
-  const s = _fStart || mn;   // sem filtro nesse lado → usa o mín/máx da própria série
+  // Default (sem filtro): ÚLTIMOS 30 DIAS terminando no dado mais recente — pra bater
+  // com a visão padrão do Meta. Antes usava o mínimo (all-time), o que inflava tudo
+  // (ex.: ebook remoto mostrava 1.563 leads acumulados vs 711 dos últimos 30d no Meta).
+  const _d30 = new Date(mx.getFullYear(), mx.getMonth(), mx.getDate()-29);
+  const s = _fStart || (_d30 < _DATA_FLOOR ? _DATA_FLOOR : _d30);
   const e = _fEnd   || mx;
   return { rows: valid.filter(r => r.date >= s && r.date <= e), start: s, end: e };
 }
@@ -3544,8 +3548,13 @@ function renderEbookDetail(view, rows, pfx, crm){
     // Todos os leads do CRM filtrados pelo MESMO intervalo do filtro de data global
     // (rows já vem filtrado por window30; aqui aplico o mesmo [_fStart,_fEnd] nos leads).
     const _dkDate=dk=>{ const p=dk.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); };
+    // Alinha com a janela da tabela (rows já vem filtrado por window30): sem filtro
+    // explícito, usa o intervalo real das linhas (últimos 30 dias) em vez de all-time.
+    const _rd=rows.map(r=>r.date).filter(Boolean);
+    const _wS=_fStart || (_rd.length? new Date(Math.min.apply(null,_rd)) : null);
+    const _wE=_fEnd   || (_rd.length? new Date(Math.max.apply(null,_rd)) : null);
     const inFilter=dk=>{ if(!dk) return false; const d=_dkDate(dk);
-      if(_fStart && d<_fStart) return false; if(_fEnd && d>_fEnd) return false; return true; };
+      if(_wS && d<_wS) return false; if(_wE && d>_wE) return false; return true; };
     // SÓ leads de ADS: o Meta reporta leads de anúncio, então a comparação é ads↔ads (org fica fora da conta).
     const leadsFilt=(crm.leads||[]).filter(l=>inFilter(l.dk));
     const leadsF=leadsFilt.filter(l=>l.src==='ads');
