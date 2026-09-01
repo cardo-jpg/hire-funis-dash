@@ -1310,7 +1310,6 @@ const GIDS = {
   eb_5op:'491256637', eb_7erros:'1570522981', eb_cr:'48918871', eb_10emp:'158106962',
   site_kw:'1598644082', site_camp:'2007620725',
   youtube:'1098222347', youtube_ads:'400478401', budget:'1387283031',
-  leads_latam:'114398777',
 };
 
 let _gvizCache = {};
@@ -1822,7 +1821,7 @@ async function loadCurrent() {
   else if (state.tab === 'youtube')  loadYoutube();
   else if (state.tab === 'ebook7')      loadEbookDetail('ebook7');
   else if (state.tab === 'ebookRemoto') loadEbookDetail('ebookRemoto');
-  else if (state.tab === 'latam')       loadLatam();
+  else if (state.tab === 'latam')       loadEbookDetail('latam');
   else if (state.tab === 'audiencia') {
     // mesmos dados/cards da Geral, só os 4 funis de tráfego
     if (!_lastGeral) await loadGeral();   // popula _lastGeral
@@ -3203,60 +3202,6 @@ function onYtCamp(sel){
   loadYoutube();
 }
 
-/* ── LATAM (Ebook trabajar remoto · México/Colômbia) ─────────────────────────
-   Leads REAIS por dia (lista que a Malu mandou por e-mail). O Meta só marcou 2
-   no período por causa do pixel trocado; estes vêm da "Data de inscrição" do CRM.
-   Fonte de verdade: atualizar aqui quando entrar lista nova. */
-const LATAM_LEADS_REAIS = {
-  '2026-07-23':1, '2026-07-26':1, '2026-07-30':1,
-  '2026-08-07':1, '2026-08-09':2, '2026-08-10':1,
-  '2026-08-12':5, '2026-08-13':6, '2026-08-14':3, '2026-08-15':2, '2026-08-16':2,
-  '2026-08-17':2, '2026-08-18':4, '2026-08-19':1, '2026-08-20':2, '2026-08-22':3,
-  '2026-08-23':3, '2026-08-24':3, '2026-08-25':6, '2026-08-26':6, '2026-08-27':7,
-};
-async function loadLatam(){
-  const view=document.getElementById('viewLatam');
-  view.innerHTML='<div style="padding:44px;text-align:center;color:rgba(255,255,255,.4)">Carregando…</div>';
-  let table;
-  try{ table=await gvizLoad(GIDS.leads_latam); }
-  catch(e){ view.innerHTML='<div style="padding:44px;text-align:center;color:#f88">Erro ao carregar LATAM: '+_esc(e.message)+'</div>'; return; }
-  // Colunas: Date(0) Campanha(1) Investido Dolar(2) Leads(3) Vendas(4) Faturamento(5) Em real(6) Dolar(7)
-  const rows=[];
-  for(const r of (table.rows||[])){
-    const c=r.c||[]; const d=_gvParseDate(c[0] && c[0].v); if(!d) continue;
-    const dk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    rows.push({ date:d, dk, campanha:_gvStr(c[1])||'—', invReal:_gvNum(c[6]), leadsSheet:_gvNum(c[3]) });
-  }
-  // aplica a janela de data global (mesma lógica das outras abas)
-  const w=window30(rows);
-  const wr=w.rows;
-  // leads reais: usa a lista embutida; fora dela cai no que a planilha tem
-  const leadOf=dk=> (dk in LATAM_LEADS_REAIS) ? LATAM_LEADS_REAIS[dk] : 0;
-  const S=(f)=>wr.reduce((s,r)=>s+(f(r)||0),0);
-  const tInv=S(r=>r.invReal), tLeads=S(r=>leadOf(r.dk));
-  const cpl = tLeads>0 ? tInv/tLeads : 0;
-  // por dia (ordenado)
-  const byDk={};
-  for(const r of wr){ const o=byDk[r.dk]||(byDk[r.dk]={inv:0}); o.inv+=r.invReal; }
-  const dks=Object.keys(byDk).sort();
-  const lbl=dks.map(k=>{const p=k.split('-');return p[2]+'/'+p[1];});
-  const dLeads=dks.map(leadOf);
-  const dInv=dks.map(k=>+byDk[k].inv.toFixed(2));
-  const dCpl=dks.map(k=>{const l=leadOf(k);return l?+(byDk[k].inv/l).toFixed(2):null;});
-  const kpis=[['Investimento',BRL(tInv)],['Leads',NUM(tLeads)],['CPL',tLeads?BRL(tInv/tLeads):'—']];
-  view.innerHTML =
-    `<div class="hf-kpi-strip cols-5">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
-    `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="latam_c1"></canvas></div></div>`+
-    `<div class="hf-chart-wrap"><div class="hf-chart-title">Investido por dia</div><div class="hf-chart-canvas-wrap"><canvas id="latam_c2"></canvas></div></div>`;
-  _mkNewChart('latam_c1', lbl,
-    [ {type:'bar',label:'Leads',data:dLeads,backgroundColor:'rgba(168,85,200,.55)',maxBarThickness:44,yAxisID:'y1'},
-      {type:'line',label:'CPL (R$)',data:dCpl,borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true,yAxisID:'y2'} ],
-    { y1:_AX_COUNT(), y2:_AX_MONEY() });
-  _mkNewChart('latam_c2', lbl,
-    [ {type:'bar',label:'Investido (R$)',data:dInv,backgroundColor:'rgba(249,115,22,.45)',maxBarThickness:44,yAxisID:'y1'} ],
-    { y1:{ position:'left', grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#f97316',font:{size:9},callback:v=>'R$'+(+v).toFixed(2).replace('.',',')} } });
-}
-
 async function loadYoutube() {
   const btn = document.getElementById('btnRefresh');
   if (btn) btn.classList.add('loading');
@@ -3487,6 +3432,7 @@ const ANALISES_COT = 5.19;   // US$→R$ fallback quando a coluna 'Custo real' v
 const ANALISES_TABS = {
   ebook7:      'Ebook 7 Erros',
   ebookRemoto: 'Ebook CM',            // nome real da aba na planilha
+  latam:       'gid:1142172890',      // aba do ebook LATAM (trabajar remoto) — por gid
 };
 // ── CRM (leads capturados por ebook, separados ADS/ORG) — só cai no CRM inglês interm+ ──
 const CRM_SHEET_ID = '1ZFipQ_rdpSs_SJWzB8FbwyqIrcqD4PcvUI29pdYLkfY';
@@ -3554,9 +3500,11 @@ function _mkNewChart(id, labels, datasets, extraScales){
     scales } });
 }
 
-// lê a aba filtrando pela janela de data global (mesma lógica das outras abas)
+// lê a aba filtrando pela janela de data global (mesma lógica das outras abas).
+// `tab` pode ser o NOME da aba ou 'gid:123' (quando só se conhece o gid).
 async function _loadAnalisesRows(tab, idxMap){
-  const table=await gvizLoadFrom(ANALISES_SHEET_ID,'sheet='+encodeURIComponent(tab));
+  const q = /^gid:/.test(tab) ? 'gid='+tab.slice(4) : 'sheet='+encodeURIComponent(tab);
+  const table=await gvizLoadFrom(ANALISES_SHEET_ID, q);
   const dateI=_labIdx(table,'Date','Data');
   const invI=_labIdx(table,'Investido');   // US$ bruto — fallback do 'Custo real'
   const I={}; for(const k in idxMap){ I[k]=_labIdx(table, ...[].concat(idxMap[k])); }
@@ -3579,7 +3527,8 @@ async function _loadAnalisesRows(tab, idxMap){
 
 /* ── EBOOK detalhado ─────────────────────────────────────────── */
 async function loadEbookDetail(key){
-  const view=document.getElementById(key==='ebook7'?'viewEbook7':'viewEbookRemoto');
+  const viewId = key==='ebook7'?'viewEbook7' : key==='ebookRemoto'?'viewEbookRemoto' : key==='latam'?'viewLatam' : 'viewEbook7';
+  const view=document.getElementById(viewId);
   const tab=ANALISES_TABS[key];
   view.innerHTML='<div style="padding:44px;text-align:center;color:rgba(255,255,255,.4)">Carregando…</div>';
   let data;
