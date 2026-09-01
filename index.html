@@ -3233,7 +3233,7 @@ async function loadLatam(){
   // leads reais: usa a lista embutida; fora dela cai no que a planilha tem
   const leadOf=dk=> (dk in LATAM_LEADS_REAIS) ? LATAM_LEADS_REAIS[dk] : 0;
   const S=(f)=>wr.reduce((s,r)=>s+(f(r)||0),0);
-  const tInv=S(r=>r.invReal), tLeads=S(r=>leadOf(r.dk)), tLeadsSheet=S(r=>r.leadsSheet);
+  const tInv=S(r=>r.invReal), tLeads=S(r=>leadOf(r.dk));
   const cpl = tLeads>0 ? tInv/tLeads : 0;
   // por dia (ordenado)
   const byDk={};
@@ -3243,10 +3243,8 @@ async function loadLatam(){
   const dLeads=dks.map(leadOf);
   const dInv=dks.map(k=>+byDk[k].inv.toFixed(2));
   const dCpl=dks.map(k=>{const l=leadOf(k);return l?+(byDk[k].inv/l).toFixed(2):null;});
-  const kpis=[['Investimento',BRL(tInv)],['Leads (reais)',NUM(tLeads)],['CPL',tLeads?BRL(tInv/tLeads):'—'],
-    ['Leads no Meta',NUM(tLeadsSheet)]];
-  const nota=`<div style="margin:0 0 14px;padding:10px 14px;background:rgba(194,152,106,.12);border:1px solid rgba(194,152,106,.35);border-radius:9px;font-size:.82rem;color:#e8d5b8;line-height:1.5">⚠ <b>Leads reais da lista de inscritos</b> (o pixel estava trocado e o Meta marcou só ${NUM(tLeadsSheet)} no período). Fonte: e-mail da Malu · ebook "trabajar remoto" LATAM.</div>`;
-  view.innerHTML = nota +
+  const kpis=[['Investimento',BRL(tInv)],['Leads',NUM(tLeads)],['CPL',tLeads?BRL(tInv/tLeads):'—']];
+  view.innerHTML =
     `<div class="hf-kpi-strip cols-5">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="latam_c1"></canvas></div></div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Investido por dia</div><div class="hf-chart-canvas-wrap"><canvas id="latam_c2"></canvas></div></div>`;
