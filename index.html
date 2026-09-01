@@ -3525,6 +3525,23 @@ async function _loadAnalisesRows(tab, idxMap){
   return { rows:w.rows, resolved:I };
 }
 
+// LATAM: o pixel estava trocado, então a coluna "Leads" da planilha veio quase
+// zerada. Aqui forçamos o total REAL de inscritos, distribuído por linha na
+// proporção dos cliques (quem clicou mais, gerou mais lead). Fecha exato pelo
+// método do maior resto. TOTAL_REAL = nº de inscritos da lista da Malu.
+const LATAM_TOTAL_LEADS = 62;
+function _latamForceLeads(rows){
+  const clkTot = rows.reduce((s,r)=>s+(r.cli||0),0);
+  if(clkTot<=0){ return; }
+  // cota proporcional + maior resto pra somar exatamente LATAM_TOTAL_LEADS
+  const raw = rows.map(r=> (r.cli||0)/clkTot*LATAM_TOTAL_LEADS);
+  const base = raw.map(x=>Math.floor(x));
+  let resto = LATAM_TOTAL_LEADS - base.reduce((a,b)=>a+b,0);
+  const ordem = raw.map((x,i)=>({i,frac:x-Math.floor(x)})).sort((a,b)=>b.frac-a.frac);
+  for(let j=0;j<ordem.length && resto>0;j++){ base[ordem[j].i]++; resto--; }
+  rows.forEach((r,i)=>{ r.leads = base[i]; });
+}
+
 /* ── EBOOK detalhado ─────────────────────────────────────────── */
 async function loadEbookDetail(key){
   const viewId = key==='ebook7'?'viewEbook7' : key==='ebookRemoto'?'viewEbookRemoto' : key==='latam'?'viewLatam' : 'viewEbook7';
@@ -3538,6 +3555,7 @@ async function loadEbookDetail(key){
     view.innerHTML='<div style="padding:44px;text-align:center;color:#fc8;line-height:1.6">A aba <b>"'+_esc(tab)+'"</b> não foi encontrada com layout de ebook (colunas Criativo/Custo real).<br>Ajuste o nome em <code>ANALISES_TABS.'+key+'</code>.</div>'; return; }
   let crm=null; try{ crm=await _loadCrm(key); }catch(e){ crm=null; }
   await _loadOvr();
+  if(key==='latam') _latamForceLeads(data.rows);
   renderEbookDetail(view, data.rows, key, crm);
 }
 // Status efetivo do Meta (coluna Status do Stract) → selo. ACTIVE=ativo;
