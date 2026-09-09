@@ -1036,6 +1036,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)" style="display:none">Corredor</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
+    <button class="hf-tab" data-tab="youtubeHire" onclick="setTab(this)">YouTube Hire</button>
   </div>
 
   <!-- ── Geral (visão consolidada) ── -->
@@ -1239,7 +1240,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <!-- Filtro por campanha -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <span style="font-size:.8rem;color:rgba(255,255,255,.55)">Campanha:</span>
-      <select id="ytCampSelect" onchange="onYtCamp(this)"
+      <select id="ytCampSelect" onchange="onYtCamp(this,'malu')"
         style="background:#1a1626;color:#eee;border:1px solid rgba(168,85,200,.4);border-radius:8px;padding:7px 12px;font-size:.82rem;cursor:pointer;max-width:100%">
         <option value="all">Todas as campanhas</option>
       </select>
@@ -1295,6 +1296,49 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   </div><!-- /viewYoutube -->
 
+  <div id="viewYoutubeHire" style="display:none">
+    <!-- Filtro por campanha -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:.8rem;color:rgba(255,255,255,.55)">Campanha:</span>
+      <select id="ythCampSelect" onchange="onYtCamp(this,'hire')"
+        style="background:#1a1626;color:#eee;border:1px solid rgba(168,85,200,.4);border-radius:8px;padding:7px 12px;font-size:.82rem;cursor:pointer;max-width:100%">
+        <option value="all">Todas as campanhas</option>
+      </select>
+    </div>
+    <!-- KPI Strip -->
+    <div class="hf-kpi-strip cols-6">
+      <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="yth_kpiInv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Inscrições</div><div class="hf-kpi-value dash" id="yth_kpiIns">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="yth_kpiCli">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Custo / Inscrito</div><div class="hf-kpi-value dash" id="yth_kpiCusto">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="yth_kpiImp">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">CPM</div><div class="hf-kpi-value dash" id="yth_kpiCpm">—</div></div>
+    </div>
+    <!-- Charts row -->
+    <div class="yt-charts-row">
+      <div class="yt-chart-card">
+        <div class="yt-chart-title">Inscrições por Anúncio</div>
+        <div class="yt-chart-canvas-wrap"><canvas id="ythByAdChart"></canvas></div>
+      </div>
+      <div class="yt-chart-card">
+        <div class="yt-chart-title">Custo por Inscrito · por dia</div>
+        <div class="yt-chart-canvas-wrap"><canvas id="ythCostChart"></canvas></div>
+      </div>
+    </div>
+    <!-- Table: Anúncios (GADS) -->
+    <div class="hf-table-section">
+      <div class="hf-table-label">Performance Anúncios YouTube Hire — Google Ads</div>
+      <div class="hf-table-wrap">
+        <table class="hf-table">
+          <thead>
+            <tr><th>Anúncio</th><th class="num">Inscrições</th><th class="num">Impressões</th><th class="num">Investido</th><th class="num">Custo/Inscrito</th><th class="num">Taxa Conv.</th><th></th></tr>
+          </thead>
+          <tbody id="ythAnunciosTbody"><tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /viewYoutubeHire -->
+
 </div><!-- /page -->
 </main>
 
@@ -1310,6 +1354,7 @@ const GIDS = {
   eb_5op:'491256637', eb_7erros:'1570522981', eb_cr:'48918871', eb_10emp:'158106962',
   site_kw:'1598644082', site_camp:'2007620725',
   youtube:'1098222347', youtube_ads:'400478401', budget:'1387283031',
+  youtube_hire_ads:'587346590',   // aba "Youtube HIRE" (Google Ads · canal Hire)
 };
 
 let _gvizCache = {};
@@ -1806,6 +1851,7 @@ function setTab(btn) {
   document.getElementById('viewCorredor').style.display  = state.tab === 'corredor'  ? '' : 'none';
   document.getElementById('viewSite').style.display      = state.tab === 'site'      ? '' : 'none';
   document.getElementById('viewYoutube').style.display   = state.tab === 'youtube'   ? '' : 'none';
+  document.getElementById('viewYoutubeHire').style.display = state.tab === 'youtubeHire' ? '' : 'none';
   document.getElementById('viewEbook7').style.display      = state.tab === 'ebook7'      ? '' : 'none';
   document.getElementById('viewEbookRemoto').style.display = state.tab === 'ebookRemoto' ? '' : 'none';
   document.getElementById('viewLatam').style.display       = state.tab === 'latam'       ? '' : 'none';
@@ -1818,7 +1864,8 @@ async function loadCurrent() {
   else if (state.tab === 'ebooks')   { if (!_lastGeral) await loadGeral(); renderEbooks2(); }
   else if (state.tab === 'corredor') loadCorredor();
   else if (state.tab === 'site')     loadSite();
-  else if (state.tab === 'youtube')  loadYoutube();
+  else if (state.tab === 'youtube')  loadYoutube('malu');
+  else if (state.tab === 'youtubeHire') loadYoutube('hire');
   else if (state.tab === 'ebook7')      loadEbookDetail('ebook7');
   else if (state.tab === 'ebookRemoto') loadEbookDetail('ebookRemoto');
   else if (state.tab === 'latam')       loadEbookDetail('latam');
@@ -2974,11 +3021,17 @@ async function loadSite() {
 }
 
 // ── YouTube ───────────────────────────────────────────────────────────────────
-let _ytSubChart  = null;
-let _ytCostChart = null;
-let _ytByAdChart = null;
-let _ytCamp = 'all';   // filtro de campanha da aba YouTube ('all' = todas)
 const _ytShort = s => { s = String(s||''); return s.length > 26 ? s.slice(0,24)+'…' : s; };
+// Config das abas de YouTube (Malu = canal principal; Hire = canal Hire). Cada aba
+// tem seus próprios IDs de elemento, gids e estado, mas usa a MESMA engine.
+const YT_TABS = {
+  malu: { adsGid:'youtube_ads', urlSheet:'URL Youtube', camp:'all',
+    charts:{sub:null,cost:null,byad:null},
+    id:{ pfx:'yt_', camp:'ytCampSelect', byAd:'ytByAdChart', cost:'ytCostChart', sub:'ytSubChart', tbody:'ytAnunciosTbody', vtbody:'ytVideosTbody' } },
+  hire: { adsGid:'youtube_hire_ads', urlSheet:'URL Hire', camp:'all',
+    charts:{sub:null,cost:null,byad:null},
+    id:{ pfx:'yth_', camp:'ythCampSelect', byAd:'ythByAdChart', cost:'ythCostChart', sub:'ythSubChart', tbody:'ythAnunciosTbody', vtbody:'ythVideosTbody' } },
+};
 
 function PCT(v) { return v == null ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%'; }
 
@@ -3033,7 +3086,7 @@ async function ytDisconnect(){
   try{ localStorage.removeItem('yt_connected'); }catch(e){}
   const _sl=document.getElementById('ytSubLocked'); if(_sl) _sl.style.display='flex';
   const _sw=document.getElementById('ytSubChartWrap'); if(_sw) _sw.style.display='none';
-  if (_ytSubChart){ _ytSubChart.destroy(); _ytSubChart = null; }
+  if (YT_TABS.malu.charts.sub){ YT_TABS.malu.charts.sub.destroy(); YT_TABS.malu.charts.sub = null; }
 }
 
 // Inscritos ganhos/perdidos + views + watch time por dia (YouTube Analytics API v2).
@@ -3075,7 +3128,8 @@ function _ytStatus(raw, ativoInferido){
   return ativoInferido ? 'Ativo' : 'Pausado';
 }
 
-function buildYoutubeData(tIns, tUrl){
+function buildYoutubeData(tIns, tUrl, campFilter){
+  campFilter = campFilter || 'all';
   // 1) mapa ad name → URL do vídeo (aba "URL Youtube")
   const urlMap = {};
   for (const r of (tUrl && tUrl.rows || [])){
@@ -3127,7 +3181,7 @@ function buildYoutubeData(tIns, tUrl){
   // lista de campanhas (da janela inteira, antes do filtro) p/ popular o dropdown
   const campaigns = [...new Set(wAll.map(r=>r.campanha).filter(Boolean))].sort();
   // aplica o filtro de campanha selecionado
-  const wr = (_ytCamp && _ytCamp !== 'all') ? wAll.filter(r=>r.campanha === _ytCamp) : wAll;
+  const wr = (campFilter && campFilter !== 'all') ? wAll.filter(r=>r.campanha === campFilter) : wAll;
 
   // 4) série diária (inscritos + investimento R$) para o gráfico de custo
   const byDay = {};
@@ -3183,10 +3237,12 @@ function buildYoutubeData(tIns, tUrl){
 }
 
 // Popula o <select> de campanha (rótulo curto = último segmento após "|").
-function _ytFillCampSelect(campaigns){
-  const sel = document.getElementById('ytCampSelect');
+function _ytFillCampSelect(campaigns, key){
+  key = key || 'malu';
+  const T = YT_TABS[key] || YT_TABS.malu;
+  const sel = document.getElementById(T.id.camp);
   if (!sel) return;
-  const cur = _ytCamp;
+  const cur = T.camp;
   const opts = ['<option value="all">Todas as campanhas</option>'].concat(
     (campaigns||[]).map(c => {
       const lb = (String(c).split('|').pop() || c).trim() || c;
@@ -3196,16 +3252,20 @@ function _ytFillCampSelect(campaigns){
   sel.innerHTML = opts.join('');
   // se a campanha filtrada ainda existe, mantém; senão volta pra "Todas"
   sel.value = (campaigns||[]).includes(cur) ? cur : 'all';
-  if (sel.value === 'all') _ytCamp = 'all';
+  if (sel.value === 'all') T.camp = 'all';
 }
 
 // Troca de campanha → re-renderiza a aba (gviz vem do cache, é instantâneo).
-function onYtCamp(sel){
-  _ytCamp = sel.value || 'all';
-  loadYoutube();
+function onYtCamp(sel, key){
+  key = key || 'malu';
+  (YT_TABS[key] || YT_TABS.malu).camp = sel.value || 'all';
+  loadYoutube(key);
 }
 
-async function loadYoutube() {
+async function loadYoutube(key) {
+  key = key || 'malu';
+  const T = YT_TABS[key] || YT_TABS.malu;
+  const ID = T.id;
   const btn = document.getElementById('btnRefresh');
   if (btn) btn.classList.add('loading');
   document.getElementById('errorBanner').style.display = 'none';
@@ -3213,11 +3273,11 @@ async function loadYoutube() {
   let d;
   try {
     const [tIns, tUrl] = await Promise.all([
-      gvizLoad(GIDS.youtube_ads),
-      gvizLoadFrom(SHEET_ID, 'sheet=URL%20Youtube'),
+      gvizLoad(GIDS[T.adsGid]),
+      gvizLoadFrom(SHEET_ID, 'sheet=' + encodeURIComponent(T.urlSheet)),
     ]);
-    d = buildYoutubeData(tIns, tUrl);
-    _ytFillCampSelect(d.campaigns);
+    d = buildYoutubeData(tIns, tUrl, T.camp);
+    _ytFillCampSelect(d.campaigns, key);
     _syncBudgetMonthFromRange();
     updateRangeLabel();
     _syncDateInputsToData();
@@ -3246,12 +3306,12 @@ async function loadYoutube() {
 
   const k = d.kpis || {};
   [
-    ['yt_kpiInv',   BRL(k.investido)],
-    ['yt_kpiIns',   NUM(k.inscritos)],
-    ['yt_kpiCli',   NUM(k.cliques)],
-    ['yt_kpiCusto', BRL(k.custo_inscrito)],
-    ['yt_kpiImp',   NUM(k.impressoes)],
-    ['yt_kpiCpm',   BRL(k.cpm)],
+    [ID.pfx+'kpiInv',   BRL(k.investido)],
+    [ID.pfx+'kpiIns',   NUM(k.inscritos)],
+    [ID.pfx+'kpiCli',   NUM(k.cliques)],
+    [ID.pfx+'kpiCusto', BRL(k.custo_inscrito)],
+    [ID.pfx+'kpiImp',   NUM(k.impressoes)],
+    [ID.pfx+'kpiCpm',   BRL(k.cpm)],
   ].forEach(([id, val]) => {
     setEl(id, val);
     const el = document.getElementById(id);
@@ -3262,16 +3322,16 @@ async function loadYoutube() {
   const analytics  = d.analytics || {};
   const authorized = analytics.authorized;
 
-  if (_ytSubChart)  { _ytSubChart.destroy();  _ytSubChart  = null; }
-  if (_ytCostChart) { _ytCostChart.destroy(); _ytCostChart = null; }
-  if (_ytByAdChart) { _ytByAdChart.destroy(); _ytByAdChart = null; }
+  if (T.charts.sub)  { T.charts.sub.destroy();  T.charts.sub  = null; }
+  if (T.charts.cost) { T.charts.cost.destroy(); T.charts.cost = null; }
+  if (T.charts.byad) { T.charts.byad.destroy(); T.charts.byad = null; }
 
   // ── Chart: Inscrições por Anúncio (barra horizontal, dados reais do Stract) ──
-  const cAd = document.getElementById('ytByAdChart');
+  const cAd = document.getElementById(ID.byAd);
   if (cAd) {
     const top = (d.anuncios||[]).filter(a => a.conversoes > 0)
       .sort((a,b) => b.conversoes - a.conversoes).slice(0, 8);
-    _ytByAdChart = new Chart(cAd, {
+    T.charts.byad = new Chart(cAd, {
       type: 'bar',
       data: {
         labels: top.map(a => _ytShort(a.nome)),
@@ -3303,10 +3363,10 @@ async function loadYoutube() {
   const subSerie = (analytics.serie_diaria || []);
   const gSerie   = (d.serie_gads || []);
 
-  const c1 = document.getElementById('ytSubChart');
+  const c1 = document.getElementById(ID.sub);
   if (c1 && authorized && subSerie.length) {
     const lbs1  = subSerie.map(s => { const [y,m,dd]=s.date.split('-'); return `${dd}/${m}`; });
-    _ytSubChart = new Chart(c1, {
+    T.charts.sub = new Chart(c1, {
       type: 'line',
       data: {
         labels: lbs1,
@@ -3342,12 +3402,12 @@ async function loadYoutube() {
   }
 
   // ── Chart 2: Inscritos + Custo por Inscrito (GADS daily) ──────────────────
-  const c2 = document.getElementById('ytCostChart');
+  const c2 = document.getElementById(ID.cost);
   if (c2 && gSerie.length) {
     const lbs2 = gSerie.map(s => { const [y,m,dd]=s.date.split('-'); return `${dd}/${m}`; });
     const insData  = gSerie.map(s => s.ins);
     const costData = gSerie.map(s => s.ins > 0 ? parseFloat((s.inv / s.ins).toFixed(2)) : null);
-    _ytCostChart = new Chart(c2, {
+    T.charts.cost = new Chart(c2, {
       type: 'bar',
       data: {
         labels: lbs2,
@@ -3408,7 +3468,7 @@ async function loadYoutube() {
       <td class="num">${a.video_url ? `<a class="vid-link-btn" href="${a.video_url}" target="_blank">▶ Ver</a>` : '—'}</td>
     </tr>`).join('');
   if (!htmlA) htmlA = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Sem dados</td></tr>';
-  document.getElementById('ytAnunciosTbody').innerHTML = htmlA;
+  document.getElementById(ID.tbody).innerHTML = htmlA;
 
   // ── Table: Vídeos ────────────────────────────────────────────────────────────
   if (authorized) {
@@ -3424,7 +3484,7 @@ async function loadYoutube() {
         <td class="num">${v.avg_dur}</td>
       </tr>`).join('');
     if (!htmlV) htmlV = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Sem dados no período</td></tr>';
-    document.getElementById('ytVideosTbody').innerHTML = htmlV;
+    const vt = document.getElementById(ID.vtbody); if (vt) vt.innerHTML = htmlV;
   }
 }
 
