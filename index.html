@@ -2204,7 +2204,7 @@ async function loadGeral() {
     try {
       const rY = gvRows(await gvizLoad(GIDS.youtube_hire_ads), { investido:2, inscritos:3 });
       const wY = window30(rY);
-      fYtHire = { investido: gvSum(wY.rows,'investido'), inscritos: gvSum(wY.rows,'inscritos'), vendas:null, faturamento:null, roas:null };
+      fYtHire = { investido: gvSum(wY.rows,'investido') * YT_USD_BRL, inscritos: gvSum(wY.rows,'inscritos'), vendas:null, faturamento:null, roas:null };  // coluna "Investido Dolar" e USD -> converte p/ R$ (igual a aba de detalhe)
     } catch(e){ console.warn('YouTube Hire indisponível:', e); }
 
     // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire)
