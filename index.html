@@ -2199,10 +2199,18 @@ async function loadGeral() {
       ['Site',                   fSite],
     ];
 
-    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks)
+    // YouTube Hire — investido (col C) + inscritos (col D) da aba de Ads (Google Ads · canal Hire)
+    let fYtHire = {};
+    try {
+      const rY = gvRows(await gvizLoad(GIDS.youtube_hire_ads), { investido:2, inscritos:3 });
+      const wY = window30(rY);
+      fYtHire = { investido: gvSum(wY.rows,'investido'), inscritos: gvSum(wY.rows,'inscritos'), vendas:null, faturamento:null, roas:null };
+    } catch(e){ console.warn('YouTube Hire indisponível:', e); }
+
+    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, ig_int: fInt, youtube: fYt, site: fSite,
-      eb_7erros: f7, eb_cr: fcr,
+      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire,
     };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
@@ -2347,6 +2355,11 @@ function funnelCardsHTML(cols, matrix, defs){
       audVal   = seg ? NUM(seg) : '—';
       const cps = (f.custo_seguidor != null) ? f.custo_seguidor : _safeDiv(f.investido, seg);
       custoVal = (cps != null) ? BRL(cps) : '—';
+    } else if (kind === 'youtube'){
+      const ins = (f.inscritos != null) ? f.inscritos : null;
+      audVal   = (ins != null) ? NUM(ins) : '—';
+      const cpi = _safeDiv(f.investido, ins);
+      custoVal = (cpi != null) ? BRL(cpi) : '—';
     }
     const budInput = (bud != null)
       ? bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
