@@ -1033,7 +1033,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab" data-tab="ebookRemoto" onclick="setTab(this)">Ebook Remoto</button>
     <button class="hf-tab" data-tab="latam" onclick="setTab(this)">LATAM</button>
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)" style="display:none">E-books</button>
-    <button class="hf-tab" data-tab="corredor" onclick="setTab(this)" style="display:none">Corredor</button>
+    <button class="hf-tab" data-tab="corredor" onclick="setTab(this)">🎬 Video View</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
     <button class="hf-tab" data-tab="youtubeHire" onclick="setTab(this)">YouTube Hire</button>
@@ -1355,6 +1355,7 @@ const GIDS = {
   site_kw:'1598644082', site_camp:'2007620725',
   youtube:'1098222347', youtube_ads:'400478401', budget:'1387283031',
   youtube_hire_ads:'587346590',   // aba "Youtube HIRE" (Google Ads · canal Hire)
+  video_view:'1864681166',        // aba "Video View" (Reconhecimento · IG Malu)
 };
 
 let _gvizCache = {};
@@ -2648,8 +2649,100 @@ function renderEbooks(d) {
   loadBudgetInputs(d.budgets || {});
 }
 
-// ── Corredor ─────────────────────────────────────────────────────────────────
+// ── Video View (aba "Video View" · Reconhecimento IG Malu) ────────────────────
 let _loadingCor = false, _corChart = null;
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> REGRINHAS DE VÍDEO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+// Se alguma conta estiver errada, é AQUI que se ajusta.
+//
+// Colunas da aba (idx): 5 Investido · 6 Impressões · 7 Visualizações ·
+//   8 Alcance · 9 Visualizações 3s · 10 Interações · 11 25% · 12 75% · 13 Cliques
+//
+//  • Hook Rate = Visualizações 3s ÷ Impressões          (ruim <30 · médio 30–45 · bom 45–60 · ótimo >60)
+//  • Retenção  = reproduções 75% ÷ reproduções 25%      (ruim <20 · médio 20–35 · bom 35–50 · ótimo >50)
+//      (retenção "profunda": de quem chegou a 25%, quantos aguentaram até 75%)
+//  • CPM       = Investido ÷ Impressões × 1000
+//
+// Ação (o que fazer com o criativo):
+//   - amostra < 200 vis 3s        → "Aguardar dados"
+//   - hook bom+ E retenção boa+    → "Escalar"
+//   - hook ruim OU retenção ruim   → "Ruim"
+//   - resto                        → "Amostra básica"
+function _vvClassAcao(hooke, retencao, vis3s){
+  if (vis3s == null || vis3s < 200) return 'Aguardar dados';
+  const hookOk  = hooke != null && hooke >= 45;
+  const hookBad = hooke != null && hooke < 30;
+  const retOk   = retencao != null && retencao >= 35;
+  const retBad  = retencao != null && retencao < 20;
+  if (hookOk && retOk)   return 'Escalar';
+  if (hookBad || retBad) return 'Ruim';
+  return 'Amostra básica';
+}
+
+// Constrói o objeto que renderCorredor() espera, a partir da aba "Video View".
+async function buildCorredorData(){
+  _resetRange();
+  const t = await gvizLoad(GIDS.video_view);
+  const rows = gvRows(t, {
+    campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:4,str:true},
+    investido:5, impressoes:6, visualizacoes:7, alcance:8, vis3s:9,
+    ret25:11, ret75:12, cliques:13
+  });
+  const w = window30(rows); _trackRange(w); updateRangeLabel();
+  const win = w.rows;
+
+  const _hook = (v3s, imp) => { const r=_safeDiv(v3s, imp); return r==null?null:r*100; };
+  const _ret  = (r75, r25) => { const r=_safeDiv(r75, r25); return r==null?null:r*100; };
+  const _cpm  = (inv, imp) => { const r=_safeDiv(inv, imp); return r==null?null:r*1000; };
+
+  // por criativo
+  const byCri = {};
+  for (const r of win){
+    const key = r.criativo || '—';
+    const o = byCri[key] || (byCri[key] = { criativo:key, campanha:r.campanha, url:r.url,
+      investido:0, impressoes:0, visualizacoes:0, alcance:0, vis3s:0, ret25:0, ret75:0, cliques:0 });
+    o.investido+=r.investido; o.impressoes+=r.impressoes; o.visualizacoes+=r.visualizacoes;
+    o.alcance+=r.alcance; o.vis3s+=r.vis3s; o.ret25+=r.ret25; o.ret75+=r.ret75; o.cliques+=r.cliques;
+    if (!o.url && r.url) o.url = r.url;
+  }
+  const por_criativo = Object.values(byCri).map(o => {
+    const hooke = _hook(o.vis3s, o.impressoes), retencao = _ret(o.ret75, o.ret25);
+    return { criativo:o.criativo, status:'Ativo', url:o.url,
+      investido:o.investido, alcance:o.alcance, vis3s:o.vis3s, cliques:o.cliques,
+      cpm:_cpm(o.investido,o.impressoes), hooke, retencao,
+      acao:_vvClassAcao(hooke, retencao, o.vis3s) };
+  }).sort((a,b)=> b.investido - a.investido);
+
+  // por campanha
+  const byCamp = {};
+  for (const r of win){
+    const key = r.campanha || '—';
+    const o = byCamp[key] || (byCamp[key] = { campanha:key, investido:0, impressoes:0, alcance:0, vis3s:0, ret25:0, ret75:0, cliques:0 });
+    o.investido+=r.investido; o.impressoes+=r.impressoes; o.alcance+=r.alcance;
+    o.vis3s+=r.vis3s; o.ret25+=r.ret25; o.ret75+=r.ret75; o.cliques+=r.cliques;
+  }
+  const por_campanha = Object.values(byCamp).map(o => ({
+    campanha:o.campanha, investido:o.investido, alcance:o.alcance, vis3s:o.vis3s, cliques:o.cliques,
+    cpm:_cpm(o.investido,o.impressoes), retencao:_ret(o.ret75,o.ret25)
+  })).sort((a,b)=> b.investido - a.investido);
+
+  // KPIs totais
+  const T = win.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes;
+    a.visualizacoes+=r.visualizacoes; a.vis3s+=r.vis3s; a.ret25+=r.ret25; a.ret75+=r.ret75; a.cliques+=r.cliques; return a; },
+    {investido:0,impressoes:0,visualizacoes:0,vis3s:0,ret25:0,ret75:0,cliques:0});
+  const kpis = { investido:T.investido, visualizacoes:T.visualizacoes, impressoes:T.impressoes,
+    cliques:T.cliques, hooke_rate:_hook(T.vis3s,T.impressoes), retencao:_ret(T.ret75,T.ret25), cpm:_cpm(T.investido,T.impressoes) };
+
+  // série diária (Visualizações por dia)
+  const byDay = {};
+  for (const r of win){
+    const iso = `${r.date.getFullYear()}-${String(r.date.getMonth()+1).padStart(2,'0')}-${String(r.date.getDate()).padStart(2,'0')}`;
+    byDay[iso] = (byDay[iso]||0) + (r.visualizacoes||0);
+  }
+  const serie_diaria = Object.keys(byDay).sort().map(iso => ({ date:iso, vis:byDay[iso] }));
+
+  return { kpis, serie_diaria, por_campanha, por_criativo };
+}
 
 async function loadCorredor() {
   if (_loadingCor) return;
@@ -2660,13 +2753,20 @@ async function loadCorredor() {
   document.getElementById('errorBanner').style.display = 'none';
 
   try {
-    // Corredor NÃO existe na planilha (vinha ao vivo da Meta Ads). Estado vazio honesto.
-    _hfShowEmpty('viewCorredor', '📊 Dados ao vivo indisponíveis nesta versão. O painel Corredor vinha em tempo real da API da Meta Ads (visualizações, hook rate, retenção, criativos) e não faz parte desta planilha.');
+    const d = await buildCorredorData();
+    // remove eventual estado-vazio antigo antes de renderizar
+    const inj = document.querySelector('#viewCorredor .hf-empty-injected');
+    if (inj) inj.remove();
+    if (!d.por_criativo.length) {
+      _hfShowEmpty('viewCorredor', '📊 Sem dados de vídeo no período selecionado. A aba "Video View" da planilha não tem linhas nesse intervalo.');
+    } else {
+      renderCorredor(d);
+    }
     document.getElementById('lastUpdate').textContent =
       'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   } catch(e) {
     const b = document.getElementById('errorBanner');
-    b.textContent = 'Erro ao carregar corredor: ' + e.message;
+    b.textContent = 'Erro ao carregar Video View: ' + e.message;
     b.style.display = 'block';
   } finally {
     _loadingCor = false;
