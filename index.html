@@ -2692,6 +2692,9 @@ async function buildCorredorData(){
   const w = window30(rows); _trackRange(w); updateRangeLabel();
   const win = w.rows;
 
+  // Investido vem em US$ (conta Malu) -> converte p/ R$ (mesma cotacao do resto da dash)
+  for (const r of win) r.investido = r.investido * YT_USD_BRL;
+
   const _hook = (v3s, imp) => { const r=_safeDiv(v3s, imp); return r==null?null:r*100; };
   const _ret  = (r75, r25) => { const r=_safeDiv(r75, r25); return r==null?null:r*100; };
   const _cpm  = (inv, imp) => { const r=_safeDiv(inv, imp); return r==null?null:r*1000; };
