@@ -2208,10 +2208,20 @@ async function loadGeral() {
       fYtHire = { investido: gvSum(wY.rows,'investido') * YT_USD_BRL, inscritos: gvSum(wY.rows,'inscritos'), vendas:null, faturamento:null, roas:null };  // coluna "Investido Dolar" e USD -> converte p/ R$ (igual a aba de detalhe)
     } catch(e){ console.warn('YouTube Hire indisponível:', e); }
 
-    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire)
+    // Video View Malu — Investido (US$ -> R$) + Visualizações da aba "Video View"
+    let fVV = {};
+    try {
+      const rV = gvRows(await gvizLoadFrom(SHEET_ID, 'gid=' + GIDS.video_view + '&_cb=' + Date.now()), { investido:5, visualizacoes:7 });
+      const wV = window30(rV);
+      const invVV = gvSum(wV.rows,'investido') * YT_USD_BRL;   // conta Malu é US$
+      const visVV = gvSum(wV.rows,'visualizacoes');
+      fVV = { investido: invVV, seguidores: visVV, custo_seguidor: _safeDiv(invVV, visVV), vendas:null, faturamento:null, roas:null };
+    } catch(e){ console.warn('Video View indisponível:', e); }
+
+    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire + video view)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, ig_int: fInt, youtube: fYt, site: fSite,
-      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire,
+      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV,
     };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
