@@ -2682,7 +2682,8 @@ function _vvClassAcao(hooke, retencao, vis3s){
 // Constrói o objeto que renderCorredor() espera, a partir da aba "Video View".
 async function buildCorredorData(){
   _resetRange();
-  const t = await gvizLoad(GIDS.video_view);
+  // cache-buster: aba nova; sem isto o navegador/gviz pode servir resposta antiga vazia
+  const t = await gvizLoadFrom(SHEET_ID, 'gid=' + GIDS.video_view + '&_cb=' + Date.now());
   const rows = gvRows(t, {
     campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:4,str:true},
     investido:5, impressoes:6, visualizacoes:7, alcance:8, vis3s:9,
