@@ -1101,6 +1101,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Corredor Polonês ── -->
   <div id="viewCorredor" style="display:none">
 
+    <div class="hf-table-label" style="margin:4px 0 10px;font-size:1rem">🎬 Fase 1 · Reconhecimento <span style="color:var(--muted);font-weight:400">— qualidade do conteúdo (hooke / retenção)</span></div>
+
     <!-- 7-col KPI strip -->
     <div class="hf-kpi-strip cols-7">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="cor_kpiInv">—</div></div>
@@ -1162,6 +1164,38 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
             </tr>
           </thead>
           <tbody id="criTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Fase 2 · Vendas (recon) ── -->
+    <div class="hf-table-label" style="margin:28px 0 10px;font-size:1rem">💰 Fase 2 · Vendas (recon) <span style="color:var(--muted);font-weight:400">— retargeting de quem viu a fase 1 → ROAS</span></div>
+    <div class="hf-kpi-strip cols-7">
+      <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="f2_kpiInv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="f2_kpiImp">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="f2_kpiCli">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">CPM</div><div class="hf-kpi-value dash" id="f2_kpiCpm">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Vendas</div><div class="hf-kpi-value dash" id="f2_kpiVendas">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="f2_kpiFat">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="f2_kpiRoas">—</div></div>
+    </div>
+    <div class="hf-table-section">
+      <div class="hf-table-label">Campanha (fase 2)</div>
+      <div class="hf-table-wrap">
+        <table class="hf-table">
+          <thead>
+            <tr>
+              <th>Campanha</th>
+              <th class="num">Investido</th>
+              <th class="num">Impressões</th>
+              <th class="num">Cliques</th>
+              <th class="num">CPM</th>
+              <th class="num">Vendas</th>
+              <th class="num">Faturamento</th>
+              <th class="num">ROAS</th>
+            </tr>
+          </thead>
+          <tbody id="f2Tbody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2211,8 +2245,9 @@ async function loadGeral() {
     // Video View Malu — Investido (US$ -> R$) + Visualizações da aba "Video View"
     let fVV = {};
     try {
-      const rV = gvRows(await gvizLoadFrom(SHEET_ID, 'gid=' + GIDS.video_view + '&_cb=' + Date.now()), { investido:5, visualizacoes:7 });
-      const wV = window30(rV);
+      const rV = gvRows(await gvizLoadFrom(SHEET_ID, 'gid=' + GIDS.video_view + '&_cb=' + Date.now()), { campanha:{i:1,str:true}, investido:5, visualizacoes:7 });
+      const rVf1 = rV.filter(r => /reconhecimento/i.test(r.campanha || ''));  // só fase 1; a fase 2 (vendas) vive na mesma aba e não entra no card de topo
+      const wV = window30(rVf1);
       const invVV = gvSum(wV.rows,'investido') * YT_USD_BRL;   // conta Malu é US$
       const visVV = gvSum(wV.rows,'visualizacoes');
       fVV = { investido: invVV, seguidores: visVV, custo_seguidor: _safeDiv(invVV, visVV), vendas:null, faturamento:null, roas:null };
@@ -2338,7 +2373,6 @@ const DEFS_ALL = [
   ['ig_int',   '🌍', 'IG Internacional',   'Instagram Hire Internacional',      'Novos Seguidores', 'Custo por Seguidor', 'social'],
   ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['youtube hire','🎥','YouTube Hire',     'Youtube Hire Brazil',               'Inscritos',        'Custo por Inscrito', 'youtube'],
-  ['Video View Malu','🎬','Video View Malu','Reconhecimento · IG Malu',         'Visualizações',    'Custo por Visualização','social'],
   ['Novo funil','🆕','Novo Funil',         'Webinário (Hot)',                   'Inscritos',        'Custo por Inscrito', 'social'],
   ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
   ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
@@ -2375,6 +2409,17 @@ function funnelCardsHTML(cols, matrix, defs){
     const budInput = (bud != null)
       ? bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
       : '';
+    // Card do IG Malu ganha um bloco "Fase 1 · Video View" (Reconhecimento) — topo que gera seguidor/conversão
+    let extra = '';
+    if (key === 'ig_malu'){
+      const vv = cols['Video View Malu'] || {};
+      const cpv = (vv.custo_seguidor != null) ? vv.custo_seguidor : _safeDiv(vv.investido, vv.seguidores);
+      extra = `
+        <div class="hf-v2-metric" style="border-top:1px dashed var(--border);margin-top:8px;padding-top:10px"><div class="hf-v2-metric-lbl" style="font-weight:700;letter-spacing:.04em">🎬 FASE 1 · VIDEO VIEW</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido (F1)</div><div class="hf-v2-metric-val">${BRL(vv.investido)}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Visualizações</div><div class="hf-v2-metric-val dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Custo por Visualização</div><div class="hf-v2-metric-val dim">${cpv!=null?BRL(cpv):'—'}</div></div>`;
+    }
     html += `
       <div class="hf-v2-ch">
         <div class="hf-v2-ch-head">
@@ -2390,7 +2435,7 @@ function funnelCardsHTML(cols, matrix, defs){
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${custoLbl}</div><div class="hf-v2-metric-val dim">${custoVal}</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big">${NUM(f.vendas)}</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big">${BRL(f.faturamento)}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim">${ROAS(f.roas)}</div></div>
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim">${ROAS(f.roas)}</div></div>${extra}
       </div>`;
   }
   return html;
@@ -2694,11 +2739,14 @@ async function buildCorredorData(){
   _resetRange();
   // cache-buster: aba nova; sem isto o navegador/gviz pode servir resposta antiga vazia
   const t = await gvizLoadFrom(SHEET_ID, 'gid=' + GIDS.video_view + '&_cb=' + Date.now());
-  const rows = gvRows(t, {
+  const allRows = gvRows(t, {
     campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:4,str:true},
     investido:5, impressoes:6, visualizacoes:7, alcance:8, vis3s:9,
     ret25:11, ret75:12, cliques:13
   });
+  // A mesma aba guarda as duas etapas. Fase 1 = Reconhecimento (conteúdo); Fase 2 = o resto (vendas/recon).
+  const rows   = allRows.filter(r => /reconhecimento/i.test(r.campanha || ''));
+  const rowsF2 = allRows.filter(r => (r.campanha || '').trim() && !/reconhecimento/i.test(r.campanha || ''));
   const w = window30(rows); _trackRange(w); updateRangeLabel();
   const win = w.rows;
 
@@ -2755,7 +2803,25 @@ async function buildCorredorData(){
   }
   const serie_diaria = Object.keys(byDay).sort().map(iso => ({ date:iso, vis:byDay[iso] }));
 
-  return { kpis, serie_diaria, por_campanha, por_criativo };
+  // ── Fase 2 (vendas/recon) — mesma janela. Vendas/Faturamento virão da entrega; por ora null. ──
+  const wF2 = window30(rowsF2);
+  for (const r of wF2.rows) r.investido = r.investido * YT_USD_BRL;
+  const byCampF2 = {};
+  for (const r of wF2.rows){
+    const key = r.campanha || '—';
+    const o = byCampF2[key] || (byCampF2[key] = { campanha:key, investido:0, impressoes:0, alcance:0, cliques:0 });
+    o.investido+=r.investido; o.impressoes+=r.impressoes; o.alcance+=(r.alcance||0); o.cliques+=r.cliques;
+  }
+  const f2_por_campanha = Object.values(byCampF2).map(o => ({
+    campanha:o.campanha, investido:o.investido, impressoes:o.impressoes, cliques:o.cliques,
+    cpm:_cpm(o.investido,o.impressoes), vendas:null, faturamento:null, roas:null
+  })).sort((a,b)=> b.investido - a.investido);
+  const TF2 = wF2.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; return a; },
+    {investido:0,impressoes:0,cliques:0});
+  const fase2 = { investido:TF2.investido, impressoes:TF2.impressoes, cliques:TF2.cliques,
+    cpm:_cpm(TF2.investido,TF2.impressoes), vendas:null, faturamento:null, roas:null, por_campanha:f2_por_campanha };
+
+  return { kpis, serie_diaria, por_campanha, por_criativo, fase2 };
 }
 
 async function loadCorredor() {
@@ -2771,7 +2837,7 @@ async function loadCorredor() {
     // remove eventual estado-vazio antigo antes de renderizar
     const inj = document.querySelector('#viewCorredor .hf-empty-injected');
     if (inj) inj.remove();
-    if (!d.por_criativo.length) {
+    if (!d.por_criativo.length && !(d.fase2 && d.fase2.por_campanha && d.fase2.por_campanha.length)) {
       _hfShowEmpty('viewCorredor', '📊 Sem dados de vídeo no período selecionado. A aba "Video View" da planilha não tem linhas nesse intervalo.');
     } else {
       renderCorredor(d);
@@ -2831,6 +2897,31 @@ function renderCorredor(d) {
   }
   _applyMetricClass(document.getElementById('cor_kpiHooke'), _hookeClass(k.hooke_rate));
   _applyMetricClass(document.getElementById('cor_kpiRet'),   _retClass(k.retencao));
+
+  // ── Fase 2 (vendas/recon) — vendas/faturamento/ROAS entram quando a entrega começar ──
+  const f2 = d.fase2 || {};
+  [ ['f2_kpiInv',    BRL(f2.investido)],
+    ['f2_kpiImp',    NUM(f2.impressoes)],
+    ['f2_kpiCli',    NUM(f2.cliques)],
+    ['f2_kpiCpm',    BRL(f2.cpm)],
+    ['f2_kpiVendas', f2.vendas!=null?NUM(f2.vendas):'—'],
+    ['f2_kpiFat',    f2.faturamento!=null?BRL(f2.faturamento):'—'],
+    ['f2_kpiRoas',   f2.roas!=null?ROAS(f2.roas):'—'],
+  ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
+  const f2b = document.getElementById('f2Tbody');
+  if (f2b){
+    const camps = (f2.por_campanha || []);
+    f2b.innerHTML = camps.length ? camps.map(c => `<tr>
+        <td>${c.campanha}</td>
+        <td class="num">${BRL(c.investido)}</td>
+        <td class="num">${NUM(c.impressoes)}</td>
+        <td class="num">${NUM(c.cliques)}</td>
+        <td class="num">${BRL(c.cpm)}</td>
+        <td class="num">${c.vendas!=null?NUM(c.vendas):'—'}</td>
+        <td class="num">${c.faturamento!=null?BRL(c.faturamento):'—'}</td>
+        <td class="num">${c.roas!=null?ROAS(c.roas):'—'}</td>
+      </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr>';
+  }
 
   // Chart
   const serie = d.serie_diaria || [];
