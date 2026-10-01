@@ -3961,9 +3961,11 @@ function renderEbookDetail(view, rows, pfx, crm){
   const estTotal=byCri.reduce((s,o)=>s+(o.est||0),0), tLeadsT=tLeads+estTotal;
   const kpis=[['Investimento',_brl(tInv)],['Leads',_num(tLeadsT)],['CPL',tLeadsT?_brl(tInv/tLeadsT):'—'],
     ['Cliques no Link',_num(tCli)],['CTR',_pct(tImp?tCli/tImp:0)]];
+  // Taxa de conversão do funil (clique no anúncio → lead) — só na LATAM, a pedido
+  if(pfx==='latam') kpis.push(['Clk × Leads', _pct(tCli?tLeadsT/tCli:0)]);
   const estNote = estTotal>0 ? `<div style="margin:0 0 14px;padding:10px 14px;background:rgba(194,152,106,.12);border:1px solid rgba(194,152,106,.35);border-radius:9px;font-size:.82rem;color:#e8d5b8;line-height:1.5">⚠ <b>~${estTotal} leads estimados</b> (marcados com <b>~</b>) — no período do pixel trocado o Meta não registrou os leads desses criativos. Estimados pela verba a ~35% de conversão (CPL R$ 1,50–3,50). <b>Não são leads confirmados.</b></div>` : '';
   view.innerHTML= crmBlock + estNote +
-    `<div class="hf-kpi-strip cols-5">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
+    `<div class="hf-kpi-strip cols-${kpis.length}">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc1"></canvas></div></div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Cliques · Leads por dia</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc2"></canvas></div></div>`+
     `<div class="hf-table-section"><div class="hf-table-label">Por Anúncio (Criativo)</div><div class="hf-table-wrap"><table class="hf-table"><thead>${head('Criativo')}</thead><tbody>${byCri.map(o=>row(o,pfx+':cri')).join('')||empty}</tbody></table></div></div>`+
