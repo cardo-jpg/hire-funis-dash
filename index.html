@@ -2411,9 +2411,14 @@ function funnelCardsHTML(cols, matrix, defs){
       : '';
     // Card do IG Malu ganha um bloco "Fase 1 · Video View" (Reconhecimento) — topo que gera seguidor/conversão
     let extra = '';
+    let roasShown = f.roas, roasLbl = 'ROAS';
     if (key === 'ig_malu'){
       const vv = cols['Video View Malu'] || {};
       const cpv = (vv.custo_seguidor != null) ? vv.custo_seguidor : _safeDiv(vv.investido, vv.seguidores);
+      // ROAS do IG Malu considera o investido do IG + o investido da Fase 1 (Video View)
+      const invTot = (f.investido || 0) + (vv.investido || 0);
+      roasShown = (f.faturamento != null && invTot > 0) ? f.faturamento / invTot : f.roas;
+      roasLbl = 'ROAS (IG + Fase 1)';
       extra = `
         <div class="hf-v2-metric" style="border-top:1px dashed var(--border);margin-top:8px;padding-top:10px"><div class="hf-v2-metric-lbl" style="font-weight:700;letter-spacing:.04em">🎬 FASE 1 · VIDEO VIEW</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido (F1)</div><div class="hf-v2-metric-val">${BRL(vv.investido)}</div></div>
@@ -2435,7 +2440,7 @@ function funnelCardsHTML(cols, matrix, defs){
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${custoLbl}</div><div class="hf-v2-metric-val dim">${custoVal}</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big">${NUM(f.vendas)}</div></div>
         <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big">${BRL(f.faturamento)}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">ROAS</div><div class="hf-v2-metric-val dim">${ROAS(f.roas)}</div></div>${extra}
+        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${roasLbl}</div><div class="hf-v2-metric-val dim">${ROAS(roasShown)}</div></div>${extra}
       </div>`;
   }
   return html;
