@@ -1178,20 +1178,22 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Lead</div><div class="hf-kpi-value dash" id="f2_kpiConv">—</div></div>
     </div>
     <div class="hf-table-section">
-      <div class="hf-table-label">Criativo (fase 2)</div>
+      <div class="hf-table-label">Criativo (fase 2) <span style="color:var(--muted);font-weight:400;font-size:.78rem">· clique nas colunas p/ ordenar</span></div>
       <div class="hf-table-wrap">
         <table class="hf-table">
           <thead>
             <tr>
               <th>Criativo</th>
-              <th class="num">Investido</th>
-              <th class="num">Cliques</th>
-              <th class="num">Leads</th>
-              <th class="num">Clk → Lead</th>
-              <th class="num">CPL</th>
+              <th>Status</th>
+              <th class="num f2-th" data-k="investido" onclick="_f2sort('investido')" style="cursor:pointer">Investido</th>
+              <th class="num f2-th" data-k="cliques" onclick="_f2sort('cliques')" style="cursor:pointer">Cliques</th>
+              <th class="num f2-th" data-k="leads" onclick="_f2sort('leads')" style="cursor:pointer">Leads</th>
+              <th class="num f2-th" data-k="conv" onclick="_f2sort('conv')" style="cursor:pointer">Clk → Lead</th>
+              <th class="num f2-th" data-k="cpl" onclick="_f2sort('cpl')" style="cursor:pointer">CPL</th>
+              <th>Link</th>
             </tr>
           </thead>
-          <tbody id="f2Tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr></tbody>
+          <tbody id="f2Tbody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2863,6 +2865,37 @@ async function loadCorredor() {
   }
 }
 
+// ── Tabela da Fase 2: ordenável por coluna (clique) ──
+function _f2renderTable(){
+  const tb = document.getElementById('f2Tbody'); if(!tb) return;
+  const rows = (window._f2data || []).slice();
+  const key = window._f2sortKey || 'cpl', dir = window._f2sortDir || -1;
+  const val = c => (key==='conv' ? (c.cliques ? c.leads/c.cliques : null) : c[key]);
+  rows.sort((a,b)=>{ const va=val(a), vb=val(b);
+    if (va==null && vb==null) return 0; if (va==null) return 1; if (vb==null) return -1;  // sem dado sempre no fim
+    return (va-vb)*dir; });
+  const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+  tb.innerHTML = rows.length ? rows.map(c=>`<tr>
+      <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
+      <td><span class="status-ativo">Ativo</span></td>
+      <td class="num">${BRL(c.investido)}</td>
+      <td class="num">${NUM(c.cliques)}</td>
+      <td class="num">${NUM(c.leads)}</td>
+      <td class="num">${_p1(c.cliques? c.leads/c.cliques*100 : null)}</td>
+      <td class="num">${c.cpl!=null?BRL(c.cpl):'—'}</td>
+      <td>${c.url?`<a class="link-anuncio-btn" href="${c.url}" target="_blank">↗ Anúncio</a>`:'—'}</td>
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr>';
+  document.querySelectorAll('#viewCorredor .f2-th').forEach(th=>{
+    th.innerHTML = th.innerHTML.replace(/\s*[↓↑]$/,'');
+    if (th.getAttribute('data-k')===key) th.innerHTML += (dir<0?' ↓':' ↑');
+  });
+}
+function _f2sort(k){
+  if (window._f2sortKey===k) window._f2sortDir = -(window._f2sortDir || -1);
+  else { window._f2sortKey = k; window._f2sortDir = -1; }
+  _f2renderTable();
+}
+
 function renderCorredor(d) {
   const k = d.kpis || {};
   const PCT = v => v == null ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
@@ -2916,18 +2949,9 @@ function renderCorredor(d) {
     ['f2_kpiCpl',   f2.cpl!=null?BRL(f2.cpl):'—'],
     ['f2_kpiConv',  _pct1(_conv(f2.leads, f2.cliques))],
   ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
-  const f2b = document.getElementById('f2Tbody');
-  if (f2b){
-    const cams = (f2.por_criativo || []);
-    f2b.innerHTML = cams.length ? cams.map(c => `<tr>
-        <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
-        <td class="num">${BRL(c.investido)}</td>
-        <td class="num">${NUM(c.cliques)}</td>
-        <td class="num">${NUM(c.leads)}</td>
-        <td class="num">${_pct1(_conv(c.leads, c.cliques))}</td>
-        <td class="num">${c.cpl!=null?BRL(c.cpl):'—'}</td>
-      </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr>';
-  }
+  window._f2data = f2.por_criativo || [];
+  if (window._f2sortKey == null){ window._f2sortKey = 'cpl'; window._f2sortDir = -1; }  // padrão: mais caro primeiro
+  _f2renderTable();
 
   // Chart
   const serie = d.serie_diaria || [];
