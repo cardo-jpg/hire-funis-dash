@@ -1168,34 +1168,30 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       </div>
     </div>
 
-    <!-- ── Fase 2 · Vendas (recon) ── -->
-    <div class="hf-table-label" style="margin:28px 0 10px;font-size:1rem">💰 Fase 2 · Vendas (recon) <span style="color:var(--muted);font-weight:400">— retargeting de quem viu a fase 1 → ROAS</span></div>
-    <div class="hf-kpi-strip cols-7">
+    <!-- ── Fase 2 · WhatsApp (recon) ── -->
+    <div class="hf-table-label" style="margin:28px 0 10px;font-size:1rem">💬 Fase 2 · WhatsApp (recon) <span style="color:var(--muted);font-weight:400">— retargeting de quem viu a fase 1 → conversas no WhatsApp</span></div>
+    <div class="hf-kpi-strip cols-5">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="f2_kpiInv">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="f2_kpiImp">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="f2_kpiCli">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">CPM</div><div class="hf-kpi-value dash" id="f2_kpiCpm">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Vendas</div><div class="hf-kpi-value dash" id="f2_kpiVendas">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="f2_kpiFat">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="f2_kpiRoas">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Leads (conversas)</div><div class="hf-kpi-value dash" id="f2_kpiLeads">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Custo por Lead</div><div class="hf-kpi-value dash" id="f2_kpiCpl">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Clique → Lead</div><div class="hf-kpi-value dash" id="f2_kpiConv">—</div></div>
     </div>
     <div class="hf-table-section">
-      <div class="hf-table-label">Campanha (fase 2)</div>
+      <div class="hf-table-label">Criativo (fase 2)</div>
       <div class="hf-table-wrap">
         <table class="hf-table">
           <thead>
             <tr>
-              <th>Campanha</th>
+              <th>Criativo</th>
               <th class="num">Investido</th>
-              <th class="num">Impressões</th>
               <th class="num">Cliques</th>
-              <th class="num">CPM</th>
-              <th class="num">Vendas</th>
-              <th class="num">Faturamento</th>
-              <th class="num">ROAS</th>
+              <th class="num">Leads</th>
+              <th class="num">Clk → Lead</th>
+              <th class="num">CPL</th>
             </tr>
           </thead>
-          <tbody id="f2Tbody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr></tbody>
+          <tbody id="f2Tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2749,9 +2745,8 @@ async function buildCorredorData(){
     investido:5, impressoes:6, visualizacoes:7, alcance:8, vis3s:9,
     ret25:11, ret75:12, cliques:13
   });
-  // A mesma aba guarda as duas etapas. Fase 1 = Reconhecimento (conteúdo); Fase 2 = o resto (vendas/recon).
+  // Fase 1 = Reconhecimento (conteúdo). A Fase 2 (WhatsApp) tem fonte própria, lida mais abaixo.
   const rows   = allRows.filter(r => /reconhecimento/i.test(r.campanha || ''));
-  const rowsF2 = allRows.filter(r => (r.campanha || '').trim() && !/reconhecimento/i.test(r.campanha || ''));
   const w = window30(rows); _trackRange(w); updateRangeLabel();
   const win = w.rows;
 
@@ -2808,23 +2803,31 @@ async function buildCorredorData(){
   }
   const serie_diaria = Object.keys(byDay).sort().map(iso => ({ date:iso, vis:byDay[iso] }));
 
-  // ── Fase 2 (vendas/recon) — mesma janela. Vendas/Faturamento virão da entrega; por ora null. ──
-  const wF2 = window30(rowsF2);
-  for (const r of wF2.rows) r.investido = r.investido * YT_USD_BRL;
-  const byCampF2 = {};
-  for (const r of wF2.rows){
-    const key = r.campanha || '—';
-    const o = byCampF2[key] || (byCampF2[key] = { campanha:key, investido:0, impressoes:0, alcance:0, cliques:0 });
-    o.investido+=r.investido; o.impressoes+=r.impressoes; o.alcance+=(r.alcance||0); o.cliques+=r.cliques;
-  }
-  const f2_por_campanha = Object.values(byCampF2).map(o => ({
-    campanha:o.campanha, investido:o.investido, impressoes:o.impressoes, cliques:o.cliques,
-    cpm:_cpm(o.investido,o.impressoes), vendas:null, faturamento:null, roas:null
-  })).sort((a,b)=> b.investido - a.investido);
-  const TF2 = wF2.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; return a; },
-    {investido:0,impressoes:0,cliques:0});
-  const fase2 = { investido:TF2.investido, impressoes:TF2.impressoes, cliques:TF2.cliques,
-    cpm:_cpm(TF2.investido,TF2.impressoes), vendas:null, faturamento:null, roas:null, por_campanha:f2_por_campanha };
+  // ── Fase 2 (WhatsApp recon) — fonte própria (aba Fase 2): Data,Campanha,Público,Criativo,Investimento,Impressões,Cliques,Leads,Thumb ──
+  const F2_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', F2_GID = '1327644415';
+  let fase2 = { investido:0, impressoes:0, cliques:0, leads:0, cpm:null, cpl:null, ctr:null, por_criativo:[] };
+  try {
+    const tf2 = await gvizLoadFrom(F2_SHEET, 'gid=' + F2_GID + '&_cb=' + Date.now());
+    const f2rows = gvRows(tf2, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7 });
+    const wF2 = window30(f2rows);
+    for (const r of wF2.rows) r.investido = r.investido * YT_USD_BRL;   // conta Malu é US$
+    const byCriF2 = {};
+    for (const r of wF2.rows){
+      const key = r.criativo || '—';
+      const o = byCriF2[key] || (byCriF2[key] = { criativo:key, url:r.url, investido:0, impressoes:0, cliques:0, leads:0 });
+      o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0);
+      if (!o.url && r.url) o.url = r.url;
+    }
+    const por_criativo = Object.values(byCriF2).map(o => ({
+      criativo:o.criativo, url:o.url, investido:o.investido, impressoes:o.impressoes, cliques:o.cliques, leads:o.leads,
+      ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
+    })).sort((a,b)=> b.investido - a.investido);
+    const TF2 = wF2.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; },
+      {investido:0,impressoes:0,cliques:0,leads:0});
+    fase2 = { investido:TF2.investido, impressoes:TF2.impressoes, cliques:TF2.cliques, leads:TF2.leads,
+      cpm:_cpm(TF2.investido,TF2.impressoes), cpl:(TF2.leads? TF2.investido/TF2.leads : null),
+      ctr:(TF2.impressoes? TF2.cliques/TF2.impressoes*100 : null), por_criativo };
+  } catch(e){ console.warn('Fase 2 indisponível:', e); }
 
   return { kpis, serie_diaria, por_campanha, por_criativo, fase2 };
 }
@@ -2842,7 +2845,7 @@ async function loadCorredor() {
     // remove eventual estado-vazio antigo antes de renderizar
     const inj = document.querySelector('#viewCorredor .hf-empty-injected');
     if (inj) inj.remove();
-    if (!d.por_criativo.length && !(d.fase2 && d.fase2.por_campanha && d.fase2.por_campanha.length)) {
+    if (!d.por_criativo.length && !(d.fase2 && d.fase2.por_criativo && d.fase2.por_criativo.length)) {
       _hfShowEmpty('viewCorredor', '📊 Sem dados de vídeo no período selecionado. A aba "Video View" da planilha não tem linhas nesse intervalo.');
     } else {
       renderCorredor(d);
@@ -2903,29 +2906,27 @@ function renderCorredor(d) {
   _applyMetricClass(document.getElementById('cor_kpiHooke'), _hookeClass(k.hooke_rate));
   _applyMetricClass(document.getElementById('cor_kpiRet'),   _retClass(k.retencao));
 
-  // ── Fase 2 (vendas/recon) — vendas/faturamento/ROAS entram quando a entrega começar ──
+  // ── Fase 2 (WhatsApp recon) — leads/conversas + CPL (a aba não traz impressões) ──
   const f2 = d.fase2 || {};
-  [ ['f2_kpiInv',    BRL(f2.investido)],
-    ['f2_kpiImp',    NUM(f2.impressoes)],
-    ['f2_kpiCli',    NUM(f2.cliques)],
-    ['f2_kpiCpm',    BRL(f2.cpm)],
-    ['f2_kpiVendas', f2.vendas!=null?NUM(f2.vendas):'—'],
-    ['f2_kpiFat',    f2.faturamento!=null?BRL(f2.faturamento):'—'],
-    ['f2_kpiRoas',   f2.roas!=null?ROAS(f2.roas):'—'],
+  const _pct1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+  const _conv = (le,cl) => (cl? le/cl*100 : null);
+  [ ['f2_kpiInv',   BRL(f2.investido)],
+    ['f2_kpiCli',   NUM(f2.cliques)],
+    ['f2_kpiLeads', f2.leads!=null?NUM(f2.leads):'—'],
+    ['f2_kpiCpl',   f2.cpl!=null?BRL(f2.cpl):'—'],
+    ['f2_kpiConv',  _pct1(_conv(f2.leads, f2.cliques))],
   ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
   const f2b = document.getElementById('f2Tbody');
   if (f2b){
-    const camps = (f2.por_campanha || []);
-    f2b.innerHTML = camps.length ? camps.map(c => `<tr>
-        <td>${c.campanha}</td>
+    const cams = (f2.por_criativo || []);
+    f2b.innerHTML = cams.length ? cams.map(c => `<tr>
+        <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
         <td class="num">${BRL(c.investido)}</td>
-        <td class="num">${NUM(c.impressoes)}</td>
         <td class="num">${NUM(c.cliques)}</td>
-        <td class="num">${BRL(c.cpm)}</td>
-        <td class="num">${c.vendas!=null?NUM(c.vendas):'—'}</td>
-        <td class="num">${c.faturamento!=null?BRL(c.faturamento):'—'}</td>
-        <td class="num">${c.roas!=null?ROAS(c.roas):'—'}</td>
-      </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr>';
+        <td class="num">${NUM(c.leads)}</td>
+        <td class="num">${_pct1(_conv(c.leads, c.cliques))}</td>
+        <td class="num">${c.cpl!=null?BRL(c.cpl):'—'}</td>
+      </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr>';
   }
 
   // Chart
