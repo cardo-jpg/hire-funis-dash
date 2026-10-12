@@ -754,30 +754,39 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-kpi-v2 .hf-kpi-value { font-size:1.25rem; }
 
     /* compact 4-column channel grid */
-    .hf-v2-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .hf-v2-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
     .hf-v2-ch {
-      background:rgba(123,45,139,.12); border:1px solid rgba(123,45,139,.2);
-      border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;
+      background:linear-gradient(165deg, rgba(123,45,139,.20), rgba(50,18,60,.10));
+      border:1px solid rgba(168,85,200,.22); border-radius:16px;
+      padding:16px 16px 14px; display:flex; flex-direction:column; gap:12px;
+      box-shadow:0 2px 10px rgba(0,0,0,.18);
+      transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
     }
-    .hf-v2-ch-name { font-size:.78rem; font-weight:700; color:rgba(255,255,255,.55); display:flex; align-items:center; gap:6px; }
-    .hf-v2-ch-head { display:flex; flex-direction:column; gap:2px; }
-    .hf-v2-ch-sub { font-size:.66rem; color:rgba(255,255,255,.35); font-weight:500; padding-left:22px; }
-    .hf-v2-budget { display:flex; flex-direction:column; gap:1px; padding-bottom:8px; border-bottom:1px solid rgba(123,45,139,.25); margin-bottom:2px; }
-    .hf-v2-budget-lbl { font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.35); }
-    .hf-v2-budget-val { font-size:1.15rem; font-weight:800; color:var(--purple-light); display:flex; align-items:baseline; gap:2px; }
+    .hf-v2-ch:hover { transform:translateY(-3px); border-color:rgba(168,85,200,.55); box-shadow:0 12px 28px rgba(123,45,139,.28); }
+    .hf-v2-ch-head { display:flex; flex-direction:column; gap:3px; }
+    .hf-v2-ch-name { font-size:.92rem; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-.01em; }
+    .hf-v2-ch-name .ic { width:28px; height:28px; flex:0 0 28px; display:inline-flex; align-items:center; justify-content:center; border-radius:9px; background:rgba(168,85,200,.22); font-size:1rem; }
+    .hf-v2-ch-sub { font-size:.66rem; font-weight:500; padding-left:37px; margin-top:-2px; }
+    .hf-v2-budget { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 11px; background:rgba(0,0,0,.22); border-radius:10px; }
+    .hf-v2-budget-lbl { font-size:.56rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+    .hf-v2-budget-val { font-size:1rem; font-weight:800; color:var(--purple-light); white-space:nowrap; }
     .hf-v2-budget-input {
       background:none; border:none; border-bottom:1px dashed rgba(168,85,200,.55);
-      color:var(--purple-light); font-size:1.15rem; font-weight:800; font-family:inherit;
-      width:7.5ch; padding:0 0 1px; outline:none; transition:border-color .15s,color .15s;
+      color:var(--purple-light); font-size:1rem; font-weight:800; font-family:inherit;
+      width:7ch; padding:0 0 1px; outline:none; transition:border-color .15s,color .15s;
     }
     .hf-v2-budget-input:hover { border-bottom-color:var(--purple-light); }
     .hf-v2-budget-input:focus { border-bottom-color:#fff; color:#fff; }
     .hf-v2-budget-input::placeholder { color:rgba(168,85,200,.4); }
-    .hf-v2-metric { display:flex; flex-direction:column; gap:2px; }
-    .hf-v2-metric-lbl { font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.35); }
-    .hf-v2-metric-val { font-size:1.05rem; font-weight:700; color:#fff; }
-    .hf-v2-metric-val.big { font-size:1.25rem; font-weight:800; }
-    .hf-v2-metric-val.dim { font-size:.9rem; color:rgba(255,255,255,.5); font-weight:600; }
+    .hf-v2-body { display:grid; grid-template-columns:1fr 1fr; gap:11px 12px; }
+    .hf-v2-foot { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .hf-v2-metric { display:flex; flex-direction:column; gap:3px; min-width:0; }
+    .hf-v2-metric-lbl { font-size:.56rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+    .hf-v2-metric-val { font-size:1.02rem; font-weight:800; line-height:1.1; overflow-wrap:anywhere; }
+    .hf-v2-metric-val.big { font-size:1.22rem; }
+    .hf-v2-metric-val.dim { font-size:.95rem; font-weight:700; }
+    .hf-v2-metric.hl { background:rgba(168,85,200,.13); border:1px solid rgba(168,85,200,.28); border-radius:11px; padding:8px 10px; gap:2px; }
+    .hf-v2-metric.hl.good { background:rgba(28,138,84,.14); border-color:rgba(28,138,84,.34); }
 
     @media (max-width:900px) {
       .hf-kpi-strip-v2 { grid-template-columns:repeat(3,1fr); }
@@ -2251,10 +2260,22 @@ async function loadGeral() {
       fVV = { investido: invVV, seguidores: visVV, custo_seguidor: _safeDiv(invVV, visVV), vendas:null, faturamento:null, roas:null };
     } catch(e){ console.warn('Video View indisponível:', e); }
 
-    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire + video view)
+    // UGC Latam — funil de vendas em vídeo (aba UGC do funis). Conta é US$ -> R$.
+    let fUGC = {};
+    try {
+      const rG = gvRows(await gvizLoadFrom(SHEET_ID, 'gid=631465042&_cb=' + Date.now()), { investido:4, visitas:7, vendas:11, faturamento:12 });
+      const wG = window30(rG);
+      const invU = gvSum(wG.rows,'investido') * YT_USD_BRL;
+      const fatU = gvSum(wG.rows,'faturamento') * YT_USD_BRL;
+      const vendU = gvSum(wG.rows,'vendas');
+      fUGC = { investido: invU, visitas: gvSum(wG.rows,'visitas'), vendas: vendU || 0,
+        faturamento: fatU || null, roas: (invU ? fatU/invU : null) };
+    } catch(e){ console.warn('UGC indisponível:', e); }
+
+    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire + video view + ugc)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, ig_int: fInt, youtube: fYt, site: fSite,
-      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV,
+      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC,
     };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
@@ -2369,6 +2390,7 @@ const DEFS_ALL = [
   ['ig_malu',  '📱', 'IG Malu',            'Instagram Malu',                    'Novos Seguidores', 'Custo por Seguidor', 'social'],
   ['ig_hire',  '📸', 'IG Hire',            'Instagram Hire Brazil',             'Novos Seguidores', 'Custo por Seguidor', 'social'],
   ['ig_int',   '🌍', 'IG Internacional',   'Instagram Hire Internacional',      'Novos Seguidores', 'Custo por Seguidor', 'social'],
+  ['ugc',      '🎬', 'UGC Latam',          'LT · vendas em vídeo',              'Visitas no site',  'Custo por Visita',   'ugc'],
   ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['youtube hire','🎥','YouTube Hire',     'Youtube Hire Brazil',               'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['Novo funil','🆕','Novo Funil',         'Webinário (Hot)',                   'Inscritos',        'Custo por Inscrito', 'social'],
@@ -2403,6 +2425,11 @@ function funnelCardsHTML(cols, matrix, defs){
       audVal   = (ins != null) ? NUM(ins) : '—';
       const cpi = _safeDiv(f.investido, ins);
       custoVal = (cpi != null) ? BRL(cpi) : '—';
+    } else if (kind === 'ugc'){
+      const vis = (f.visitas != null) ? f.visitas : null;
+      audVal   = (vis != null) ? NUM(vis) : '—';
+      const cpv = _safeDiv(f.investido, vis);
+      custoVal = (cpv != null) ? BRL(cpv) : '—';
     }
     const budInput = (bud != null)
       ? bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
@@ -2426,19 +2453,23 @@ function funnelCardsHTML(cols, matrix, defs){
     html += `
       <div class="hf-v2-ch">
         <div class="hf-v2-ch-head">
-          <div class="hf-v2-ch-name">${icon} ${titulo}</div>
+          <div class="hf-v2-ch-name"><span class="ic">${icon}</span>${titulo}</div>
           <div class="hf-v2-ch-sub">${sub}</div>
         </div>
         <div class="hf-v2-budget">
-          <div class="hf-v2-budget-lbl">Budget Mensal</div>
-          <div class="hf-v2-budget-val" title="A verba é definida na planilha (aba de Budget) — sincroniza para todos">R$&nbsp;${budInput || '—'}</div>
+          <span class="hf-v2-budget-lbl">Budget mensal</span>
+          <span class="hf-v2-budget-val" title="Definido na planilha (aba de Budget)">R$&nbsp;${budInput || '—'}</span>
         </div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido</div><div class="hf-v2-metric-val">${BRL(f.investido)}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${audLbl}</div><div class="hf-v2-metric-val dim">${audVal}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${custoLbl}</div><div class="hf-v2-metric-val dim">${custoVal}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val big">${NUM(f.vendas)}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big">${BRL(f.faturamento)}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${roasLbl}</div><div class="hf-v2-metric-val dim">${ROAS(roasShown)}</div></div>${extra}
+        <div class="hf-v2-body">
+          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido</div><div class="hf-v2-metric-val">${BRL(f.investido)}</div></div>
+          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${audLbl}</div><div class="hf-v2-metric-val dim">${audVal}</div></div>
+          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${custoLbl}</div><div class="hf-v2-metric-val dim">${custoVal}</div></div>
+          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val">${NUM(f.vendas)}</div></div>
+        </div>
+        <div class="hf-v2-foot">
+          <div class="hf-v2-metric hl"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big">${BRL(f.faturamento)}</div></div>
+          <div class="hf-v2-metric hl good"><div class="hf-v2-metric-lbl">${roasLbl}</div><div class="hf-v2-metric-val big">${ROAS(roasShown)}</div></div>
+        </div>${extra}
       </div>`;
   }
   return html;
@@ -3868,6 +3899,47 @@ async function loadEbookDetail(key){
   await _loadOvr();
   if(key==='latam') _latamForceLeads(data.rows);
   renderEbookDetail(view, data.rows, key, crm);
+  if(key==='latam') _loadUGCLatam(view);
+}
+
+// Seção UGC (funil de vendas em vídeo do Latam) anexada ao fim da aba LATAM.
+async function _loadUGCLatam(view){
+  try{
+    const t = await gvizLoadFrom('1l6_bsucWh3CZKhBZpqBykPJuYT3GQ5ZehAR5IAXd8kg', 'gid=631465042&_cb='+Date.now());
+    const rows = gvRows(t, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:13,str:true},
+      investido:4, impressoes:5, cliques:6, visitas:7, checkout:10, vendas:11, faturamento:12 });
+    const win = window30(rows).rows;
+    const USD = (typeof YT_USD_BRL!=='undefined'? YT_USD_BRL : 5.19);
+    for (const r of win){ r.investido=(r.investido||0)*USD; r.faturamento=(r.faturamento||0)*USD; }
+    if (!win.length) return;
+    const byCri={};
+    for (const r of win){ const k=r.criativo||'—';
+      const o=byCri[k]||(byCri[k]={criativo:k,url:r.url,investido:0,cliques:0,visitas:0,checkout:0,vendas:0,faturamento:0});
+      o.investido+=r.investido||0;o.cliques+=r.cliques||0;o.visitas+=r.visitas||0;o.checkout+=r.checkout||0;o.vendas+=r.vendas||0;o.faturamento+=r.faturamento||0;
+      if(!o.url&&r.url)o.url=r.url; }
+    const cris=Object.values(byCri).sort((a,b)=>b.investido-a.investido);
+    const T=win.reduce((a,r)=>{a.inv+=r.investido||0;a.cli+=r.cliques||0;a.vis+=r.visitas||0;a.chk+=r.checkout||0;a.vend+=r.vendas||0;a.fat+=r.faturamento||0;return a;},{inv:0,cli:0,vis:0,chk:0,vend:0,fat:0});
+    const roas=T.inv?T.fat/T.inv:null;
+    const kpis=[['Investido',BRL(T.inv)],['Cliques',NUM(T.cli)],['Visitas',NUM(T.vis)],['Checkout',NUM(T.chk)],['Vendas',NUM(T.vend)],['Faturamento',T.fat?BRL(T.fat):'—'],['ROAS',roas!=null?roas.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—']];
+    const rowsHtml=cris.map(c=>`<tr>
+      <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
+      <td class="num">${BRL(c.investido)}</td>
+      <td class="num">${NUM(c.cliques)}</td>
+      <td class="num">${NUM(c.visitas)}</td>
+      <td class="num">${NUM(c.checkout)}</td>
+      <td class="num">${NUM(c.vendas)}</td>
+      <td class="num">${c.faturamento?BRL(c.faturamento):'—'}</td>
+      <td>${c.url?`<a class="link-anuncio-btn" href="${c.url}" target="_blank">↗ Anúncio</a>`:'—'}</td>
+    </tr>`).join('');
+    const html=`
+      <div class="hf-table-label" style="margin:30px 0 12px;font-size:1rem">🎬 UGC · Vendas em vídeo <span style="color:var(--muted);font-weight:400">— LT_FB04/FB05 · funil de venda</span></div>
+      <div class="hf-kpi-strip cols-7">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>
+      <div class="hf-table-section"><div class="hf-table-label">Criativo (UGC)</div><div class="hf-table-wrap"><table class="hf-table">
+        <thead><tr><th>Criativo</th><th class="num">Investido</th><th class="num">Cliques</th><th class="num">Visitas</th><th class="num">Checkout</th><th class="num">Vendas</th><th class="num">Faturamento</th><th>Link</th></tr></thead>
+        <tbody>${rowsHtml||'<tr><td colspan="8" style="text-align:center;padding:18px;color:var(--muted)">Sem dados no período</td></tr>'}</tbody>
+      </table></div></div>`;
+    view.insertAdjacentHTML('beforeend', html);
+  }catch(e){ console.warn('UGC Latam indisponível:', e); }
 }
 // Status efetivo do Meta (coluna Status do Stract) → selo. ACTIVE=ativo;
 // *PAUSED=pausado; DISAPPROVED=reprovado. rank pra pegar o mais ativo na data recente.
