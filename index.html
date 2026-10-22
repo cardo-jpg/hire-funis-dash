@@ -933,6 +933,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .yt-chart-canvas-wrap { position:relative; height:260px; }
     .status-ativo   { color:#4ade80; font-weight:700; font-size:.75rem; }
     .status-pausado { color:#fbbf24; font-weight:700; font-size:.75rem; }
+    .cri-filter { display:inline-flex; gap:4px; margin-left:8px; vertical-align:middle; }
+    .cri-filter button { font-size:.7rem; padding:2px 10px; border-radius:14px; border:1px solid rgba(123,45,139,.35); background:transparent; color:rgba(255,255,255,.65); cursor:pointer; font-weight:600; }
+    .cri-filter button.on { background:var(--purple-dark); color:#fff; border-color:var(--purple-dark); }
     .status-removido{ color:#f87171; font-weight:700; font-size:.75rem; }
     .hf-table td.vid-title { max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.79rem; color:rgba(255,255,255,.75); }
     .vid-link-btn {
@@ -1188,7 +1191,13 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Lead</div><div class="hf-kpi-value dash" id="f2_kpiConv">—</div></div>
     </div>
     <div class="hf-table-section">
-      <div class="hf-table-label">Criativo (fase 2) <span style="color:var(--muted);font-weight:400;font-size:.78rem">· clique nas colunas p/ ordenar</span></div>
+      <div class="hf-table-label">Criativo (fase 2)
+        <span class="cri-filter" id="f2Filter">
+          <button data-f="todos" onclick="_f2setFilter('todos')">Todos<span class="cnt"></span></button>
+          <button data-f="ativo" onclick="_f2setFilter('ativo')">Ativos<span class="cnt"></span></button>
+          <button data-f="pausado" onclick="_f2setFilter('pausado')">Pausados<span class="cnt"></span></button>
+        </span>
+        <span style="color:var(--muted);font-weight:400;font-size:.78rem">· clique nas colunas p/ ordenar</span></div>
       <div class="hf-table-wrap">
         <table class="hf-table">
           <thead>
@@ -1222,7 +1231,13 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Cadastro</div><div class="hf-kpi-value dash" id="web_kpiConv">—</div></div>
     </div>
     <div class="hf-table-section">
-      <div class="hf-table-label">Criativo (webinar) <span style="color:var(--muted);font-weight:400;font-size:.78rem">· clique nas colunas p/ ordenar</span></div>
+      <div class="hf-table-label">Criativo (webinar)
+        <span class="cri-filter" id="webFilter">
+          <button data-f="todos" onclick="_webSetFilter('todos')">Todos<span class="cnt"></span></button>
+          <button data-f="ativo" onclick="_webSetFilter('ativo')">Ativos<span class="cnt"></span></button>
+          <button data-f="pausado" onclick="_webSetFilter('pausado')">Pausados<span class="cnt"></span></button>
+        </span>
+        <span style="color:var(--muted);font-weight:400;font-size:.78rem">· clique nas colunas p/ ordenar</span></div>
       <div class="hf-table-wrap">
         <table class="hf-table">
           <thead>
@@ -2889,18 +2904,19 @@ async function buildCorredorData(){
   let fase2 = { investido:0, impressoes:0, cliques:0, leads:0, cpm:null, cpl:null, ctr:null, por_criativo:[] };
   try {
     const tf2 = await gvizLoadFrom(F2_SHEET, 'gid=' + F2_GID + '&_cb=' + Date.now());
-    const f2rows = gvRows(tf2, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7 });
+    const f2rows = gvRows(tf2, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true} });
     const wF2 = window30(f2rows);
     for (const r of wF2.rows) r.investido = r.investido * YT_USD_BRL;   // conta Malu é US$
     const byCriF2 = {};
     for (const r of wF2.rows){
       const key = r.criativo || '—';
-      const o = byCriF2[key] || (byCriF2[key] = { criativo:key, url:r.url, investido:0, impressoes:0, cliques:0, leads:0 });
+      const o = byCriF2[key] || (byCriF2[key] = { criativo:key, url:r.url, ativo:false, investido:0, impressoes:0, cliques:0, leads:0 });
       o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0);
       if (!o.url && r.url) o.url = r.url;
+      if (r.status && /activ/i.test(r.status)) o.ativo = true;   // ativo se QUALQUER linha do criativo estiver ACTIVE
     }
     const por_criativo = Object.values(byCriF2).map(o => ({
-      criativo:o.criativo, url:o.url, investido:o.investido, impressoes:o.impressoes, cliques:o.cliques, leads:o.leads,
+      criativo:o.criativo, url:o.url, ativo:o.ativo, investido:o.investido, impressoes:o.impressoes, cliques:o.cliques, leads:o.leads,
       ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
     })).sort((a,b)=> b.investido - a.investido);
     const TF2 = wF2.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; },
@@ -2945,9 +2961,23 @@ async function loadCorredor() {
 }
 
 // ── Tabela da Fase 2: ordenável por coluna (clique) ──
+// Atualiza os contadores e o 'on' do filtro Todos/Ativos/Pausados (compartilhado).
+function _criUpdateCounts(id, rows, active){
+  const box = document.getElementById(id); if(!box) return;
+  const n = { todos: rows.length, ativo: rows.filter(r=>r.ativo).length, pausado: rows.filter(r=>!r.ativo).length };
+  box.querySelectorAll('button').forEach(b=>{
+    const f=b.getAttribute('data-f');
+    b.classList.toggle('on', f===active);
+    const c=b.querySelector('.cnt'); if(c) c.textContent = (n[f]!=null?' '+n[f]:'');
+  });
+}
 function _f2renderTable(){
   const tb = document.getElementById('f2Tbody'); if(!tb) return;
-  const rows = (window._f2data || []).slice();
+  let rows = (window._f2data || []).slice();
+  const filt = window._f2filter || 'todos';
+  _criUpdateCounts('f2Filter', rows, filt);
+  if (filt==='ativo')   rows = rows.filter(c=>c.ativo);
+  if (filt==='pausado') rows = rows.filter(c=>!c.ativo);
   const key = window._f2sortKey || 'cpl', dir = window._f2sortDir || -1;
   const val = c => (key==='conv' ? (c.cliques ? c.leads/c.cliques : null) : c[key]);
   rows.sort((a,b)=>{ const va=val(a), vb=val(b);
@@ -2956,19 +2986,20 @@ function _f2renderTable(){
   const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
   tb.innerHTML = rows.length ? rows.map(c=>`<tr>
       <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
-      <td><span class="status-ativo">Ativo</span></td>
+      <td>${c.ativo?'<span class="status-ativo">Ativo</span>':'<span class="status-pausado">Pausado</span>'}</td>
       <td class="num">${BRL(c.investido)}</td>
       <td class="num">${NUM(c.cliques)}</td>
       <td class="num">${NUM(c.leads)}</td>
       <td class="num">${_p1(c.cliques? c.leads/c.cliques*100 : null)}</td>
       <td class="num">${c.cpl!=null?BRL(c.cpl):'—'}</td>
       <td>${c.url?`<a class="link-anuncio-btn" href="${c.url}" target="_blank">↗ Anúncio</a>`:'—'}</td>
-    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Aguardando a entrega da fase 2…</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px">Nenhum criativo nesse filtro…</td></tr>';
   document.querySelectorAll('#viewCorredor .f2-th').forEach(th=>{
     th.innerHTML = th.innerHTML.replace(/\s*[↓↑]$/,'');
     if (th.getAttribute('data-k')===key) th.innerHTML += (dir<0?' ↓':' ↑');
   });
 }
+function _f2setFilter(f){ window._f2filter=f; _f2renderTable(); }
 function _f2sort(k){
   if (window._f2sortKey===k) window._f2sortDir = -(window._f2sortDir || -1);
   else { window._f2sortKey = k; window._f2sortDir = -1; }
@@ -3017,15 +3048,19 @@ async function loadWebinar(){
 }
 function _webRenderTable(){
   const tb = document.getElementById('webTbody'); if(!tb) return;
-  const rows = (window._webdata || []).slice();
+  const _ativo = s => s && /active|ativ/i.test(s);
+  let rows = (window._webdata || []).slice();
+  const filt = window._webfilter || 'todos';
+  _criUpdateCounts('webFilter', rows.map(c=>({ativo:_ativo(c.status)})), filt);
+  if (filt==='ativo')   rows = rows.filter(c=>_ativo(c.status));
+  if (filt==='pausado') rows = rows.filter(c=>!_ativo(c.status));
   const key = window._websortKey || 'investido', dir = window._websortDir || -1;
   const val = c => (key==='conv' ? (c.cliques? c.leads/c.cliques : null) : c[key]);
   rows.sort((a,b)=>{ const va=val(a), vb=val(b); if(va==null&&vb==null)return 0; if(va==null)return 1; if(vb==null)return -1; return (va-vb)*dir; });
   const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
-  const _ativo = s => s && /active|ativ/i.test(s);
   tb.innerHTML = rows.length ? rows.map(c=>`<tr>
       <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
-      <td>${_ativo(c.status)?'<span class="status-ativo">Ativo</span>':'<span style="color:var(--muted)">Pausado</span>'}</td>
+      <td>${_ativo(c.status)?'<span class="status-ativo">Ativo</span>':'<span class="status-pausado">Pausado</span>'}</td>
       <td class="num">${BRL(c.investido)}</td>
       <td class="num">${NUM(c.impressoes)}</td>
       <td class="num">${NUM(c.cliques)}</td>
@@ -3033,12 +3068,13 @@ function _webRenderTable(){
       <td class="num">${_p1(c.cliques? c.leads/c.cliques*100 : null)}</td>
       <td class="num">${c.cpl!=null?BRL(c.cpl):'—'}</td>
       <td>${c.url?`<a class="link-anuncio-btn" href="${c.url}" target="_blank">↗ Anúncio</a>`:'—'}</td>
-    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px">Sem dados do webinário no período…</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px">Nenhum criativo nesse filtro…</td></tr>';
   document.querySelectorAll('#viewWebinar .web-th').forEach(th=>{
     th.innerHTML = th.innerHTML.replace(/\s*[↓↑]$/,'');
     if (th.getAttribute('data-k')===key) th.innerHTML += (dir<0?' ↓':' ↑');
   });
 }
+function _webSetFilter(f){ window._webfilter=f; _webRenderTable(); }
 function _webSort(k){
   if (window._websortKey===k) window._websortDir = -(window._websortDir || -1);
   else { window._websortKey = k; window._websortDir = -1; }
