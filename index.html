@@ -1044,6 +1044,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)" style="display:none">E-books</button>
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)">🎬 Video View</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
+    <button class="hf-tab" data-tab="webinar" onclick="setTab(this)">🎓 Webinar</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
     <button class="hf-tab" data-tab="youtubeHire" onclick="setTab(this)">YouTube Hire</button>
   </div>
@@ -1208,6 +1209,40 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     </div>
 
   </div><!-- /viewCorredor -->
+
+  <!-- ── Webinar (Masterclass · cadastros) ── -->
+  <div id="viewWebinar" style="display:none">
+    <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">🎓 Webinário · Masterclass <span style="color:var(--muted);font-weight:400">— captação de cadastros (evento CompleteRegistration)</span></div>
+    <div class="hf-kpi-strip cols-6">
+      <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="web_kpiInv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="web_kpiImp">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="web_kpiCli">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Cadastros</div><div class="hf-kpi-value dash" id="web_kpiLeads">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Custo por Cadastro</div><div class="hf-kpi-value dash" id="web_kpiCpl">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Clique → Cadastro</div><div class="hf-kpi-value dash" id="web_kpiConv">—</div></div>
+    </div>
+    <div class="hf-table-section">
+      <div class="hf-table-label">Criativo (webinar) <span style="color:var(--muted);font-weight:400;font-size:.78rem">· clique nas colunas p/ ordenar</span></div>
+      <div class="hf-table-wrap">
+        <table class="hf-table">
+          <thead>
+            <tr>
+              <th>Criativo</th>
+              <th>Status</th>
+              <th class="num web-th" data-k="investido" onclick="_webSort('investido')" style="cursor:pointer">Investido</th>
+              <th class="num web-th" data-k="impressoes" onclick="_webSort('impressoes')" style="cursor:pointer">Impressões</th>
+              <th class="num web-th" data-k="cliques" onclick="_webSort('cliques')" style="cursor:pointer">Cliques</th>
+              <th class="num web-th" data-k="leads" onclick="_webSort('leads')" style="cursor:pointer">Cadastros</th>
+              <th class="num web-th" data-k="conv" onclick="_webSort('conv')" style="cursor:pointer">Clk → Cad</th>
+              <th class="num web-th" data-k="cpl" onclick="_webSort('cpl')" style="cursor:pointer">CPL</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="webTbody"><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px">Carregando o webinário…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /viewWebinar -->
 
   <!-- ── Site ── -->
   <div id="viewSite" style="display:none">
@@ -1897,6 +1932,7 @@ function setTab(btn) {
   document.getElementById('viewEbook7').style.display      = state.tab === 'ebook7'      ? '' : 'none';
   document.getElementById('viewEbookRemoto').style.display = state.tab === 'ebookRemoto' ? '' : 'none';
   document.getElementById('viewLatam').style.display       = state.tab === 'latam'       ? '' : 'none';
+  document.getElementById('viewWebinar').style.display     = state.tab === 'webinar'     ? '' : 'none';
   loadCurrent();
 }
 
@@ -1911,6 +1947,7 @@ async function loadCurrent() {
   else if (state.tab === 'ebook7')      loadEbookDetail('ebook7');
   else if (state.tab === 'ebookRemoto') loadEbookDetail('ebookRemoto');
   else if (state.tab === 'latam')       loadEbookDetail('latam');
+  else if (state.tab === 'webinar')     loadWebinar();
   else if (state.tab === 'audiencia') {
     // mesmos dados/cards da Geral, só os 4 funis de tráfego
     if (!_lastGeral) await loadGeral();   // popula _lastGeral
@@ -2272,10 +2309,21 @@ async function loadGeral() {
         faturamento: fatU || null, roas: (invU ? fatU/invU : null) };
     } catch(e){ console.warn('UGC indisponível:', e); }
 
-    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire + video view + ugc)
+    // Webinário (Masterclass · cadastros) — fonte própria gid 423386316. "Custo real" (col 11) já é BRL.
+    let fWebinar = {};
+    try {
+      const rW = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=423386316&_cb=' + Date.now()),
+        { investido:11, impressoes:6, cliques:7, leads:8 });
+      const wW = window30(rW);
+      fWebinar = { investido: gvSum(wW.rows,'investido'), leads: gvSum(wW.rows,'leads'),
+        impressoes: gvSum(wW.rows,'impressoes'), cliques: gvSum(wW.rows,'cliques'),
+        vendas:null, faturamento:null, roas:null };
+    } catch(e){ console.warn('Webinar indisponível:', e); }
+
+    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire + video view + ugc + webinar)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, ig_int: fInt, youtube: fYt, site: fSite,
-      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC,
+      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC, webinar: fWebinar,
     };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
@@ -2393,7 +2441,7 @@ const DEFS_ALL = [
   ['ugc',      '🎬', 'UGC Latam',          'LT · vendas em vídeo',              'Visitas no site',  'Custo por Visita',   'ugc'],
   ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['youtube hire','🎥','YouTube Hire',     'Youtube Hire Brazil',               'Inscritos',        'Custo por Inscrito', 'youtube'],
-  ['Novo funil','🆕','Novo Funil',         'Webinário (Hot)',                   'Inscritos',        'Custo por Inscrito', 'social'],
+  ['webinar',  '🎓', 'Webinário',          'Masterclass · cadastros (Hot)',     'Cadastros',        'Custo por Cadastro', 'ebook'],
   ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
   ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
   ['eb_cr',    '📗', 'Ebook Carreira Remota', 'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
@@ -2925,6 +2973,76 @@ function _f2sort(k){
   if (window._f2sortKey===k) window._f2sortDir = -(window._f2sortDir || -1);
   else { window._f2sortKey = k; window._f2sortDir = -1; }
   _f2renderTable();
+}
+
+// ── Webinar (Masterclass · cadastros) — fonte própria gid 423386316 ──
+// Colunas: Date,Campanha,Publico,Criativo,URL,Investido(USD),Impressoes,Cliques,Leads,Visualizacoes_LP,Status,Custo real(BRL),Dólar
+const WEBINAR_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', WEBINAR_GID = '423386316';
+async function loadWebinar(){
+  const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
+  if (btn) btn.classList.add('loading'); if (icon) icon.textContent = '↻';
+  document.getElementById('errorBanner').style.display = 'none';
+  try {
+    const tw = await gvizLoadFrom(WEBINAR_SHEET, 'gid=' + WEBINAR_GID + '&_cb=' + Date.now());
+    // investido = "Custo real" (col 11), JÁ em BRL (Investido USD × Dólar) — não multiplicar
+    const rows = gvRows(tw, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:4,str:true}, investido:11, impressoes:6, cliques:7, leads:8, status:{i:10,str:true} });
+    const w = window30(rows);
+    const byCri = {};
+    for (const r of w.rows){
+      const key = r.criativo || '—';
+      const o = byCri[key] || (byCri[key] = { criativo:key, url:r.url, status:r.status, investido:0, impressoes:0, cliques:0, leads:0 });
+      o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0);
+      if (!o.url && r.url) o.url = r.url;
+      if (r.status && /active|ativ/i.test(r.status)) o.status = r.status;  // qualquer linha ativa marca o criativo como ativo
+    }
+    const por_criativo = Object.values(byCri).map(o => ({
+      ...o, ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
+    })).sort((a,b)=> b.investido - a.investido);
+    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
+    const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+    [ ['web_kpiInv',   BRL(T.investido)],
+      ['web_kpiImp',   NUM(T.impressoes)],
+      ['web_kpiCli',   NUM(T.cliques)],
+      ['web_kpiLeads', NUM(T.leads)],
+      ['web_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
+      ['web_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
+    ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
+    window._webdata = por_criativo;
+    if (window._websortKey == null){ window._websortKey = 'investido'; window._websortDir = -1; }
+    _webRenderTable();
+    document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e){
+    const b = document.getElementById('errorBanner'); b.textContent = 'Erro ao carregar Webinar: ' + e.message; b.style.display='block';
+  } finally { if (btn) btn.classList.remove('loading'); if (icon) icon.textContent='↻'; }
+}
+function _webRenderTable(){
+  const tb = document.getElementById('webTbody'); if(!tb) return;
+  const rows = (window._webdata || []).slice();
+  const key = window._websortKey || 'investido', dir = window._websortDir || -1;
+  const val = c => (key==='conv' ? (c.cliques? c.leads/c.cliques : null) : c[key]);
+  rows.sort((a,b)=>{ const va=val(a), vb=val(b); if(va==null&&vb==null)return 0; if(va==null)return 1; if(vb==null)return -1; return (va-vb)*dir; });
+  const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+  const _ativo = s => s && /active|ativ/i.test(s);
+  tb.innerHTML = rows.length ? rows.map(c=>`<tr>
+      <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
+      <td>${_ativo(c.status)?'<span class="status-ativo">Ativo</span>':'<span style="color:var(--muted)">Pausado</span>'}</td>
+      <td class="num">${BRL(c.investido)}</td>
+      <td class="num">${NUM(c.impressoes)}</td>
+      <td class="num">${NUM(c.cliques)}</td>
+      <td class="num">${NUM(c.leads)}</td>
+      <td class="num">${_p1(c.cliques? c.leads/c.cliques*100 : null)}</td>
+      <td class="num">${c.cpl!=null?BRL(c.cpl):'—'}</td>
+      <td>${c.url?`<a class="link-anuncio-btn" href="${c.url}" target="_blank">↗ Anúncio</a>`:'—'}</td>
+    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px">Sem dados do webinário no período…</td></tr>';
+  document.querySelectorAll('#viewWebinar .web-th').forEach(th=>{
+    th.innerHTML = th.innerHTML.replace(/\s*[↓↑]$/,'');
+    if (th.getAttribute('data-k')===key) th.innerHTML += (dir<0?' ↓':' ↑');
+  });
+}
+function _webSort(k){
+  if (window._websortKey===k) window._websortDir = -(window._websortDir || -1);
+  else { window._websortKey = k; window._websortDir = -1; }
+  _webRenderTable();
 }
 
 function renderCorredor(d) {
