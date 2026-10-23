@@ -987,7 +987,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .ndg-strip .ndg-k{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72);}
     .ndg-strip .ndg-v{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.75rem;color:#fff;margin-top:8px;font-variant-numeric:tabular-nums;line-height:1;}
     .ndg-strip .ndg-v.good{color:#c4f135;} .ndg-strip .ndg-v.warn{color:#e6b45a;}
-    .ndg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;}
+    .ndg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;}
     .ndg-fc{border:1px solid #2a2333;border-radius:18px;background:#19141f;padding:20px 22px 18px;display:flex;flex-direction:column;gap:16px;transition:border-color .18s,transform .18s,box-shadow .18s;}
     .ndg-fc:hover{border-color:#7a2ca6;transform:translateY(-3px);box-shadow:0 24px 50px -34px rgba(122,44,166,.8);}
     .ndg-head{display:flex;align-items:center;gap:12px;}
@@ -1006,18 +1006,25 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .ndg-ml{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#948ba6;}
     .ndg-mv{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:1.3rem;margin-top:4px;font-variant-numeric:tabular-nums;color:#fff;}
     .ndg-mv.dim{color:#d5cede;font-weight:600;font-size:1.15rem;}
-    .ndg-foot{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;border-top:1px solid #2a2333;padding-top:14px;}
+    .ndg-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;border-top:1px solid #2a2333;padding-top:14px;}
+    .ndg-foot>div{min-width:0;}
     .ndg-fl{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#948ba6;}
-    .ndg-big{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.55rem;margin-top:4px;font-variant-numeric:tabular-nums;color:#fff;}
+    .ndg-big{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.4rem;margin-top:4px;font-variant-numeric:tabular-nums;color:#fff;overflow-wrap:anywhere;}
     .ndg-vend{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#948ba6;margin-top:3px;}
-    .ndg-roas{justify-self:end;text-align:right;padding:8px 14px;border-radius:12px;border:1px solid transparent;}
-    .ndg-rv{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1;color:#fff;}
-    .ndg-rl{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;color:#948ba6;}
+    .ndg-roas{justify-self:end;text-align:right;padding:8px 13px;border-radius:12px;border:1px solid transparent;flex:none;}
+    .ndg-rv{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.45rem;font-variant-numeric:tabular-nums;line-height:1;color:#fff;}
+    .ndg-rl{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.06em;text-transform:uppercase;margin-top:4px;color:#948ba6;white-space:normal;line-height:1.15;max-width:11ch;margin-left:auto;}
     .ndg-roas.good{background:rgba(196,241,53,.1);border-color:rgba(196,241,53,.3);} .ndg-roas.good .ndg-rv{color:#c4f135;}
     .ndg-roas.warn{background:rgba(230,180,90,.1);border-color:rgba(230,180,90,.3);} .ndg-roas.warn .ndg-rv{color:#e6b45a;}
     .ndg-roas.bad{background:rgba(240,128,106,.1);border-color:rgba(240,128,106,.3);} .ndg-roas.bad .ndg-rv{color:#f0806a;}
     .ndg-sub{border-top:1px dashed #372e44;padding-top:14px;display:flex;flex-direction:column;gap:12px;}
     .ndg-st{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#b974e6;font-weight:700;}
+
+    /* ===== Porta o novo visual pras OUTRAS abas (strip de KPIs) ===== */
+    .hf-kpi-strip{background:linear-gradient(110deg,#4a1670,#7a2ca6 55%,#6a2597)!important;border:1px solid #372e44;border-radius:18px;box-shadow:0 20px 60px -30px rgba(122,44,166,.7);overflow:hidden;}
+    .hf-kpi-value,.hf-kpi-v2 .hf-kpi-value{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;}
+    .hf-kpi-label,.hf-kpi-v2 .hf-kpi-label{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;}
+    .hf-v2-label,.hf-table-label{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;}
     .acao-amostra { color:#e9e4f2 !important; }
   </style>
 </head>
@@ -1747,7 +1754,9 @@ function updateRangeLabel(){
 // Orçamento (matriz) — best-effort. O cabeçalho da aba vem colapsado nas labels
 // das colunas como listas paralelas: "channel a b c", "month m m m", "budget x y z".
 // Normaliza nomes de canal da planilha pra chave que a dash usa (evita descompasso de nome).
-const _CH_ALIAS = { ig_internacional:'ig_int', ig_inter:'ig_int', igint:'ig_int', ig_int_:'ig_int' };
+const _CH_ALIAS = { ig_internacional:'ig_int', ig_inter:'ig_int', igint:'ig_int', ig_int_:'ig_int',
+  'ugc latam':'ugc', 'ugc_latam':'ugc', ugclatam:'ugc', ugc:'ugc',
+  'webinário':'webinar', 'webinario':'webinar', webinário:'webinar', webinar:'webinar' };
 const _normCh = c => { c = (c||'').trim(); return _CH_ALIAS[c.toLowerCase()] || c; };
 function parseBudgetMatrix(table){
   const out = {};
@@ -2553,7 +2562,7 @@ function funnelCardsHTML(cols, matrix, defs){
       const cpv = (vv.custo_seguidor != null) ? vv.custo_seguidor : _safeDiv(vv.investido, vv.seguidores);
       const invTot = (f.investido || 0) + (vv.investido || 0);
       roasShown = (f.faturamento != null && invTot > 0) ? f.faturamento / invTot : f.roas;
-      roasLbl = 'ROAS (IG + Fase 1)';
+      roasLbl = 'ROAS + Fase 1';
       extra = `<div class="ndg-sub"><div class="ndg-st">🎬 Fase 1 · Video View</div>${_ndgPace(_geralBudget(matrix,'Video View Malu'), vv.investido)}<div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Visualizações</div><div class="ndg-mv dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo / visualização</div><div class="ndg-mv dim">${cpv!=null?BRL(cpv):'—'}</div></div></div></div>`;
     }
     if (key === 'ig_int'){
