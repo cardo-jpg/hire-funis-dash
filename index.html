@@ -8,7 +8,7 @@
 /* ===== Global style.css (e616e39^) inlined for standalone ===== */
 @font-face { font-family: 'Noken'; src: url('/static/NokenBold.woff2') format('woff2'); font-weight: 700; font-style: normal; }
 @font-face { font-family: 'Noken'; src: url('/static/NokenRegular.woff2') format('woff2'); font-weight: 400; font-style: normal; }
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -975,6 +975,49 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-kpi-ref, .hf-kpi-value.dash, .hf-budget-lbl, .hf-ch-metric-lbl,
     .hf-v2-budget-prefix, .hf-budget-prefix { color:#cdbce6 !important; }
     .hf-chart-title, .yt-chart-title, .yt-setup-box p { color:#cdbce6 !important; }
+
+    /* ===== Novo visual do Geral (ndg) — painel escuro sofisticado ===== */
+    .ndg-striplead,.ndg-gridlead{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:#948ba6;margin:6px 0 14px;display:flex;align-items:center;gap:14px;}
+    .ndg-gridlead{margin-top:34px;}
+    .ndg-striplead::after,.ndg-gridlead::after{content:"";flex:1;height:1px;background:#2a2333;}
+    .ndg-strip{display:grid;grid-template-columns:repeat(6,1fr);border-radius:18px;overflow:hidden;background:linear-gradient(110deg,#4a1670,#7a2ca6 55%,#6a2597);border:1px solid #372e44;box-shadow:0 20px 60px -30px rgba(122,44,166,.7);}
+    @media(max-width:860px){.ndg-strip{grid-template-columns:repeat(3,1fr);}}
+    @media(max-width:480px){.ndg-strip{grid-template-columns:repeat(2,1fr);}}
+    .ndg-strip .ndg-cell{padding:20px 22px;border-right:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1);}
+    .ndg-strip .ndg-k{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72);}
+    .ndg-strip .ndg-v{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.75rem;color:#fff;margin-top:8px;font-variant-numeric:tabular-nums;line-height:1;}
+    .ndg-strip .ndg-v.good{color:#c4f135;} .ndg-strip .ndg-v.warn{color:#e6b45a;}
+    .ndg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;}
+    .ndg-fc{border:1px solid #2a2333;border-radius:18px;background:#19141f;padding:20px 22px 18px;display:flex;flex-direction:column;gap:16px;transition:border-color .18s,transform .18s,box-shadow .18s;}
+    .ndg-fc:hover{border-color:#7a2ca6;transform:translateY(-3px);box-shadow:0 24px 50px -34px rgba(122,44,166,.8);}
+    .ndg-head{display:flex;align-items:center;gap:12px;}
+    .ndg-ic{width:38px;height:38px;border-radius:11px;background:#241831;border:1px solid #372e44;display:grid;place-items:center;font-size:1.1rem;flex:none;}
+    .ndg-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:1.12rem;line-height:1.08;color:#fff;}
+    .ndg-name small{display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:.76rem;color:#948ba6;margin-top:3px;letter-spacing:0;}
+    .ndg-pace{display:flex;flex-direction:column;gap:7px;}
+    .ndg-prow{display:flex;justify-content:space-between;align-items:baseline;}
+    .ndg-pl{font-family:'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:#948ba6;font-size:.62rem;}
+    .ndg-pr{font-family:'JetBrains Mono',monospace;color:#d5cede;font-size:.78rem;} .ndg-pr b{color:#fff;font-weight:700;}
+    .ndg-nd{font-size:.74rem;color:#948ba6;font-style:italic;}
+    .ndg-bar{height:7px;background:#221b2a;border-radius:5px;overflow:hidden;}
+    .ndg-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#7a2ca6,#b974e6);}
+    .ndg-bar i.over{background:linear-gradient(90deg,#e6b45a,#f0c06a);}
+    .ndg-mets{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;}
+    .ndg-ml{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#948ba6;}
+    .ndg-mv{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:1.3rem;margin-top:4px;font-variant-numeric:tabular-nums;color:#fff;}
+    .ndg-mv.dim{color:#d5cede;font-weight:600;font-size:1.15rem;}
+    .ndg-foot{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;border-top:1px solid #2a2333;padding-top:14px;}
+    .ndg-fl{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#948ba6;}
+    .ndg-big{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.55rem;margin-top:4px;font-variant-numeric:tabular-nums;color:#fff;}
+    .ndg-vend{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#948ba6;margin-top:3px;}
+    .ndg-roas{justify-self:end;text-align:right;padding:8px 14px;border-radius:12px;border:1px solid transparent;}
+    .ndg-rv{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1;color:#fff;}
+    .ndg-rl{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;color:#948ba6;}
+    .ndg-roas.good{background:rgba(196,241,53,.1);border-color:rgba(196,241,53,.3);} .ndg-roas.good .ndg-rv{color:#c4f135;}
+    .ndg-roas.warn{background:rgba(230,180,90,.1);border-color:rgba(230,180,90,.3);} .ndg-roas.warn .ndg-rv{color:#e6b45a;}
+    .ndg-roas.bad{background:rgba(240,128,106,.1);border-color:rgba(240,128,106,.3);} .ndg-roas.bad .ndg-rv{color:#f0806a;}
+    .ndg-sub{border-top:1px dashed #372e44;padding-top:14px;display:flex;flex-direction:column;gap:12px;}
+    .ndg-st{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#b974e6;font-weight:700;}
     .acao-amostra { color:#e9e4f2 !important; }
   </style>
 </head>
@@ -1056,22 +1099,20 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <div id="viewGeral">
 
     <!-- Somatório consolidado (todos os funis, conforme filtro de data) -->
-    <div class="hf-v2-label" style="margin-bottom:10px">Somatório — Todos os Funis</div>
-    <div class="hf-kpi-strip cols-6">
-      <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="geral_kpiInvestido">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="geral_kpiFaturamento">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Vendas</div><div class="hf-kpi-value dash" id="geral_kpiVendas">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Ticket Médio</div><div class="hf-kpi-value dash" id="geral_kpiTicket">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">CAC</div><div class="hf-kpi-value dash" id="geral_kpiCac">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="geral_kpiRoas">—</div></div>
+    <div class="ndg-striplead">Somatório — todos os funis</div>
+    <div class="ndg-strip">
+      <div class="ndg-cell"><div class="ndg-k">Investido</div><div class="ndg-v" id="geral_kpiInvestido">—</div></div>
+      <div class="ndg-cell"><div class="ndg-k">Faturamento</div><div class="ndg-v" id="geral_kpiFaturamento">—</div></div>
+      <div class="ndg-cell"><div class="ndg-k">Vendas</div><div class="ndg-v" id="geral_kpiVendas">—</div></div>
+      <div class="ndg-cell"><div class="ndg-k">Ticket médio</div><div class="ndg-v" id="geral_kpiTicket">—</div></div>
+      <div class="ndg-cell"><div class="ndg-k">CAC</div><div class="ndg-v" id="geral_kpiCac">—</div></div>
+      <div class="ndg-cell"><div class="ndg-k">ROAS</div><div class="ndg-v" id="geral_kpiRoas">—</div></div>
     </div>
 
-    <!-- Grid de colunas por funil -->
-    <div class="hf-v2-wrap">
-      <div class="hf-v2-label">Por Funil (período conforme filtro de data)</div>
-      <div class="hf-v2-grid" id="geralCols">
-        <div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);padding:32px">Carregando…</div>
-      </div>
+    <!-- Grid de cards por funil -->
+    <div class="ndg-gridlead">Por funil · últimos 30 dias</div>
+    <div class="ndg-grid" id="geralCols">
+      <div style="grid-column:1/-1;text-align:center;color:#948ba6;padding:32px">Carregando…</div>
     </div>
 
   </div><!-- /viewGeral -->
@@ -2466,6 +2507,13 @@ const DEFS_AUD = DEFS_ALL.filter(d => ['ig_malu','ig_hire','ig_int','youtube','s
 const DEFS_EB  = DEFS_ALL.filter(d => ['eb_7erros','eb_cr'].includes(d[0]));
 
 // Monta o HTML dos cards de funil a partir das defs informadas.
+function _ndgRoasCls(r){ return r==null?'warn':(r>=3?'good':r>=1?'warn':'bad'); }
+function _ndgPace(bud, inv){
+  const BRLk = n => n==null?'—':'R$ '+(+n).toLocaleString('pt-BR',{maximumFractionDigits:0});
+  if (bud==null) return `<div class="ndg-pace"><div class="ndg-prow"><span class="ndg-pl">Budget mensal</span><span class="ndg-nd">a definir</span></div><div class="ndg-bar"><i style="width:0"></i></div><div class="ndg-prow"><span class="ndg-pr">Investido ${BRL(inv)}</span><span></span></div></div>`;
+  const pct = bud ? Math.round((inv||0)/bud*100) : 0, w = Math.min(100,pct);
+  return `<div class="ndg-pace"><div class="ndg-prow"><span class="ndg-pl">Budget mensal</span><span class="ndg-pr"><b>${BRLk(bud)}</b></span></div><div class="ndg-bar"><i class="${pct>100?'over':''}" style="width:${w}%"></i></div><div class="ndg-prow"><span class="ndg-pr">Investido ${BRL(inv)}</span><span class="ndg-pr">${pct}%</span></div></div>`;
+}
 function funnelCardsHTML(cols, matrix, defs){
   let html = '';
   for (const [key, icon, titulo, sub, audLbl, custoLbl, kind] of defs){
@@ -2497,42 +2545,30 @@ function funnelCardsHTML(cols, matrix, defs){
     const budInput = (bud != null)
       ? bud.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
       : '';
-    // Card do IG Malu ganha um bloco "Fase 1 · Video View" (Reconhecimento) — topo que gera seguidor/conversão
+    // IG Malu ganha o sub-bloco Fase 1 (Video View); IG Internacional ganha o Ebook Latam.
     let extra = '';
     let roasShown = f.roas, roasLbl = 'ROAS';
     if (key === 'ig_malu'){
       const vv = cols['Video View Malu'] || {};
       const cpv = (vv.custo_seguidor != null) ? vv.custo_seguidor : _safeDiv(vv.investido, vv.seguidores);
-      // ROAS do IG Malu considera o investido do IG + o investido da Fase 1 (Video View)
       const invTot = (f.investido || 0) + (vv.investido || 0);
       roasShown = (f.faturamento != null && invTot > 0) ? f.faturamento / invTot : f.roas;
       roasLbl = 'ROAS (IG + Fase 1)';
-      extra = `
-        <div class="hf-v2-metric" style="border-top:1px dashed var(--border);margin-top:8px;padding-top:10px"><div class="hf-v2-metric-lbl" style="font-weight:700;letter-spacing:.04em">🎬 FASE 1 · VIDEO VIEW</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido (F1)</div><div class="hf-v2-metric-val">${BRL(vv.investido)}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Visualizações</div><div class="hf-v2-metric-val dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div>
-        <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Custo por Visualização</div><div class="hf-v2-metric-val dim">${cpv!=null?BRL(cpv):'—'}</div></div>`;
+      extra = `<div class="ndg-sub"><div class="ndg-st">🎬 Fase 1 · Video View</div>${_ndgPace(_geralBudget(matrix,'Video View Malu'), vv.investido)}<div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Visualizações</div><div class="ndg-mv dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo / visualização</div><div class="ndg-mv dim">${cpv!=null?BRL(cpv):'—'}</div></div></div></div>`;
     }
+    if (key === 'ig_int'){
+      extra = `<div class="ndg-sub"><div class="ndg-st">📘 Ebook Latam</div>${_ndgPace(_geralBudget(matrix,'ebook_latam'), null)}<div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Leads</div><div class="ndg-mv dim">—</div></div><div class="ndg-met"><div class="ndg-ml">Custo por lead</div><div class="ndg-mv dim">—</div></div></div></div>`;
+    }
+    const foot = (f.faturamento != null) ? `<div class="ndg-foot"><div><div class="ndg-fl">Faturamento</div><div class="ndg-big">${BRL(f.faturamento)}</div><div class="ndg-vend">${NUM(f.vendas)} vendas</div></div><div class="ndg-roas ${_ndgRoasCls(roasShown)}"><div class="ndg-rv">${ROAS(roasShown)}</div><div class="ndg-rl">${roasLbl}</div></div></div>` : '';
     html += `
-      <div class="hf-v2-ch">
-        <div class="hf-v2-ch-head">
-          <div class="hf-v2-ch-name"><span class="ic">${icon}</span>${titulo}</div>
-          <div class="hf-v2-ch-sub">${sub}</div>
+      <div class="ndg-fc">
+        <div class="ndg-head"><div class="ndg-ic">${icon}</div><div class="ndg-name">${titulo}<small>${sub}</small></div></div>
+        ${_ndgPace(bud, f.investido)}
+        <div class="ndg-mets">
+          <div class="ndg-met"><div class="ndg-ml">${audLbl}</div><div class="ndg-mv dim">${audVal}</div></div>
+          <div class="ndg-met"><div class="ndg-ml">${custoLbl}</div><div class="ndg-mv dim">${custoVal}</div></div>
         </div>
-        <div class="hf-v2-budget">
-          <span class="hf-v2-budget-lbl">Budget mensal</span>
-          <span class="hf-v2-budget-val" title="Definido na planilha (aba de Budget)">R$&nbsp;${budInput || '—'}</span>
-        </div>
-        <div class="hf-v2-body">
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Investido</div><div class="hf-v2-metric-val">${BRL(f.investido)}</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${audLbl}</div><div class="hf-v2-metric-val dim">${audVal}</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">${custoLbl}</div><div class="hf-v2-metric-val dim">${custoVal}</div></div>
-          <div class="hf-v2-metric"><div class="hf-v2-metric-lbl">Vendas</div><div class="hf-v2-metric-val">${NUM(f.vendas)}</div></div>
-        </div>
-        <div class="hf-v2-foot">
-          <div class="hf-v2-metric hl"><div class="hf-v2-metric-lbl">Faturamento</div><div class="hf-v2-metric-val big">${BRL(f.faturamento)}</div></div>
-          <div class="hf-v2-metric hl good"><div class="hf-v2-metric-lbl">${roasLbl}</div><div class="hf-v2-metric-val big">${ROAS(roasShown)}</div></div>
-        </div>${extra}
+        ${foot}${extra}
       </div>`;
   }
   return html;
