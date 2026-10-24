@@ -1756,7 +1756,8 @@ function updateRangeLabel(){
 // Normaliza nomes de canal da planilha pra chave que a dash usa (evita descompasso de nome).
 const _CH_ALIAS = { ig_internacional:'ig_int', ig_inter:'ig_int', igint:'ig_int', ig_int_:'ig_int',
   'ugc latam':'ugc', 'ugc_latam':'ugc', ugclatam:'ugc', ugc:'ugc',
-  'webinário':'webinar', 'webinario':'webinar', webinário:'webinar', webinar:'webinar' };
+  'webinário':'webinar', 'webinario':'webinar', webinário:'webinar', webinar:'webinar',
+  'hire-x':'hire_x', 'hire_x':'hire_x', hirex:'hire_x', 'hire x':'hire_x' };
 const _normCh = c => { c = (c||'').trim(); return _CH_ALIAS[c.toLowerCase()] || c; };
 function parseBudgetMatrix(table){
   const out = {};
@@ -2393,10 +2394,21 @@ async function loadGeral() {
       fLatam = { investido: sl.rows.reduce((s,r)=>s+(r.inv||0),0), leads: sl.rows.reduce((s,r)=>s+(r.leads||0),0) };
     } catch(e){ console.warn('Ebook Latam indisponível:', e); }
 
+    // Hire-X — funil novo (análise do LinkedIn → Lead no WhatsApp). Stract gid 1436932728, mesmo layout da Fase 2.
+    let fHireX = {};
+    try {
+      const rX = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1436932728&_cb=' + Date.now()),
+        { investido:4, impressoes:5, cliques:6, leads:7 });
+      const wX = window30(rX);
+      fHireX = { investido: gvSum(wX.rows,'investido'), leads: gvSum(wX.rows,'leads'),
+        impressoes: gvSum(wX.rows,'impressoes'), cliques: gvSum(wX.rows,'cliques'),
+        vendas:null, faturamento:null, roas:null };
+    } catch(e){ console.warn('Hire-X indisponível:', e); }
+
     // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire + video view + ugc + webinar + ebook latam)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, ig_int: fInt, youtube: fYt, site: fSite,
-      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC, webinar: fWebinar, ebook_latam: fLatam,
+      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC, webinar: fWebinar, ebook_latam: fLatam, hire_x: fHireX,
     };
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
@@ -2518,7 +2530,10 @@ const DEFS_ALL = [
   ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
   ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
   ['eb_cr',    '📗', 'Ebook Carreira Remota', 'Cadastro · Site',               'Leads',            'Custo por Lead',     'ebook'],
+  ['hire_x',   '🔎', 'Hire-X',                'Análise do LinkedIn · Lead no Whats','Leads',        'Custo por Lead',     'ebook'],
 ];
+// Funis pausados a pedido das meninas (UGC e Ebook 7 Erros): aparecem na dash com selo "pausado".
+const PAUSED_FUNNELS = new Set(['ugc','eb_7erros']);
 // Audiência = só os 4 funis de tráfego (sem ebooks)
 const DEFS_AUD = DEFS_ALL.filter(d => ['ig_malu','ig_hire','ig_int','youtube','site'].includes(d[0]));
 const DEFS_EB  = DEFS_ALL.filter(d => ['eb_7erros','eb_cr'].includes(d[0]));
@@ -2579,9 +2594,10 @@ function funnelCardsHTML(cols, matrix, defs){
       extra = `<div class="ndg-sub"><div class="ndg-st">📘 Ebook Latam</div><div class="ndg-pace"><div class="ndg-prow"><span class="ndg-pl">Budget mensal</span><span class="ndg-pr"><b>R$ 300</b></span></div><div class="ndg-prow"><span class="ndg-pr">Investido ${BRL(el.investido)}</span><span class="ndg-pr" style="color:#948ba6">parte dos R$ 1.100</span></div></div><div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Leads</div><div class="ndg-mv dim">${el.leads!=null?NUM(el.leads):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo por lead</div><div class="ndg-mv dim">${elCpl!=null?BRL(elCpl):'—'}</div></div></div></div>`;
     }
     const foot = (f.faturamento != null) ? `<div class="ndg-foot"><div><div class="ndg-fl">Faturamento</div><div class="ndg-big">${BRL(f.faturamento)}</div><div class="ndg-vend">${NUM(f.vendas)} vendas</div></div><div class="ndg-roas ${_ndgRoasCls(roasShown)}"><div class="ndg-rv">${ROAS(roasShown)}</div><div class="ndg-rl">${roasLbl}</div></div></div>` : '';
+    const paused = PAUSED_FUNNELS.has(key);
     html += `
-      <div class="ndg-fc">
-        <div class="ndg-head"><div class="ndg-ic">${icon}</div><div class="ndg-name">${titulo}<small>${sub}</small></div></div>
+      <div class="ndg-fc"${paused ? ' style="opacity:.62"' : ''}>
+        <div class="ndg-head"><div class="ndg-ic">${icon}</div><div class="ndg-name">${titulo}<small>${sub}</small></div>${paused ? '<span style="margin-left:auto;align-self:flex-start;font-family:\'JetBrains Mono\',monospace;font-size:.56rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#d9a441;background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.38);padding:3px 8px;border-radius:999px;white-space:nowrap">pausado</span>' : ''}</div>
         ${_ndgPace(bud, f.investido)}
         <div class="ndg-mets">
           <div class="ndg-met"><div class="ndg-ml">${audLbl}</div><div class="ndg-mv dim">${audVal}</div></div>
