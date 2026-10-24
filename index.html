@@ -656,6 +656,11 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     }
     .hf-tab:hover:not(.active) { color:rgba(255,255,255,.8); background:rgba(255,255,255,.05); }
     .hf-tab.active { background:var(--purple-dark); color:#fff; }
+    .hf-tab-arch{ display:none; }
+    body.show-arch .hf-tab-arch{ display:inline-block; }
+    .hf-tab-more{ opacity:.4; font-weight:700; letter-spacing:.14em; }
+    .hf-tab-more:hover{ opacity:.8; }
+    body.show-arch .hf-tab-more{ opacity:.9; color:#fff; }
 
     /* ── KPI Strip ── */
     .hf-kpi-strip {
@@ -1052,8 +1057,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
         <div class="cs-wrap">
           <button class="cs-btn" onclick="toggleDrop('dashDrop')">Funis</button>
           <div class="cs-dropdown" id="dashDrop">
-            <span class="cs-item active" style="pointer-events:none;cursor:default;">📊 Funis</span>
-            <a class="cs-item" href="https://cardo-jpg.github.io/hire-dashboard/">👥 Seguidores</a>
+            <span class="cs-item active" style="pointer-events:none;cursor:default;">Funis</span>
+            <a class="cs-item" href="https://cardo-jpg.github.io/hire-dashboard/">Seguidores</a>
           </div>
         </div>
       </div>
@@ -1091,16 +1096,17 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab active" data-tab="geral" onclick="setTab(this)">Geral</button>
     <button class="hf-tab" data-tab="estrategia" onclick="setTab(this)">Estratégia</button>
     <button class="hf-tab" data-tab="audiencia" onclick="setTab(this)">Audiência</button>
-    <button class="hf-tab" data-tab="ebook7" onclick="setTab(this)">Ebook 7 Erros</button>
+    <button class="hf-tab hf-tab-arch" data-tab="ebook7" onclick="setTab(this)">Ebook 7 Erros</button>
     <button class="hf-tab" data-tab="ebookRemoto" onclick="setTab(this)">Ebook Remoto</button>
     <button class="hf-tab" data-tab="latam" onclick="setTab(this)">LATAM</button>
-    <button class="hf-tab" data-tab="hirex" onclick="setTab(this)">🔎 Hire-X</button>
+    <button class="hf-tab" data-tab="hirex" onclick="setTab(this)">Hire-X</button>
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)" style="display:none">E-books</button>
-    <button class="hf-tab" data-tab="corredor" onclick="setTab(this)">🎬 Video View</button>
+    <button class="hf-tab" data-tab="corredor" onclick="setTab(this)">Video View</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
-    <button class="hf-tab" data-tab="webinar" onclick="setTab(this)">🎓 Webinar</button>
+    <button class="hf-tab" data-tab="webinar" onclick="setTab(this)">Webinar</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
     <button class="hf-tab" data-tab="youtubeHire" onclick="setTab(this)">YouTube Hire</button>
+    <button class="hf-tab hf-tab-more" onclick="toggleArchived(this)" title="Mostrar abas arquivadas (Ebook 7 Erros)">···</button>
   </div>
 
   <!-- ── Geral (visão consolidada) ── -->
@@ -1163,7 +1169,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Corredor Polonês ── -->
   <div id="viewCorredor" style="display:none">
 
-    <div class="hf-table-label" style="margin:4px 0 10px;font-size:1rem">🎬 Fase 1 · Reconhecimento <span style="color:var(--muted);font-weight:400">— qualidade do conteúdo (hooke / retenção)</span></div>
+    <div class="hf-table-label" style="margin:4px 0 10px;font-size:1rem">Fase 1 · Reconhecimento <span style="color:var(--muted);font-weight:400">— qualidade do conteúdo (hooke / retenção)</span></div>
 
     <!-- 7-col KPI strip -->
     <div class="hf-kpi-strip cols-7">
@@ -1231,7 +1237,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     </div>
 
     <!-- ── Fase 2 · WhatsApp (recon) ── -->
-    <div class="hf-table-label" style="margin:28px 0 10px;font-size:1rem">💬 Fase 2 · WhatsApp (recon) <span style="color:var(--muted);font-weight:400">— retargeting de quem viu a fase 1 → conversas no WhatsApp</span></div>
+    <div class="hf-table-label" style="margin:28px 0 10px;font-size:1rem">Fase 2 · WhatsApp (recon) <span style="color:var(--muted);font-weight:400">— retargeting de quem viu a fase 1 → conversas no WhatsApp</span></div>
     <div class="hf-kpi-strip cols-5">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="f2_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="f2_kpiCli">—</div></div>
@@ -1270,7 +1276,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   <!-- ── Webinar (Masterclass · cadastros) ── -->
   <div id="viewWebinar" style="display:none">
-    <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">🎓 Webinário · Masterclass <span style="color:var(--muted);font-weight:400">— captação de cadastros</span></div>
+    <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Webinário · Masterclass <span style="color:var(--muted);font-weight:400">— captação de cadastros</span></div>
     <div class="hf-kpi-strip cols-6">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="web_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="web_kpiImp">—</div></div>
@@ -1310,7 +1316,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
   <!-- ── Hire-X ── -->
   <div id="viewHirex" style="display:none">
-    <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">🔎 Hire-X <span style="color:var(--muted);font-weight:400">— análise do LinkedIn · Lead no WhatsApp</span></div>
+    <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Hire-X <span style="color:var(--muted);font-weight:400">— análise do LinkedIn · Lead no WhatsApp</span></div>
     <div class="hf-kpi-strip cols-6">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="hx_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="hx_kpiImp">—</div></div>
@@ -1836,7 +1842,7 @@ function _hfShowEmpty(viewId, msg){
     box.style.cssText = 'margin:24px 0;padding:48px 24px;text-align:center;border:1px dashed var(--border,#2a2a2a);border-radius:14px;background:rgba(255,255,255,.02);color:var(--muted,#888);';
     view.insertBefore(box, view.firstChild);
   }
-  box.innerHTML = '<div style="font-size:2rem;margin-bottom:8px">📊</div><div style="font-size:.95rem;line-height:1.5;max-width:520px;margin:0 auto;color:var(--text,#e8e8e8)">'+msg+'</div>';
+  box.innerHTML = '<div style="font-size:.95rem;line-height:1.5;max-width:520px;margin:0 auto;color:var(--text,#e8e8e8)">'+msg+'</div>';
 }
 const BRL  = v => v == null || v === 0 ? '—' : 'R$\u00a0' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const NUM  = v => v == null ? '—' : v.toLocaleString('pt-BR');
@@ -2024,6 +2030,9 @@ function setPreset(btn) {
   loadCurrent();
 }
 
+function toggleArchived(btn){
+  document.body.classList.toggle('show-arch', !document.body.classList.contains('show-arch'));
+}
 function setTab(btn) {
   document.querySelectorAll('.hf-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -2629,12 +2638,12 @@ function funnelCardsHTML(cols, matrix, defs){
       const invTot = (f.investido || 0) + (vv.investido || 0);
       roasShown = (f.faturamento != null && invTot > 0) ? f.faturamento / invTot : f.roas;
       roasLbl = 'ROAS + Fase 1';
-      extra = `<div class="ndg-sub"><div class="ndg-st">🎬 Fase 1 · Video View</div>${_ndgPace(_geralBudget(matrix,'Video View Malu'), vv.investido)}<div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Visualizações</div><div class="ndg-mv dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo / visualização</div><div class="ndg-mv dim">${cpv!=null?BRL(cpv):'—'}</div></div></div></div>`;
+      extra = `<div class="ndg-sub"><div class="ndg-st">Fase 1 · Video View</div>${_ndgPace(_geralBudget(matrix,'Video View Malu'), vv.investido)}<div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Visualizações</div><div class="ndg-mv dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo / visualização</div><div class="ndg-mv dim">${cpv!=null?BRL(cpv):'—'}</div></div></div></div>`;
     }
     if (key === 'ig_int'){
       const el = cols['ebook_latam'] || {};
       const elCpl = _safeDiv(el.investido, el.leads);
-      extra = `<div class="ndg-sub"><div class="ndg-st">📘 Ebook Latam</div><div class="ndg-pace"><div class="ndg-prow"><span class="ndg-pl">Budget mensal</span><span class="ndg-pr"><b>R$ 300</b></span></div><div class="ndg-prow"><span class="ndg-pr">Investido ${BRL(el.investido)}</span><span class="ndg-pr" style="color:#948ba6">parte dos R$ 1.100</span></div></div><div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Leads</div><div class="ndg-mv dim">${el.leads!=null?NUM(el.leads):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo por lead</div><div class="ndg-mv dim">${elCpl!=null?BRL(elCpl):'—'}</div></div></div></div>`;
+      extra = `<div class="ndg-sub"><div class="ndg-st">Ebook Latam</div><div class="ndg-pace"><div class="ndg-prow"><span class="ndg-pl">Budget mensal</span><span class="ndg-pr"><b>R$ 300</b></span></div><div class="ndg-prow"><span class="ndg-pr">Investido ${BRL(el.investido)}</span><span class="ndg-pr" style="color:#948ba6">parte dos R$ 1.100</span></div></div><div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Leads</div><div class="ndg-mv dim">${el.leads!=null?NUM(el.leads):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo por lead</div><div class="ndg-mv dim">${elCpl!=null?BRL(elCpl):'—'}</div></div></div></div>`;
     }
     const foot = (f.faturamento != null) ? `<div class="ndg-foot"><div><div class="ndg-fl">Faturamento</div><div class="ndg-big">${BRL(f.faturamento)}</div><div class="ndg-vend">${NUM(f.vendas)} vendas</div></div><div class="ndg-roas ${_ndgRoasCls(roasShown)}"><div class="ndg-rv">${ROAS(roasShown)}</div><div class="ndg-rl">${roasLbl}</div></div></div>` : '';
     const paused = PAUSED_FUNNELS.has(key);
@@ -3057,7 +3066,7 @@ async function loadCorredor() {
     const inj = document.querySelector('#viewCorredor .hf-empty-injected');
     if (inj) inj.remove();
     if (!d.por_criativo.length && !(d.fase2 && d.fase2.por_criativo && d.fase2.por_criativo.length)) {
-      _hfShowEmpty('viewCorredor', '📊 Sem dados de vídeo no período selecionado. A aba "Video View" da planilha não tem linhas nesse intervalo.');
+      _hfShowEmpty('viewCorredor', 'Sem dados de vídeo no período selecionado. A aba "Video View" da planilha não tem linhas nesse intervalo.');
     } else {
       renderCorredor(d);
     }
@@ -4272,7 +4281,7 @@ async function _loadUGCLatam(view){
       <td>${c.url?`<a class="link-anuncio-btn" href="${c.url}" target="_blank">↗ Anúncio</a>`:'—'}</td>
     </tr>`).join('');
     const html=`
-      <div class="hf-table-label" style="margin:30px 0 12px;font-size:1rem">🎬 UGC · Vendas em vídeo <span style="color:var(--muted);font-weight:400">— LT_FB04/FB05 · funil de venda</span></div>
+      <div class="hf-table-label" style="margin:30px 0 12px;font-size:1rem">UGC · Vendas em vídeo <span style="color:var(--muted);font-weight:400">— LT_FB04/FB05 · funil de venda</span></div>
       <div class="hf-kpi-strip cols-7">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>
       <div class="hf-table-section"><div class="hf-table-label">Criativo (UGC)</div><div class="hf-table-wrap"><table class="hf-table">
         <thead><tr><th>Criativo</th><th class="num">Investido</th><th class="num">Cliques</th><th class="num">Visitas</th><th class="num">Checkout</th><th class="num">Vendas</th><th class="num">Faturamento</th><th>Link</th></tr></thead>
@@ -4370,14 +4379,14 @@ function renderEbookDetail(view, rows, pfx, crm){
     const bars=lv.map(([k,n])=>{ const ok=/fluente|me viro/i.test(k);
       return `<div class="crm-bar"><div class="crm-bl">${_esc(k)}</div><div class="crm-bt"><div class="crm-bf${ok?' ok':''}" style="width:${Math.round(n/mx*100)}%"></div></div><div class="crm-bn">${n} · ${tot?Math.round(n/tot*100):0}%</div></div>`; }).join('');
     crmBlock=`<div class="hf-chart-wrap crm-block">
-      <div class="hf-chart-title">🎯 Ebook → CRM · qualificação por inglês</div>
+      <div class="hf-chart-title">Ebook → CRM · qualificação por inglês</div>
       <div class="crm-kpis">
         <div class="crm-k"><div class="cl">Leads gerados (ads)</div><div class="cv">${_num(tLeads)}</div><div class="cn">Meta reporta</div></div>
         <div class="crm-k"><div class="cl">Capturados no CRM (ads)</div><div class="cv">${_num(tot)}</div><div class="cn">${orgN?'+ '+orgN+' de orgânico (fora da conta)':'só ads'}</div></div>
         <div class="crm-k"><div class="cl">Inglês interm+</div><div class="cv ok">${_num(q)}</div><div class="cn">caem no CRM</div></div>
         <div class="crm-k"><div class="cl">% qualificação</div><div class="cv ok">${tot?pct+'%':'—'}</div><div class="cn">interm+ / capturados</div></div>
       </div>
-      <div class="crm-prop">📊 <b>Aproveitamento</b>${perLbl?' <span style="opacity:.65">('+perLbl+')</span>':''} — de <b>${_num(metaP)}</b> leads no Meta, <b>${_num(crmQ)}</b> foram pro CRM (inglês interm+): <b class="ok">${aprovStr}</b> aproveitado</div>
+      <div class="crm-prop"><b>Aproveitamento</b>${perLbl?' <span style="opacity:.65">('+perLbl+')</span>':''} — de <b>${_num(metaP)}</b> leads no Meta, <b>${_num(crmQ)}</b> foram pro CRM (inglês interm+): <b class="ok">${aprovStr}</b> aproveitado</div>
       <div class="crm-bars">${bars||'<div style="color:rgba(255,255,255,.35);font-size:.85rem">Sem leads capturados ainda (automação enchendo).</div>'}</div>
     </div>`;
   }
@@ -4397,7 +4406,7 @@ function renderEbookDetail(view, rows, pfx, crm){
     if(r.status){ const rk=_stInfo(r.status).r; if(!o._sd||r.date>o._sd){o._sd=r.date;o.status=r.status;o._rk=rk;} else if(o._sd&&+r.date===+o._sd&&rk<o._rk){o.status=r.status;o._rk=rk;} }
   } const arr=Object.values(m); for(const o of arr){ o.est=o.leads>0?0:_estLeads(o.inv,o.cli); o.leadsT=o.leads+o.est; } return arr.sort((a,b)=>b.inv-a.inv); };
   const head=first=>`<tr><th>${first}</th><th class="num">Status</th><th class="num">Link</th><th class="num">CTR</th><th class="num">Cliques</th><th class="num">Leads</th><th class="num">Clk×Leads</th><th class="num">CPL</th><th class="num">Investido</th></tr>`;
-  const row=(o,type)=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadgeClk(type,o.k,o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">🔗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.leadsT)}</td><td class="num">${_pct(o.cli?o.leadsT/o.cli:0)}</td><td class="num">${o.leadsT?_brl(o.inv/o.leadsT):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
+  const row=(o,type)=>`<tr><td class="cri-name" title="${_esc(o.k)}">${_esc(o.k)}</td><td class="num">${_stBadgeClk(type,o.k,o.status)}</td><td class="num">${o.url?`<a class="vid-link-btn" href="${_esc(o.url)}" target="_blank">↗</a>`:'—'}</td><td class="num">${_pct(o.imp?o.cli/o.imp:0)}</td><td class="num">${_num(o.cli)}</td><td class="num">${_num(o.leadsT)}</td><td class="num">${_pct(o.cli?o.leadsT/o.cli:0)}</td><td class="num">${o.leadsT?_brl(o.inv/o.leadsT):'—'}</td><td class="num">${_brl(o.inv)}</td></tr>`;
   const empty='<tr><td colspan="9" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
   const byCri=grp(r=>r.crit), byPub=grp(r=>r.pub);
   const estTotal=byCri.reduce((s,o)=>s+(o.est||0),0), tLeadsT=tLeads+estTotal;
@@ -4405,7 +4414,7 @@ function renderEbookDetail(view, rows, pfx, crm){
     ['Cliques no Link',_num(tCli)],['CTR',_pct(tImp?tCli/tImp:0)]];
   // Taxa de conversão do funil (clique no anúncio → lead) — só na LATAM, a pedido
   if(pfx==='latam') kpis.push(['Clk × Leads', _pct(tCli?tLeadsT/tCli:0)]);
-  const estNote = estTotal>0 ? `<div style="margin:0 0 14px;padding:10px 14px;background:rgba(194,152,106,.12);border:1px solid rgba(194,152,106,.35);border-radius:9px;font-size:.82rem;color:#e8d5b8;line-height:1.5">⚠ <b>~${estTotal} leads estimados</b> (marcados com <b>~</b>) — no período do pixel trocado o Meta não registrou os leads desses criativos. Estimados pela verba a ~35% de conversão (CPL R$ 1,50–3,50). <b>Não são leads confirmados.</b></div>` : '';
+  const estNote = estTotal>0 ? `<div style="margin:0 0 14px;padding:10px 14px;background:rgba(194,152,106,.12);border:1px solid rgba(194,152,106,.35);border-radius:9px;font-size:.82rem;color:#e8d5b8;line-height:1.5"><b>~${estTotal} leads estimados</b> (marcados com <b>~</b>) — no período do pixel trocado o Meta não registrou os leads desses criativos. Estimados pela verba a ~35% de conversão (CPL R$ 1,50–3,50). <b>Não são leads confirmados.</b></div>` : '';
   view.innerHTML= crmBlock + estNote +
     `<div class="hf-kpi-strip cols-${kpis.length}">${kpis.map(k=>`<div class="hf-kpi"><div class="hf-kpi-label">${k[0]}</div><div class="hf-kpi-value">${k[1]}</div></div>`).join('')}</div>`+
     `<div class="hf-chart-wrap"><div class="hf-chart-title">Leads por dia · Custo por Lead</div><div class="hf-chart-canvas-wrap"><canvas id="${pfx}_ebc1"></canvas></div></div>`+
@@ -4446,7 +4455,7 @@ function renderImpulsionar(view, rows){
   const dC95=dk.map(d=>byDate[d].v95?+(byDate[d].inv/byDate[d].v95).toFixed(2):null);
   const grp=()=>{ const m={}; for(const r of rows){ const k=r.url||'—'; const o=m[k]=m[k]||{url:k,status:'',inv:0,engagement:0,save:0,comments:0,clicks:0,imp:0,v3s:0,v50:0}; if(r.status)o.status=r.status; o.inv+=r.inv;o.engagement+=r.engagement;o.save+=r.save;o.comments+=r.comments;o.clicks+=r.clicks;o.imp+=r.imp;o.v3s+=r.v3s;o.v50+=r.v50; } return Object.values(m).sort((a,b)=>b.inv-a.inv); };
   const posts=grp();
-  const link=u=>u&&u!=='—'?`<a class="vid-link-btn" href="${_esc(u)}" target="_blank">🔗 post</a>`:'—';
+  const link=u=>u&&u!=='—'?`<a class="vid-link-btn" href="${_esc(u)}" target="_blank">↗ post</a>`:'—';
   const t1=posts.map(o=>`<tr><td class="num">${link(o.url)}</td><td class="num">${_esc(o.status)}</td><td class="num">${_brl(o.inv)}</td><td class="num">${_num(o.engagement)}</td><td class="num">${_num(o.save)}</td><td class="num">${_num(o.comments)}</td><td class="num">${_num(o.clicks)}</td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
   const t2=posts.map(o=>`<tr><td class="num">${link(o.url)}</td><td class="num">${_esc(o.status)}</td><td class="num">${_num(o.imp)}</td><td class="num">${_pct(o.imp?o.v3s/o.imp:0)}</td><td class="num">${_pct(o.imp?o.v50/o.imp:0)}</td><td class="num">${_num(o.comments)}</td><td class="num">${_num(o.engagement)}</td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:18px;color:rgba(255,255,255,.3)">Sem dados no período</td></tr>';
   view.innerHTML=
