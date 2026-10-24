@@ -1026,9 +1026,12 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .ndg-st{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;color:#b974e6;font-weight:700;}
 
     /* ===== Porta o novo visual pras OUTRAS abas (strip de KPIs) ===== */
-    .hf-kpi-strip{background:linear-gradient(110deg,#4a1670,#7a2ca6 55%,#6a2597)!important;border:1px solid #372e44;border-radius:18px;box-shadow:0 20px 60px -30px rgba(122,44,166,.7);overflow:hidden;}
-    .hf-kpi-value,.hf-kpi-v2 .hf-kpi-value{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;}
-    .hf-kpi-label,.hf-kpi-v2 .hf-kpi-label{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;}
+    .hf-kpi-strip,.hf-kpi-strip-v2{background:#2a2333!important;border:1px solid #2a2333!important;border-radius:16px;box-shadow:none!important;overflow:hidden;}
+    .hf-kpi,.hf-kpi-v2{background:#19141f!important;}
+    .hf-kpi{padding:17px 20px!important;}
+    .hf-kpi:first-child,.hf-kpi-v2:first-child{background:#19141f!important;border-right:none!important;}
+    .hf-kpi-value,.hf-kpi-v2 .hf-kpi-value{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+    .hf-kpi-label,.hf-kpi-v2 .hf-kpi-label{font-family:'JetBrains Mono',monospace;letter-spacing:.1em;font-size:.72rem;}
     .hf-v2-label,.hf-table-label{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;}
     .acao-amostra { color:#e9e4f2 !important; }
   </style>
