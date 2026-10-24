@@ -2040,6 +2040,7 @@ function setTab(btn) {
   document.querySelectorAll('.hf-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.tab = btn.dataset.tab;
+  try{ history.replaceState(null,'','#'+state.tab); }catch(e){}
   document.getElementById('viewGeral').style.display     = state.tab === 'geral'     ? '' : 'none';
   document.getElementById('viewEstrategia').style.display = state.tab === 'estrategia' ? '' : 'none';
   document.getElementById('viewAudiencia').style.display = state.tab === 'audiencia' ? '' : 'none';
@@ -4488,7 +4489,12 @@ function refreshLive(){
 // ── Init ──────────────────────────────────────────────────────────────────────
 preFillBudgetsFromLocal();
 // Carrega a matriz de orçamento (best-effort) e então a aba inicial ao vivo.
-loadBudgetMatrix().then(() => loadCurrent());
+loadBudgetMatrix().then(() => {
+  var h = (location.hash || '').replace('#','');
+  var b = h && document.querySelector('.hf-tab[data-tab="'+h+'"]');
+  if (b){ if (b.classList.contains('hf-tab-arch')) document.body.classList.add('show-arch'); setTab(b); }
+  else loadCurrent();
+});
 </script>
 </body>
 </html>
