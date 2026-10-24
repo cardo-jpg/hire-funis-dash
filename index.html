@@ -1094,6 +1094,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab" data-tab="ebook7" onclick="setTab(this)">Ebook 7 Erros</button>
     <button class="hf-tab" data-tab="ebookRemoto" onclick="setTab(this)">Ebook Remoto</button>
     <button class="hf-tab" data-tab="latam" onclick="setTab(this)">LATAM</button>
+    <button class="hf-tab" data-tab="hirex" onclick="setTab(this)">🔎 Hire-X</button>
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)" style="display:none">E-books</button>
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)">🎬 Video View</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
@@ -1306,6 +1307,46 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       </div>
     </div>
   </div><!-- /viewWebinar -->
+
+  <!-- ── Hire-X ── -->
+  <div id="viewHirex" style="display:none">
+    <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">🔎 Hire-X <span style="color:var(--muted);font-weight:400">— análise do LinkedIn · Lead no WhatsApp</span></div>
+    <div class="hf-kpi-strip cols-6">
+      <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="hx_kpiInv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="hx_kpiImp">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="hx_kpiCli">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Leads</div><div class="hf-kpi-value dash" id="hx_kpiLeads">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Custo por Lead</div><div class="hf-kpi-value dash" id="hx_kpiCpl">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Clique → Lead</div><div class="hf-kpi-value dash" id="hx_kpiConv">—</div></div>
+    </div>
+    <div class="hf-table-section">
+      <div class="hf-table-label">Criativo (Hire-X)
+        <span class="cri-filter" id="hxFilter">
+          <button data-f="todos" onclick="_hxSetFilter('todos')">Todos<span class="cnt"></span></button>
+          <button data-f="ativo" onclick="_hxSetFilter('ativo')">Ativos<span class="cnt"></span></button>
+          <button data-f="pausado" onclick="_hxSetFilter('pausado')">Pausados<span class="cnt"></span></button>
+        </span>
+        <span style="color:var(--muted);font-weight:400;font-size:.78rem">· clique nas colunas p/ ordenar</span></div>
+      <div class="hf-table-wrap">
+        <table class="hf-table">
+          <thead>
+            <tr>
+              <th>Criativo</th>
+              <th>Status</th>
+              <th class="num hx-th" data-k="investido" onclick="_hxSort('investido')" style="cursor:pointer">Investido</th>
+              <th class="num hx-th" data-k="impressoes" onclick="_hxSort('impressoes')" style="cursor:pointer">Impressões</th>
+              <th class="num hx-th" data-k="cliques" onclick="_hxSort('cliques')" style="cursor:pointer">Cliques</th>
+              <th class="num hx-th" data-k="leads" onclick="_hxSort('leads')" style="cursor:pointer">Leads</th>
+              <th class="num hx-th" data-k="conv" onclick="_hxSort('conv')" style="cursor:pointer">Clk → Lead</th>
+              <th class="num hx-th" data-k="cpl" onclick="_hxSort('cpl')" style="cursor:pointer">CPL</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="hxTbody"><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px">Sem dados ainda — o Stract vai preencher quando a campanha rodar…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /viewHirex -->
 
   <!-- ── Site ── -->
   <div id="viewSite" style="display:none">
@@ -1999,6 +2040,7 @@ function setTab(btn) {
   document.getElementById('viewEbookRemoto').style.display = state.tab === 'ebookRemoto' ? '' : 'none';
   document.getElementById('viewLatam').style.display       = state.tab === 'latam'       ? '' : 'none';
   document.getElementById('viewWebinar').style.display     = state.tab === 'webinar'     ? '' : 'none';
+  document.getElementById('viewHirex').style.display       = state.tab === 'hirex'       ? '' : 'none';
   loadCurrent();
 }
 
@@ -2014,6 +2056,7 @@ async function loadCurrent() {
   else if (state.tab === 'ebookRemoto') loadEbookDetail('ebookRemoto');
   else if (state.tab === 'latam')       loadEbookDetail('latam');
   else if (state.tab === 'webinar')     loadWebinar();
+  else if (state.tab === 'hirex')       loadHirex();
   else if (state.tab === 'audiencia') {
     // mesmos dados/cards da Geral, só os 4 funis de tráfego
     if (!_lastGeral) await loadGeral();   // popula _lastGeral
@@ -3150,6 +3193,78 @@ function _webSort(k){
   if (window._websortKey===k) window._websortDir = -(window._websortDir || -1);
   else { window._websortKey = k; window._websortDir = -1; }
   _webRenderTable();
+}
+
+// ── Hire-X (análise do LinkedIn → Lead no WhatsApp) — Stract gid 1436932728, layout da Fase 2 ──
+async function loadHirex(){
+  const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
+  if (btn) btn.classList.add('loading'); if (icon) icon.textContent = '↻';
+  document.getElementById('errorBanner').style.display = 'none';
+  try {
+    const tx = await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1436932728&_cb=' + Date.now());
+    const rows = gvRows(tx, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true} });
+    const w = window30(rows);
+    const byCri = {};
+    for (const r of w.rows){
+      const key = r.criativo || '—';
+      const o = byCri[key] || (byCri[key] = { criativo:key, url:r.url, status:r.status, investido:0, impressoes:0, cliques:0, leads:0 });
+      o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0);
+      if (!o.url && r.url) o.url = r.url;
+      if (r.status && /active|ativ/i.test(r.status)) o.status = r.status;
+    }
+    const por_criativo = Object.values(byCri).map(o => ({
+      ...o, ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
+    })).sort((a,b)=> b.investido - a.investido);
+    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
+    const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+    [ ['hx_kpiInv',   BRL(T.investido)],
+      ['hx_kpiImp',   NUM(T.impressoes)],
+      ['hx_kpiCli',   NUM(T.cliques)],
+      ['hx_kpiLeads', NUM(T.leads)],
+      ['hx_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
+      ['hx_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
+    ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
+    window._hxdata = por_criativo;
+    if (window._hxsortKey == null){ window._hxsortKey = 'investido'; window._hxsortDir = -1; }
+    _hxRenderTable();
+    document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e){
+    const b = document.getElementById('errorBanner'); b.textContent = 'Erro ao carregar Hire-X: ' + e.message; b.style.display='block';
+  } finally { if (btn) btn.classList.remove('loading'); if (icon) icon.textContent='↻'; }
+}
+function _hxRenderTable(){
+  const tb = document.getElementById('hxTbody'); if(!tb) return;
+  const _ativo = s => s && /active|ativ/i.test(s);
+  let rows = (window._hxdata || []).slice();
+  const filt = window._hxfilter || 'todos';
+  _criUpdateCounts('hxFilter', rows.map(c=>({ativo:_ativo(c.status)})), filt);
+  if (filt==='ativo')   rows = rows.filter(c=>_ativo(c.status));
+  if (filt==='pausado') rows = rows.filter(c=>!_ativo(c.status));
+  const key = window._hxsortKey || 'investido', dir = window._hxsortDir || -1;
+  const val = c => (key==='conv' ? (c.cliques? c.leads/c.cliques : null) : c[key]);
+  rows.sort((a,b)=>{ const va=val(a), vb=val(b); if(va==null&&vb==null)return 0; if(va==null)return 1; if(vb==null)return -1; return (va-vb)*dir; });
+  const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+  tb.innerHTML = rows.length ? rows.map(c=>`<tr>
+      <td class="cri-name" title="${c.criativo}">${c.criativo}</td>
+      <td>${_ativo(c.status)?'<span class="status-ativo">Ativo</span>':'<span class="status-pausado">Pausado</span>'}</td>
+      <td class="num">${BRL(c.investido)}</td>
+      <td class="num">${NUM(c.impressoes)}</td>
+      <td class="num">${NUM(c.cliques)}</td>
+      <td class="num">${NUM(c.leads)}</td>
+      <td class="num">${_p1(c.cliques? c.leads/c.cliques*100 : null)}</td>
+      <td class="num">${c.cpl!=null?BRL(c.cpl):'—'}</td>
+      <td>${c.url?`<a class="link-anuncio-btn" href="${c.url}" target="_blank">↗ Anúncio</a>`:'—'}</td>
+    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px">Nenhum criativo nesse filtro…</td></tr>';
+  document.querySelectorAll('#viewHirex .hx-th').forEach(th=>{
+    th.innerHTML = th.innerHTML.replace(/\s*[↓↑]$/,'');
+    if (th.getAttribute('data-k')===key) th.innerHTML += (dir<0?' ↓':' ↑');
+  });
+}
+function _hxSetFilter(f){ window._hxfilter=f; _hxRenderTable(); }
+function _hxSort(k){
+  if (window._hxsortKey===k) window._hxsortDir = -(window._hxsortDir || -1);
+  else { window._hxsortKey = k; window._hxsortDir = -1; }
+  _hxRenderTable();
 }
 
 function renderCorredor(d) {
