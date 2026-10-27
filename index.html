@@ -912,6 +912,14 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-table td.kw-text { max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.8rem; color:rgba(255,255,255,.8); }
 
     /* ── YouTube tab ── */
+    .yt-stfilter{ display:flex; gap:6px; margin:0 0 12px; flex-wrap:wrap; }
+    .yt-stbtn{ padding:6px 13px; border-radius:8px; border:1px solid rgba(168,85,200,.3); background:rgba(26,22,38,.6); color:rgba(255,255,255,.55); font-family:inherit; font-size:.78rem; font-weight:600; cursor:pointer; }
+    .yt-stbtn:hover{ color:#fff; }
+    .yt-stbtn.active{ background:rgba(168,85,200,.25); border-color:rgba(168,85,200,.6); color:#d9b8ec; }
+    .yt-stbadge{ display:inline-block; font-size:.68rem; font-weight:700; padding:3px 9px; border-radius:6px; white-space:nowrap; }
+    .yt-st-ativo{ color:#8ef0b0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.4); }
+    .yt-st-pausado{ color:#c9b8d6; background:rgba(120,90,150,.18); border:1px solid rgba(150,95,190,.35); }
+    .yt-st-removido{ color:#f79a9a; background:rgba(239,68,68,.16); border:1px solid rgba(239,68,68,.45); }
     .hf-kpi-strip.cols-6 { grid-template-columns:repeat(6,1fr); }
     .hf-kpi-strip.cols-5 { grid-template-columns:repeat(5,1fr); }
     .yt-setup-box {
@@ -1471,11 +1479,17 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <!-- Table: Anúncios (GADS) -->
     <div class="hf-table-section">
       <div class="hf-table-label">Performance Anúncios YouTube — Google Ads</div>
+      <div class="yt-stfilter">
+        <button class="yt-stbtn active" data-st="" onclick="ytSetStatusFilter('malu',this)">Todos</button>
+        <button class="yt-stbtn" data-st="ativo" onclick="ytSetStatusFilter('malu',this)">Ativos</button>
+        <button class="yt-stbtn" data-st="pausado" onclick="ytSetStatusFilter('malu',this)">Pausados</button>
+      </div>
       <div class="hf-table-wrap">
         <table class="hf-table">
           <thead>
             <tr>
               <th>Anúncio</th>
+              <th>Status</th>
               <th class="num">Inscrições</th>
               <th class="num">Impressões</th>
               <th class="num">Investido</th>
@@ -1484,7 +1498,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
               <th></th>
             </tr>
           </thead>
-          <tbody id="ytAnunciosTbody"><tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Carregando…</td></tr></tbody>
+          <tbody id="ytAnunciosTbody"><tr><td colspan="8" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Carregando…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1524,12 +1538,17 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <!-- Table: Anúncios (GADS) -->
     <div class="hf-table-section">
       <div class="hf-table-label">Performance Anúncios YouTube Hire — Google Ads</div>
+      <div class="yt-stfilter">
+        <button class="yt-stbtn active" data-st="" onclick="ytSetStatusFilter('hire',this)">Todos</button>
+        <button class="yt-stbtn" data-st="ativo" onclick="ytSetStatusFilter('hire',this)">Ativos</button>
+        <button class="yt-stbtn" data-st="pausado" onclick="ytSetStatusFilter('hire',this)">Pausados</button>
+      </div>
       <div class="hf-table-wrap">
         <table class="hf-table">
           <thead>
-            <tr><th>Anúncio</th><th class="num">Inscrições</th><th class="num">Impressões</th><th class="num">Investido</th><th class="num">Custo/Inscrito</th><th class="num">Taxa Conv.</th><th></th></tr>
+            <tr><th>Anúncio</th><th>Status</th><th class="num">Inscrições</th><th class="num">Impressões</th><th class="num">Investido</th><th class="num">Custo/Inscrito</th><th class="num">Taxa Conv.</th><th></th></tr>
           </thead>
-          <tbody id="ythAnunciosTbody"><tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Carregando…</td></tr></tbody>
+          <tbody id="ythAnunciosTbody"><tr><td colspan="8" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Carregando…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -3755,6 +3774,35 @@ const YT_USD_BRL = 5.16;
 // normaliza ad name pra casar as duas abas (trim + colapsa espaços + caixa baixa)
 function _ytNorm(s){ return String(s||'').trim().replace(/\s+/g,' ').toLowerCase(); }
 
+// ── Status MANUAL dos anúncios de YouTube (temporário) ────────────────────────
+// Enquanto o Stract não traz a coluna "Ad Status", marcamos as pausas na mão.
+// Depois o José passa isso pra planilha e o `statusRaw` assume automático.
+const YT_PAUSED_MANUAL = [
+  'AD16 - Engenharia Civil',
+  'AD10 - QUAL CURRICULO USAR PARA VAGAS INTERNACIONAIS? #2',
+  'AD013 - Trabalhe Remoto #2',
+  'AD06 - LinkedIn para vagas internacionais',
+];
+const YT_PAUSED_NORM = new Set(YT_PAUSED_MANUAL.map(s => _ytNorm(s)));
+
+// Filtro de status (Todos/Ativos/Pausados) por aba de YouTube.
+const _ytStFilter = { malu:'', hire:'' };
+function ytSetStatusFilter(key, btn){
+  _ytStFilter[key] = (btn && btn.getAttribute('data-st')) || '';
+  if (btn && btn.parentNode) btn.parentNode.querySelectorAll('.yt-stbtn').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  ytApplyStatusFilter(key);
+}
+function ytApplyStatusFilter(key){
+  const T = YT_TABS[key] || YT_TABS.malu;
+  const tb = document.getElementById(T.id.tbody); if(!tb) return;
+  const f = _ytStFilter[key] || '';
+  tb.querySelectorAll('tr').forEach(tr=>{
+    const st = tr.getAttribute('data-st');
+    tr.style.display = (!f || !st || st===f) ? '' : 'none';
+  });
+}
+
 // Status real do anúncio (col "Ad Status" do Stract) se existir; senão infere por
 // gasto recente. ENABLED→Ativo, PAUSED→Pausado, REMOVED→Removido.
 function _ytStatus(raw, ativoInferido){
@@ -3848,7 +3896,7 @@ function buildYoutubeData(tIns, tUrl, campFilter){
       const ativoInf = recente ? (a.last >= recente) : false;
       return {
         nome: a.nome,
-        status: _ytStatus(a.statusRaw, ativoInf),
+        status: YT_PAUSED_NORM.has(_ytNorm(a.nome)) ? 'Pausado' : (a.statusRaw ? _ytStatus(a.statusRaw, ativoInf) : 'Ativo'),
         conversoes: a.ins,
         impressoes: hasImp ? a.imp : null,
         valor,
@@ -4095,19 +4143,26 @@ async function loadYoutube(key) {
   }
 
   // ── Table: Anúncios ──────────────────────────────────────────────────────────
-  const anuncios = d.anuncios || [];
-  let htmlA = anuncios.map(a => `
-    <tr>
+  const anuncios = (d.anuncios || []).slice().sort((a,b)=>{
+    const rk = s => s==='Ativo'?0:(s==='Pausado'?1:2);
+    return rk(a.status)-rk(b.status) || (b.valor||0)-(a.valor||0);
+  });
+  let htmlA = anuncios.map(a => {
+    const stk = a.status==='Pausado'?'pausado':(a.status==='Removido'?'removido':'ativo');
+    return `
+    <tr data-st="${stk}">
       <td class="camp-name" title="${a.nome}">${a.nome}</td>
+      <td><span class="yt-stbadge yt-st-${stk}">${a.status}</span></td>
       <td class="num">${NUM(a.conversoes)}</td>
       <td class="num">${NUM(a.impressoes)}</td>
       <td class="num">${BRL(a.valor)}</td>
       <td class="num">${BRL(a.custo_conv)}</td>
       <td class="num">${PCT(a.taxa)}</td>
       <td class="num">${a.video_url ? `<a class="vid-link-btn" href="${a.video_url}" target="_blank">▶ Ver</a>` : '—'}</td>
-    </tr>`).join('');
-  if (!htmlA) htmlA = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Sem dados</td></tr>';
+    </tr>`; }).join('');
+  if (!htmlA) htmlA = '<tr><td colspan="8" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Sem dados</td></tr>';
   document.getElementById(ID.tbody).innerHTML = htmlA;
+  ytApplyStatusFilter(key);
 
   // ── Table: Vídeos ────────────────────────────────────────────────────────────
   if (authorized) {
