@@ -3774,16 +3774,27 @@ const YT_USD_BRL = 5.16;
 // normaliza ad name pra casar as duas abas (trim + colapsa espaços + caixa baixa)
 function _ytNorm(s){ return String(s||'').trim().replace(/\s+/g,' ').toLowerCase(); }
 
-// ── Status MANUAL dos anúncios de YouTube (temporário) ────────────────────────
-// Enquanto o Stract não traz a coluna "Ad Status", marcamos as pausas na mão.
-// Depois o José passa isso pra planilha e o `statusRaw` assume automático.
-const YT_PAUSED_MANUAL = [
-  'AD16 - Engenharia Civil',
-  'AD10 - QUAL CURRICULO USAR PARA VAGAS INTERNACIONAIS? #2',
-  'AD013 - Trabalhe Remoto #2',
-  'AD06 - LinkedIn para vagas internacionais',
-];
-const YT_PAUSED_NORM = new Set(YT_PAUSED_MANUAL.map(s => _ytNorm(s)));
+// ── Detecta a coluna de status quando o cabeçalho vem vazio ───────────────────
+// A planilha traz o status do Google Ads (ENABLED/PAUSED/REMOVED) numa coluna
+// própria, atualizada todo dia — mas às vezes sem rótulo no cabeçalho. Então, se
+// não achar pelo nome ("Status"/"Ad Status"), acha pela coluna que CONTÉM esses
+// valores. Casa Hire e Malu sem depender de ajuste de cabeçalho.
+function _ytDetectStatusCol(table){
+  const rows = (table && table.rows) || [];
+  const ncol = ((table && table.cols) || []).length;
+  const RE = /^(enabled?|paused|removed|disabled|active|ativo|pausado|removido)$/i;
+  let best = -1, bestN = 0;
+  for (let i = 0; i < ncol; i++){
+    let n = 0;
+    for (const r of rows){
+      const c = r.c || [];
+      const v = c[i] && c[i].v;
+      if (v != null && RE.test(String(v).trim())) n++;
+    }
+    if (n > bestN){ bestN = n; best = i; }
+  }
+  return bestN > 0 ? best : -1;
+}
 
 // Filtro de status (Todos/Ativos/Pausados) por aba de YouTube.
 const _ytStFilter = { malu:'', hire:'' };
@@ -3833,7 +3844,8 @@ function buildYoutubeData(tIns, tUrl, campFilter){
   const insI  = _labIdx(tIns, 'Inscritos','Conversions','Conversões','Inscrições');
   const impI  = _labIdx(tIns, 'Impressions','Impressões','Impressoes');
   const cliI  = _labIdx(tIns, 'Clicks','Cliques','Interactions','Interações','Interacoes');
-  const statI = _labIdx(tIns, 'Ad Status','Status','Ad Group Status');
+  let statI = _labIdx(tIns, 'Ad Status','Status','Ad Group Status');
+  if (statI < 0) statI = _ytDetectStatusCol(tIns);   // cabeçalho vazio: acha pelos valores (ENABLED/PAUSED)
   const hasImp = impI >= 0, hasCli = cliI >= 0;
 
   // 3) linhas dentro da janela de data global
@@ -3896,7 +3908,7 @@ function buildYoutubeData(tIns, tUrl, campFilter){
       const ativoInf = recente ? (a.last >= recente) : false;
       return {
         nome: a.nome,
-        status: YT_PAUSED_NORM.has(_ytNorm(a.nome)) ? 'Pausado' : (a.statusRaw ? _ytStatus(a.statusRaw, ativoInf) : 'Ativo'),
+        status: _ytStatus(a.statusRaw, ativoInf),   // lê o status da planilha (atualiza todo dia); se vazio, infere por gasto recente
         conversoes: a.ins,
         impressoes: hasImp ? a.imp : null,
         valor,
