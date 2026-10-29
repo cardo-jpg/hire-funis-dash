@@ -1049,6 +1049,58 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .crm-prop{ background:rgba(255,255,255,.035)!important; border:1px solid #2a2333!important; }
     .hf-chart-title{ color:#a79fb8!important; font-size:.74rem!important; letter-spacing:.08em; }
     .hf-table-wrap{ background:#19141f!important; border:1px solid #2a2333!important; border-radius:14px; }
+
+    /* ── Anotações da equipe + Pergunte à dash (IA) ─────────────────────────── */
+    .nt-fab{ position:fixed; right:22px; bottom:22px; z-index:150; display:flex; align-items:center; gap:8px;
+      background:linear-gradient(135deg,var(--accent),#ff7a3d); color:#fff; border:none; border-radius:999px;
+      padding:12px 18px; font-size:.86rem; font-weight:700; letter-spacing:.02em; cursor:pointer;
+      box-shadow:0 8px 24px rgba(255,77,0,.32),0 2px 6px rgba(0,0,0,.4); transition:transform .15s, box-shadow .15s; }
+    .nt-fab:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(255,77,0,.42),0 2px 6px rgba(0,0,0,.4); }
+    .nt-fab .nt-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:#19196c; box-shadow:0 0 0 2px rgba(255,255,255,.7); }
+    .nt-fab .nt-badge{ background:rgba(0,0,0,.28); border-radius:999px; padding:1px 8px; font-size:.74rem; font-family:'JetBrains Mono',monospace; }
+    .nt-overlay{ position:fixed; inset:0; z-index:160; background:rgba(0,0,0,.5); backdrop-filter:blur(2px); opacity:0; transition:opacity .2s; }
+    .nt-panel{ position:fixed; top:0; right:0; z-index:170; height:100vh; width:420px; max-width:92vw;
+      background:#141019; border-left:1px solid #2a2333; box-shadow:-18px 0 50px rgba(0,0,0,.5);
+      display:flex; flex-direction:column; transform:translateX(100%); transition:transform .24s cubic-bezier(.4,0,.2,1); }
+    body.nt-open .nt-panel{ transform:translateX(0); }
+    body.nt-open .nt-overlay{ opacity:1; }
+    .nt-head{ padding:18px 20px 14px; border-bottom:1px solid #2a2333; background:linear-gradient(135deg,#1b1526,#17121f); }
+    .nt-head-top{ display:flex; align-items:center; justify-content:space-between; }
+    .nt-title{ font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:1.05rem; color:#f2eefa; display:flex; align-items:center; gap:9px; }
+    .nt-title .nt-spark{ font-size:1rem; }
+    .nt-close{ background:none; border:none; color:#8b8396; font-size:1.5rem; line-height:1; cursor:pointer; padding:0 4px; }
+    .nt-close:hover{ color:#fff; }
+    .nt-sub{ margin-top:4px; font-size:.72rem; color:#8b8396; font-family:'JetBrains Mono',monospace; letter-spacing:.06em; }
+    .nt-sub b{ color:var(--accent); font-weight:700; }
+    .nt-segs{ display:flex; gap:6px; margin-top:14px; }
+    .nt-seg{ flex:1; padding:8px 10px; background:rgba(255,255,255,.04); border:1px solid #2a2333; border-radius:9px;
+      color:#a79fb8; font-size:.8rem; font-weight:600; cursor:pointer; text-align:center; transition:all .15s; }
+    .nt-seg.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+    .nt-body{ flex:1; overflow-y:auto; padding:16px 18px; display:flex; flex-direction:column; gap:10px; }
+    .nt-note{ background:#1b1526; border:1px solid #2a2333; border-left:3px solid var(--accent); border-radius:10px; padding:11px 13px; }
+    .nt-note-meta{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; gap:8px; }
+    .nt-note-autor{ font-size:.8rem; font-weight:700; color:#e9e4f2; }
+    .nt-note-data{ font-size:.68rem; color:#776e86; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+    .nt-note-txt{ font-size:.86rem; color:#cfc8da; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
+    .nt-empty{ text-align:center; color:#776e86; font-size:.84rem; padding:28px 10px; line-height:1.5; }
+    .nt-foot{ border-top:1px solid #2a2333; padding:12px 16px; background:#17121f; display:flex; flex-direction:column; gap:8px; }
+    .nt-autor-in{ width:100%; padding:8px 11px; background:#0f0b15; border:1px solid #2a2333; border-radius:8px; color:var(--text); font-size:.82rem; }
+    .nt-autor-in:focus{ outline:none; border-color:var(--accent); }
+    .nt-textarea{ width:100%; min-height:62px; max-height:160px; resize:vertical; padding:9px 11px; background:#0f0b15;
+      border:1px solid #2a2333; border-radius:8px; color:var(--text); font-size:.88rem; font-family:inherit; line-height:1.4; }
+    .nt-textarea:focus{ outline:none; border-color:var(--accent); }
+    .nt-send{ padding:10px; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:.86rem; font-weight:700; cursor:pointer; transition:background .15s; }
+    .nt-send:hover{ background:var(--accent-hover); }
+    .nt-send:disabled{ opacity:.5; cursor:default; }
+    .nt-row{ display:flex; gap:8px; }
+    .nt-row .nt-textarea{ flex:1; min-height:44px; }
+    .nt-row .nt-send{ align-self:stretch; padding:0 16px; white-space:nowrap; }
+    .nt-msg{ max-width:88%; padding:10px 13px; border-radius:12px; font-size:.86rem; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
+    .nt-msg.user{ align-self:flex-end; background:var(--blue); color:#fff; border-bottom-right-radius:4px; }
+    .nt-msg.bot{ align-self:flex-start; background:#1b1526; border:1px solid #2a2333; color:#cfc8da; border-bottom-left-radius:4px; }
+    .nt-msg.bot.think{ color:#776e86; font-style:italic; }
+    .nt-hint{ font-size:.7rem; color:#776e86; text-align:center; }
+    @media (max-width:560px){ .nt-fab{ right:14px; bottom:14px; padding:11px 15px; } .nt-fab .nt-label{ display:none; } }
   </style>
 </head>
 <body>
@@ -4569,6 +4621,153 @@ loadBudgetMatrix().then(() => {
   if (b){ if (b.classList.contains('hf-tab-arch')) document.body.classList.add('show-arch'); setTab(b); }
   else loadCurrent();
 });
+</script>
+
+<!-- ══ Anotações da equipe + Pergunte à dash (IA) ══════════════════════════ -->
+<button class="nt-fab" id="ntFab" onclick="ntOpen()" title="Anotações da equipe e chat com IA">
+  <span class="nt-dot"></span><span class="nt-label">Anotações</span><span class="nt-badge" id="ntFabCount">·</span>
+</button>
+<div class="nt-overlay" id="ntOverlay" hidden onclick="ntClose()"></div>
+<aside class="nt-panel" id="ntPanel" hidden aria-label="Anotações e IA">
+  <div class="nt-head">
+    <div class="nt-head-top">
+      <div class="nt-title"><span class="nt-spark">✦</span> Anotações &amp; IA</div>
+      <button class="nt-close" onclick="ntClose()" title="Fechar">×</button>
+    </div>
+    <div class="nt-sub">Aba atual: <b id="ntDashNome">—</b></div>
+    <div class="nt-segs">
+      <div class="nt-seg active" id="ntSegNotas" onclick="ntSeg('notas')">Anotações</div>
+      <div class="nt-seg" id="ntSegChat" onclick="ntSeg('chat')">Pergunte à dash</div>
+    </div>
+  </div>
+
+  <!-- NOTAS -->
+  <div class="nt-body" id="ntNotasBody"></div>
+  <div class="nt-foot" id="ntNotasFoot">
+    <input class="nt-autor-in" id="ntAutor" placeholder="Seu nome (fica salvo)" oninput="ntSaveAutor()">
+    <textarea class="nt-textarea" id="ntTexto" placeholder="Escreva uma análise, observação ou próximo passo…"></textarea>
+    <button class="nt-send" id="ntSalvar" onclick="ntSalvar()">Salvar nota</button>
+  </div>
+
+  <!-- CHAT -->
+  <div class="nt-body" id="ntChatBody" hidden></div>
+  <div class="nt-foot" id="ntChatFoot" hidden>
+    <div class="nt-row">
+      <textarea class="nt-textarea" id="ntPergunta" placeholder="Pergunte sobre os números desta aba…" onkeydown="ntChatKey(event)"></textarea>
+      <button class="nt-send" id="ntEnviar" onclick="ntChat()">Enviar</button>
+    </div>
+    <div class="nt-hint">A IA lê os números visíveis desta aba. Enter envia · Shift+Enter quebra linha.</div>
+  </div>
+</aside>
+
+<script>
+// ── Backend (Apps Script publicado em conta pessoal — acesso anônimo liberado) ──
+const NOTAS_API = 'https://script.google.com/macros/s/AKfycbwIk3uTPQfeKQNJbfna0odpsqmXNYPODiYD-jHw9TumxK2aZ6dsb5KJVBdEaVyrtymf5g/exec';
+const DASH_NOMES = { geral:'Geral', estrategia:'Estratégia', audiencia:'Audiência', ebook7:'Ebook 7 Erros',
+  ebookRemoto:'Ebook Remoto', latam:'LATAM', hirex:'Hire-X', corredor:'Video View', site:'Site',
+  webinar:'Webinar', youtube:'YouTube Malu', youtubeHire:'YouTube Hire', ebooks:'E-books' };
+let _ntSeg = 'notas', _ntChatHist = [];
+
+function _ntDash(){ return (window.state && state.tab) ? state.tab : 'geral'; }
+function _ntEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _ntData(ts){
+  try{ const d=new Date(ts); if(isNaN(d)) return String(ts||'');
+    return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return String(ts||''); }
+}
+// Texto visível da aba ativa, pra alimentar a IA.
+function _ntContexto(){
+  const ids=['viewGeral','viewEstrategia','viewAudiencia','viewEbooks','viewCorredor','viewSite',
+    'viewYoutube','viewYoutubeHire','viewEbook7','viewEbookRemoto','viewLatam','viewWebinar','viewHirex'];
+  let el=null;
+  for(const id of ids){ const e=document.getElementById(id); if(e && e.style.display!=='none'){ el=e; break; } }
+  if(!el) el=document.getElementById('viewGeral');
+  let txt = el ? el.innerText : '';
+  txt = txt.replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  return 'ABA: '+(DASH_NOMES[_ntDash()]||_ntDash())+'\n\n'+txt.slice(0,4500);
+}
+
+function ntSaveAutor(){ try{ localStorage.setItem('hf_nota_autor', document.getElementById('ntAutor').value); }catch(e){} }
+function ntOpen(){
+  try{ document.getElementById('ntAutor').value = localStorage.getItem('hf_nota_autor')||''; }catch(e){}
+  document.getElementById('ntOverlay').hidden=false;
+  document.getElementById('ntPanel').hidden=false;
+  requestAnimationFrame(()=>document.body.classList.add('nt-open'));
+  document.getElementById('ntDashNome').textContent = DASH_NOMES[_ntDash()]||_ntDash();
+  ntSeg(_ntSeg);
+  ntLoadNotas();
+}
+function ntClose(){
+  document.body.classList.remove('nt-open');
+  setTimeout(()=>{ document.getElementById('ntOverlay').hidden=true; document.getElementById('ntPanel').hidden=true; }, 240);
+}
+function ntSeg(s){
+  _ntSeg=s;
+  document.getElementById('ntSegNotas').classList.toggle('active', s==='notas');
+  document.getElementById('ntSegChat').classList.toggle('active', s==='chat');
+  document.getElementById('ntNotasBody').hidden = s!=='notas';
+  document.getElementById('ntNotasFoot').hidden = s!=='notas';
+  document.getElementById('ntChatBody').hidden  = s!=='chat';
+  document.getElementById('ntChatFoot').hidden  = s!=='chat';
+  if(s==='chat' && !_ntChatHist.length) _ntChatSaudacao();
+}
+
+// ── Anotações ──────────────────────────────────────────────────────────────
+function ntLoadNotas(){
+  const body=document.getElementById('ntNotasBody');
+  body.innerHTML='<div class="nt-empty">Carregando…</div>';
+  fetch(NOTAS_API+'?action=notes&dash='+encodeURIComponent(_ntDash())+'&_cb='+Date.now())
+    .then(r=>r.json())
+    .then(d=>{
+      const notas=(d&&d.notes)||[];
+      document.getElementById('ntFabCount').textContent = notas.length ? notas.length : '·';
+      if(!notas.length){ body.innerHTML='<div class="nt-empty">Sem anotações nesta aba ainda.<br>Escreva a primeira abaixo — todo mundo que abrir a dash vai ver.</div>'; return; }
+      body.innerHTML = notas.map(n=>
+        '<div class="nt-note"><div class="nt-note-meta"><span class="nt-note-autor">'+_ntEsc(n.autor||'equipe')+
+        '</span><span class="nt-note-data">'+_ntEsc(_ntData(n.ts))+'</span></div>'+
+        '<div class="nt-note-txt">'+_ntEsc(n.nota)+'</div></div>'
+      ).join('');
+    })
+    .catch(()=>{ body.innerHTML='<div class="nt-empty">Não consegui carregar as anotações.<br>Confira a conexão e tente de novo.</div>'; });
+}
+function ntSalvar(){
+  const txt=document.getElementById('ntTexto').value.trim();
+  const autor=document.getElementById('ntAutor').value.trim()||'equipe';
+  if(!txt) return;
+  const btn=document.getElementById('ntSalvar'); btn.disabled=true; btn.textContent='Salvando…';
+  fetch(NOTAS_API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ type:'note', dash:_ntDash(), autor:autor, nota:txt }) })
+    .then(r=>r.json())
+    .then(d=>{ if(d&&d.ok){ document.getElementById('ntTexto').value=''; ntLoadNotas(); }
+              else { alertNote('Não salvou: '+((d&&d.erro)||'erro')); } })
+    .catch(()=>alertNote('Falha ao salvar. Tente de novo.'))
+    .finally(()=>{ btn.disabled=false; btn.textContent='Salvar nota'; });
+}
+function alertNote(m){ const b=document.getElementById('ntNotasBody'); const d=document.createElement('div'); d.className='nt-hint'; d.style.color='#ff8080'; d.textContent=m; b.prepend(d); setTimeout(()=>d.remove(),4000); }
+
+// ── Chat IA ────────────────────────────────────────────────────────────────
+function _ntChatSaudacao(){
+  const body=document.getElementById('ntChatBody');
+  body.innerHTML='<div class="nt-msg bot">Pergunte o que quiser sobre os números da aba <b>'+_ntEsc(DASH_NOMES[_ntDash()]||_ntDash())+'</b>. Ex.: "qual funil está com o melhor CAC?", "o ROAS caiu em relação ao mês passado?"</div>';
+}
+function ntChatKey(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); ntChat(); } }
+function _ntAddMsg(cls, txt){
+  const body=document.getElementById('ntChatBody');
+  const d=document.createElement('div'); d.className='nt-msg '+cls; d.innerHTML=_ntEsc(txt);
+  body.appendChild(d); body.scrollTop=body.scrollHeight; return d;
+}
+function ntChat(){
+  const inp=document.getElementById('ntPergunta'); const q=inp.value.trim(); if(!q) return;
+  inp.value=''; _ntChatHist.push(q); _ntAddMsg('user', q);
+  const thinking=_ntAddMsg('bot think','Pensando…');
+  const btn=document.getElementById('ntEnviar'); btn.disabled=true;
+  fetch(NOTAS_API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ type:'chat', pergunta:q, contexto:_ntContexto() }) })
+    .then(r=>r.json())
+    .then(d=>{ thinking.classList.remove('think'); thinking.textContent=(d&&d.resposta)||((d&&d.erro)||'Sem resposta.'); })
+    .catch(()=>{ thinking.classList.remove('think'); thinking.textContent='Não consegui falar com a IA agora.'; })
+    .finally(()=>{ btn.disabled=false; document.getElementById('ntChatBody').scrollTop=9e9; });
+}
 </script>
 </body>
 </html>
