@@ -27,6 +27,19 @@
 var ABA_NOTAS = 'Notas';
 var MODELO_IA = 'claude-haiku-5-5';   // barato e rápido pro Q&A da dash
 
+// Acha a chave da Anthropic por qualquer nome de propriedade (tolera typo/espaco).
+function _anthropicKey_() {
+  var props = PropertiesService.getScriptProperties();
+  var k = props.getProperty('ANTHROPIC_KEY');
+  if (k && k.trim()) return k.trim();
+  var all = props.getProperties();
+  for (var name in all) {
+    var v = String(all[name] || '').trim();
+    if (v.indexOf('sk-ant') === 0) return v;   // qualquer prop cujo valor seja uma chave
+  }
+  return '';
+}
+
 function _notasSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(ABA_NOTAS);
@@ -42,6 +55,14 @@ function _json_(obj) {
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.action === 'ping') return _json_({ ok: true });
+  if (p.action === 'diag') {
+    // Mostra os NOMES das propriedades e se a chave foi achada (sem expor a chave).
+    var props = PropertiesService.getScriptProperties().getProperties();
+    var nomes = [];
+    for (var nm in props) nomes.push(JSON.stringify(nm) + ' = ' + (String(props[nm]).slice(0, 7) + '…'));
+    var k = _anthropicKey_();
+    return _json_({ propriedades: nomes, chave_achada: !!k, chave_preview: k ? k.slice(0, 10) + '…' : '' });
+  }
   if (p.action === 'notes') {
     var sh = _notasSheet_();
     var dash = String(p.dash || '').trim();
@@ -76,7 +97,7 @@ function doPost(e) {
   }
 
   if (body.type === 'chat') {
-    var key = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_KEY');
+    var key = _anthropicKey_();
     if (!key) return _json_({ resposta: 'Chat ainda nao configurado: falta a chave da Anthropic (ANTHROPIC_KEY) nas propriedades do script.' });
     var pergunta = String(body.pergunta || '').trim();
     if (!pergunta) return _json_({ erro: 'pergunta vazia' });
@@ -96,7 +117,14 @@ function doPost(e) {
         payload: JSON.stringify(payload), muteHttpExceptions: true
       });
       var data = JSON.parse(resp.getContentText());
-      if (data.content && data.content[0] && data.content[0].text) return _json_({ resposta: data.content[0].text });
+      // Haiku pode mandar um bloco "thinking" antes; pega o primeiro bloco de TEXTO.
+      if (data.content && data.content.length) {
+        for (var ci = 0; ci < data.content.length; ci++) {
+          if (data.content[ci] && data.content[ci].type === 'text' && data.content[ci].text) {
+            return _json_({ resposta: data.content[ci].text });
+          }
+        }
+      }
       return _json_({ resposta: 'A IA nao respondeu. ' + (data.error ? data.error.message : '') });
     } catch (err) {
       return _json_({ resposta: 'Erro ao falar com a IA: ' + err });

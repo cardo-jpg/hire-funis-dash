@@ -2633,9 +2633,20 @@ function _flashSaved(msg){
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1200);
 }
 
-// Budget de um canal: override local tem prioridade; senão, valor da planilha
-// (mês corrente; fallback no mês mais recente com valor não-zero).
+// Verbas atuais fixadas no código — a planilha de budget (gid 1387283031) está
+// parada em ago/2026. Pedido do José em 02/11/2026: Site e Fase 1 (Video View)
+// ganharam +R$500, e a Fase 2 (WhatsApp recon) passa a ter verba própria.
+// Para voltar a seguir a planilha, é só tirar o canal daqui.
+const _BUDGET_FIXO = {
+  'site': 1300,                 // era 800 (planilha) + 500
+  'Video View Malu': 1600,      // Fase 1 · reconhecimento (era ~1.100 + 500)
+  'Video View Malu F2': 1100,   // Fase 2 · WhatsApp recon (separada da Fase 1)
+};
+
+// Budget de um canal: valor fixado no código tem prioridade; senão, planilha
+// (mês corrente; fallback no mês mais recente com valor não-zero); senão, override local.
 function _geralBudget(matrix, channel){
+  if (_BUDGET_FIXO[channel] != null) return _BUDGET_FIXO[channel];
   // PLANILHA é a fonte da verdade (sincroniza pra todos os computadores).
   // localStorage entra só como fallback se a planilha não tiver valor.
   const m = (matrix || {})[channel];
@@ -2721,6 +2732,11 @@ function funnelCardsHTML(cols, matrix, defs){
       roasShown = (f.faturamento != null && invTot > 0) ? f.faturamento / invTot : f.roas;
       roasLbl = 'ROAS + Fase 1';
       extra = `<div class="ndg-sub"><div class="ndg-st">Fase 1 · Video View</div>${_ndgPace(_geralBudget(matrix,'Video View Malu'), vv.investido)}<div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Visualizações</div><div class="ndg-mv dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo / visualização</div><div class="ndg-mv dim">${cpv!=null?BRL(cpv):'—'}</div></div></div></div>`;
+      // Fase 2 · WhatsApp (recon) — verba própria, separada da Fase 1.
+      const vv2 = cols['Video View Malu F2'] || {};
+      const f2bud = _geralBudget(matrix,'Video View Malu F2');
+      const f2budTxt = (f2bud!=null) ? 'R$ '+(+f2bud).toLocaleString('pt-BR',{maximumFractionDigits:0}) : '—';
+      extra += `<div class="ndg-sub"><div class="ndg-st">Fase 2 · WhatsApp (recon)</div><div class="ndg-pace"><div class="ndg-prow"><span class="ndg-pl">Budget mensal</span><span class="ndg-pr"><b>${f2budTxt}</b></span></div>${vv2.investido!=null?`<div class="ndg-prow"><span class="ndg-pr">Investido ${BRL(vv2.investido)}</span><span class="ndg-pr">${f2bud?Math.round((vv2.investido||0)/f2bud*100):0}%</span></div>`:`<div class="ndg-prow"><span class="ndg-pr" style="color:#948ba6">retargeting da Fase 1 → conversas no WhatsApp</span><span></span></div>`}</div></div>`;
     }
     if (key === 'ig_int'){
       const el = cols['ebook_latam'] || {};
