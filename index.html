@@ -658,6 +658,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-tab.active { background:var(--purple-dark); color:#fff; }
     .hf-tab-arch{ display:none; }
     body.show-arch .hf-tab-arch{ display:inline-block; }
+    .ndg-fc.ndg-arch{ display:none; }
+    body.show-arch .ndg-fc.ndg-arch{ display:flex; }
     .hf-tab-more{ opacity:.4; font-weight:700; letter-spacing:.14em; }
     .hf-tab-more:hover{ opacity:.8; }
     body.show-arch .hf-tab-more{ opacity:.9; color:#fff; }
@@ -920,6 +922,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .yt-st-ativo{ color:#8ef0b0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.4); }
     .yt-st-pausado{ color:#c9b8d6; background:rgba(120,90,150,.18); border:1px solid rgba(150,95,190,.35); }
     .yt-st-removido{ color:#f79a9a; background:rgba(239,68,68,.16); border:1px solid rgba(239,68,68,.45); }
+    .hf-kpi-strip.cols-8 { grid-template-columns:repeat(4,1fr); }
     .hf-kpi-strip.cols-6 { grid-template-columns:repeat(6,1fr); }
     .hf-kpi-strip.cols-5 { grid-template-columns:repeat(5,1fr); }
     .yt-setup-box {
@@ -1308,12 +1311,14 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 
     <!-- ── Fase 2 · WhatsApp (recon) ── -->
     <div class="hf-table-label" style="margin:28px 0 10px;font-size:1rem">Fase 2 · WhatsApp (recon) <span style="color:var(--muted);font-weight:400">— retargeting de quem viu a fase 1 → conversas no WhatsApp</span></div>
-    <div class="hf-kpi-strip cols-5">
+    <div class="hf-kpi-strip cols-7">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="f2_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="f2_kpiCli">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Leads (conversas)</div><div class="hf-kpi-value dash" id="f2_kpiLeads">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Custo por Lead</div><div class="hf-kpi-value dash" id="f2_kpiCpl">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Lead</div><div class="hf-kpi-value dash" id="f2_kpiConv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="f2_kpiFat">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="f2_kpiRoas">—</div></div>
     </div>
     <div class="hf-table-section">
       <div class="hf-table-label">Criativo (fase 2)
@@ -1347,13 +1352,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Webinar (Masterclass · cadastros) ── -->
   <div id="viewWebinar" style="display:none">
     <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Webinário · Masterclass <span style="color:var(--muted);font-weight:400">— captação de cadastros</span></div>
-    <div class="hf-kpi-strip cols-6">
+    <div class="hf-kpi-strip cols-8">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="web_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="web_kpiImp">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="web_kpiCli">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cadastros</div><div class="hf-kpi-value dash" id="web_kpiLeads">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Custo por Cadastro</div><div class="hf-kpi-value dash" id="web_kpiCpl">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Cadastro</div><div class="hf-kpi-value dash" id="web_kpiConv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="web_kpiFat">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="web_kpiRoas">—</div></div>
     </div>
     <div class="hf-table-section">
       <div class="hf-table-label">Criativo (webinar)
@@ -1387,13 +1394,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Hire-X ── -->
   <div id="viewHirex" style="display:none">
     <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Hire-X <span style="color:var(--muted);font-weight:400">— análise do LinkedIn · Lead no WhatsApp</span></div>
-    <div class="hf-kpi-strip cols-6">
+    <div class="hf-kpi-strip cols-8">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="hx_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="hx_kpiImp">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="hx_kpiCli">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Leads</div><div class="hf-kpi-value dash" id="hx_kpiLeads">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Custo por Lead</div><div class="hf-kpi-value dash" id="hx_kpiCpl">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Lead</div><div class="hf-kpi-value dash" id="hx_kpiConv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="hx_kpiFat">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="hx_kpiRoas">—</div></div>
     </div>
     <div class="hf-table-section">
       <div class="hf-table-label">Criativo (Hire-X)
@@ -2513,11 +2522,12 @@ async function loadGeral() {
     let fWebinar = {};
     try {
       const rW = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=423386316&_cb=' + Date.now()),
-        { investido:11, impressoes:6, cliques:7, leads:8 });
+        { investido:11, impressoes:6, cliques:7, leads:8, vendas:13, faturamento:14 });
       const wW = window30(rW);
-      fWebinar = { investido: gvSum(wW.rows,'investido'), leads: gvSum(wW.rows,'leads'),
+      const invW = gvSum(wW.rows,'investido'), fatW = gvSum(wW.rows,'faturamento'), vendW = gvSum(wW.rows,'vendas');
+      fWebinar = { investido: invW, leads: gvSum(wW.rows,'leads'),
         impressoes: gvSum(wW.rows,'impressoes'), cliques: gvSum(wW.rows,'cliques'),
-        vendas:null, faturamento:null, roas:null };
+        vendas: vendW||0, faturamento: fatW>0?fatW:null, roas: (invW&&fatW>0)? fatW/invW : null };
     } catch(e){ console.warn('Webinar indisponível:', e); }
 
     // Ebook Latam — mesma lógica da aba LATAM: leads forçados (pixel trocado) + investido.
@@ -2532,23 +2542,38 @@ async function loadGeral() {
     let fHireX = {};
     try {
       const rX = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1436932728&_cb=' + Date.now()),
-        { investido:4, impressoes:5, cliques:6, leads:7 });
+        { investido:4, impressoes:5, cliques:6, leads:7, vendas:10, faturamento:11 });
       const wX = window30(rX);
-      fHireX = { investido: gvSum(wX.rows,'investido'), leads: gvSum(wX.rows,'leads'),
+      const invX = gvSum(wX.rows,'investido'), fatX = gvSum(wX.rows,'faturamento'), vendX = gvSum(wX.rows,'vendas');
+      fHireX = { investido: invX, leads: gvSum(wX.rows,'leads'),
         impressoes: gvSum(wX.rows,'impressoes'), cliques: gvSum(wX.rows,'cliques'),
-        vendas:null, faturamento:null, roas:null };
+        vendas: vendX||0, faturamento: fatX>0?fatX:null, roas: (invX&&fatX>0)? fatX/invX : null };
     } catch(e){ console.warn('Hire-X indisponível:', e); }
 
-    // Colunas da Geral (todos os funis: 5 de tráfego + 2 ebooks + youtube hire + video view + ugc + webinar + ebook latam)
+    // Fase 2 · WhatsApp (recon) — fonte própria gid 1327644415 (conta Malu é US$).
+    let fFase2 = {};
+    try {
+      const rF2 = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1327644415&_cb=' + Date.now()),
+        { investido:4, impressoes:5, cliques:6, leads:7, vendas:10, faturamento:11 });
+      const wF2g = window30(rF2);
+      const invF2 = gvSum(wF2g.rows,'investido') * YT_USD_BRL, fatF2 = gvSum(wF2g.rows,'faturamento'), vendF2 = gvSum(wF2g.rows,'vendas');
+      fFase2 = { investido: invF2, leads: gvSum(wF2g.rows,'leads'),
+        impressoes: gvSum(wF2g.rows,'impressoes'), cliques: gvSum(wF2g.rows,'cliques'),
+        vendas: vendF2||0, faturamento: fatF2>0?fatF2:null, roas: (invF2&&fatF2>0)? fatF2/invF2 : null };
+    } catch(e){ console.warn('Fase 2 indisponível:', e); }
+
+    // Colunas da Geral (todos os funis + fase 2)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, ig_int: fInt, youtube: fYt, site: fSite,
-      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC, webinar: fWebinar, ebook_latam: fLatam, hire_x: fHireX,
+      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC, webinar: fWebinar, ebook_latam: fLatam, hire_x: fHireX, fase2: fFase2,
     };
+    // Webinar, Hire-X e Fase 2 agora têm venda → entram no total (igual aos demais).
+    funis.push(['Webinar', fWebinar], ['Hire-X', fHireX], ['Fase 2', fFase2]);
 
     // Totais consolidados (soma das linhas — mesma fonte/janela por funil)
     let tInv = 0, tFat = 0, tVend = 0, tLeads = 0;
     for (const [, f] of funis){
-      tInv += f.investido; tFat += f.faturamento; tVend += f.vendas;
+      tInv += (f.investido||0); tFat += (f.faturamento||0); tVend += (f.vendas||0);
       if (f.hasLeads) tLeads += (f.leads || 0);
     }
     const tot = {
@@ -2671,6 +2696,7 @@ const DEFS_ALL = [
   ['ugc',      '🎬', 'UGC Latam',          'LT · vendas em vídeo',              'Visitas no site',  'Custo por Visita',   'ugc'],
   ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['youtube hire','🎥','YouTube Hire',     'Youtube Hire Brazil',               'Inscritos',        'Custo por Inscrito', 'youtube'],
+  ['fase2',    '💬', 'Fase 2 · WhatsApp',  'Retargeting da Fase 1 · Lead no Whats','Leads',          'Custo por Lead',     'ebook'],
   ['webinar',  '🎓', 'Webinário',          'Masterclass · cadastros (Hot)',     'Cadastros',        'Custo por Cadastro', 'ebook'],
   ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
   ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
@@ -2679,6 +2705,8 @@ const DEFS_ALL = [
 ];
 // Funis pausados a pedido das meninas (UGC e Ebook 7 Erros): aparecem na dash com selo "pausado".
 const PAUSED_FUNNELS = new Set(['ugc','eb_7erros']);
+// Funis que não usamos mais: ocultos do geral e das abas; o ··· (toggleArchived) revela.
+const ARCHIVED_FUNNELS = new Set(['ugc','eb_7erros']);
 // Audiência = só os 4 funis de tráfego (sem ebooks)
 const DEFS_AUD = DEFS_ALL.filter(d => ['ig_malu','ig_hire','ig_int','youtube','site'].includes(d[0]));
 const DEFS_EB  = DEFS_ALL.filter(d => ['eb_7erros','eb_cr'].includes(d[0]));
@@ -2732,11 +2760,7 @@ function funnelCardsHTML(cols, matrix, defs){
       roasShown = (f.faturamento != null && invTot > 0) ? f.faturamento / invTot : f.roas;
       roasLbl = 'ROAS + Fase 1';
       extra = `<div class="ndg-sub"><div class="ndg-st">Fase 1 · Video View</div>${_ndgPace(_geralBudget(matrix,'Video View Malu'), vv.investido)}<div class="ndg-mets"><div class="ndg-met"><div class="ndg-ml">Visualizações</div><div class="ndg-mv dim">${vv.seguidores!=null?NUM(vv.seguidores):'—'}</div></div><div class="ndg-met"><div class="ndg-ml">Custo / visualização</div><div class="ndg-mv dim">${cpv!=null?BRL(cpv):'—'}</div></div></div></div>`;
-      // Fase 2 · WhatsApp (recon) — verba própria, separada da Fase 1.
-      const vv2 = cols['Video View Malu F2'] || {};
-      const f2bud = _geralBudget(matrix,'Video View Malu F2');
-      const f2budTxt = (f2bud!=null) ? 'R$ '+(+f2bud).toLocaleString('pt-BR',{maximumFractionDigits:0}) : '—';
-      extra += `<div class="ndg-sub"><div class="ndg-st">Fase 2 · WhatsApp (recon)</div><div class="ndg-pace"><div class="ndg-prow"><span class="ndg-pl">Budget mensal</span><span class="ndg-pr"><b>${f2budTxt}</b></span></div>${vv2.investido!=null?`<div class="ndg-prow"><span class="ndg-pr">Investido ${BRL(vv2.investido)}</span><span class="ndg-pr">${f2bud?Math.round((vv2.investido||0)/f2bud*100):0}%</span></div>`:`<div class="ndg-prow"><span class="ndg-pr" style="color:#948ba6">retargeting da Fase 1 → conversas no WhatsApp</span><span></span></div>`}</div></div>`;
+      // Fase 2 · WhatsApp agora é CARD próprio no geral (removida daqui).
     }
     if (key === 'ig_int'){
       const el = cols['ebook_latam'] || {};
@@ -2745,8 +2769,9 @@ function funnelCardsHTML(cols, matrix, defs){
     }
     const foot = (f.faturamento != null) ? `<div class="ndg-foot"><div><div class="ndg-fl">Faturamento</div><div class="ndg-big">${BRL(f.faturamento)}</div><div class="ndg-vend">${NUM(f.vendas)} vendas</div></div><div class="ndg-roas ${_ndgRoasCls(roasShown)}"><div class="ndg-rv">${ROAS(roasShown)}</div><div class="ndg-rl">${roasLbl}</div></div></div>` : '';
     const paused = PAUSED_FUNNELS.has(key);
+    const archived = ARCHIVED_FUNNELS.has(key);
     html += `
-      <div class="ndg-fc"${paused ? ' style="opacity:.62"' : ''}>
+      <div class="ndg-fc${archived ? ' ndg-arch' : ''}"${paused ? ' style="opacity:.62"' : ''}>
         <div class="ndg-head"><div class="ndg-ic">${icon}</div><div class="ndg-name">${titulo}<small>${sub}</small></div>${paused ? '<span style="margin-left:auto;align-self:flex-start;font-family:\'JetBrains Mono\',monospace;font-size:.56rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#d9a441;background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.38);padding:3px 8px;border-radius:999px;white-space:nowrap">pausado</span>' : ''}</div>
         ${_ndgPace(bud, f.investido)}
         <div class="ndg-mets">
@@ -3125,7 +3150,7 @@ async function buildCorredorData(){
   let fase2 = { investido:0, impressoes:0, cliques:0, leads:0, cpm:null, cpl:null, ctr:null, por_criativo:[] };
   try {
     const tf2 = await gvizLoadFrom(F2_SHEET, 'gid=' + F2_GID + '&_cb=' + Date.now());
-    const f2rows = gvRows(tf2, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true} });
+    const f2rows = gvRows(tf2, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true}, vendas:10, faturamento:11 });
     const wF2 = window30(f2rows);
     for (const r of wF2.rows) r.investido = r.investido * YT_USD_BRL;   // conta Malu é US$
     const byCriF2 = {};
@@ -3140,9 +3165,10 @@ async function buildCorredorData(){
       criativo:o.criativo, url:o.url, ativo:o.ativo, investido:o.investido, impressoes:o.impressoes, cliques:o.cliques, leads:o.leads,
       ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
     })).sort((a,b)=> b.investido - a.investido);
-    const TF2 = wF2.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; },
-      {investido:0,impressoes:0,cliques:0,leads:0});
+    const TF2 = wF2.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); a.vendas+=(r.vendas||0); a.faturamento+=(r.faturamento||0); return a; },
+      {investido:0,impressoes:0,cliques:0,leads:0,vendas:0,faturamento:0});
     fase2 = { investido:TF2.investido, impressoes:TF2.impressoes, cliques:TF2.cliques, leads:TF2.leads,
+      vendas:TF2.vendas, faturamento:(TF2.faturamento>0?TF2.faturamento:null), roas:(TF2.investido&&TF2.faturamento>0? TF2.faturamento/TF2.investido : null),
       cpm:_cpm(TF2.investido,TF2.impressoes), cpl:(TF2.leads? TF2.investido/TF2.leads : null),
       ctr:(TF2.impressoes? TF2.cliques/TF2.impressoes*100 : null), por_criativo };
   } catch(e){ console.warn('Fase 2 indisponível:', e); }
@@ -3237,7 +3263,7 @@ async function loadWebinar(){
   try {
     const tw = await gvizLoadFrom(WEBINAR_SHEET, 'gid=' + WEBINAR_GID + '&_cb=' + Date.now());
     // investido = "Custo real" (col 11), JÁ em BRL (Investido USD × Dólar) — não multiplicar
-    const rows = gvRows(tw, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:4,str:true}, investido:11, impressoes:6, cliques:7, leads:8, status:{i:10,str:true} });
+    const rows = gvRows(tw, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:4,str:true}, investido:11, impressoes:6, cliques:7, leads:8, status:{i:10,str:true}, vendas:13, faturamento:14 });
     const w = window30(rows);
     const byCri = {};
     for (const r of w.rows){
@@ -3250,7 +3276,7 @@ async function loadWebinar(){
     const por_criativo = Object.values(byCri).map(o => ({
       ...o, ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
     })).sort((a,b)=> b.investido - a.investido);
-    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
+    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); a.vendas+=(r.vendas||0); a.faturamento+=(r.faturamento||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0,vendas:0,faturamento:0});
     const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
     [ ['web_kpiInv',   BRL(T.investido)],
       ['web_kpiImp',   NUM(T.impressoes)],
@@ -3258,6 +3284,8 @@ async function loadWebinar(){
       ['web_kpiLeads', NUM(T.leads)],
       ['web_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['web_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
+      ['web_kpiFat',   T.faturamento>0?BRL(T.faturamento):'—'],
+      ['web_kpiRoas',  ROAS(T.investido&&T.faturamento>0? T.faturamento/T.investido : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
     window._webdata = por_criativo;
     if (window._websortKey == null){ window._websortKey = 'investido'; window._websortDir = -1; }
@@ -3309,7 +3337,7 @@ async function loadHirex(){
   document.getElementById('errorBanner').style.display = 'none';
   try {
     const tx = await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1436932728&_cb=' + Date.now());
-    const rows = gvRows(tx, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true} });
+    const rows = gvRows(tx, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true}, vendas:10, faturamento:11 });
     const w = window30(rows);
     const byCri = {};
     for (const r of w.rows){
@@ -3322,7 +3350,7 @@ async function loadHirex(){
     const por_criativo = Object.values(byCri).map(o => ({
       ...o, ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
     })).sort((a,b)=> b.investido - a.investido);
-    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
+    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); a.vendas+=(r.vendas||0); a.faturamento+=(r.faturamento||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0,vendas:0,faturamento:0});
     const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
     [ ['hx_kpiInv',   BRL(T.investido)],
       ['hx_kpiImp',   NUM(T.impressoes)],
@@ -3330,6 +3358,8 @@ async function loadHirex(){
       ['hx_kpiLeads', NUM(T.leads)],
       ['hx_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['hx_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
+      ['hx_kpiFat',   T.faturamento>0?BRL(T.faturamento):'—'],
+      ['hx_kpiRoas',  ROAS(T.investido&&T.faturamento>0? T.faturamento/T.investido : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
     window._hxdata = por_criativo;
     if (window._hxsortKey == null){ window._hxsortKey = 'investido'; window._hxsortDir = -1; }
@@ -3426,6 +3456,8 @@ function renderCorredor(d) {
     ['f2_kpiLeads', f2.leads!=null?NUM(f2.leads):'—'],
     ['f2_kpiCpl',   f2.cpl!=null?BRL(f2.cpl):'—'],
     ['f2_kpiConv',  _pct1(_conv(f2.leads, f2.cliques))],
+    ['f2_kpiFat',   f2.faturamento>0?BRL(f2.faturamento):'—'],
+    ['f2_kpiRoas',  ROAS(f2.roas)],
   ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
   window._f2data = f2.por_criativo || [];
   if (window._f2sortKey == null){ window._f2sortKey = 'cpl'; window._f2sortDir = -1; }  // padrão: mais caro primeiro
