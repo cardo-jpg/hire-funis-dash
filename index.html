@@ -1845,13 +1845,12 @@ function _buildMonthOptions(){
   for (const [y,m] of months) html += `<option value="${y}-${String(m).padStart(2,'0')}">${_MES_NOME[m-1]}/${y}</option>`;
   sel.innerHTML = html;
   sel.dataset.built = '1';
-  // default: aplica o mês mais recente uma vez (deferido, pra não recursar no load)
-  if (months.length && !sel.dataset.applied){
-    sel.dataset.applied = '1';
-    const [y,m] = months[months.length-1];
-    sel.value = `${y}-${String(m).padStart(2,'0')}`;
-    setTimeout(onMonthPick, 0);
-  }
+  // Default do load: NÃO auto-filtra pro mês mais recente — abre em "Todos os meses"
+  // e deixa o window30 cortar os últimos 30 dias POR SÉRIE (visão padrão do Meta).
+  // Antes auto-aplicava o último mês e, no começo de cada mês, escondia as vendas do
+  // mês anterior (ex.: Fase 2 mostrava só R$ 9,90 de nov e ocultava os R$ 3.147 de out).
+  // O seletor de mês continua funcionando pra quem quiser fatiar por mês.
+  sel.value = 'all';
 }
 function onMonthPick(){
   const sel = document.getElementById('monthPicker');
