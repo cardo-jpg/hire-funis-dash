@@ -702,6 +702,13 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .web-sc-row b{color:#fff;font-weight:700;}
     .web-split-note{font-size:.67rem;color:rgba(255,255,255,.4);margin-top:12px;line-height:1.45;}
     @media(max-width:620px){.web-split-cards{grid-template-columns:1fr;}}
+    .web-funnel{width:100%;border-collapse:collapse;margin-top:16px;font-size:.86rem;}
+    .web-funnel th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5);padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.1);}
+    .web-funnel th.num,.web-funnel td.num{text-align:right;font-variant-numeric:tabular-nums;}
+    .web-funnel td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.85);}
+    .web-funnel td:first-child{color:rgba(255,255,255,.72);}
+    .web-funnel tr:hover td{background:rgba(255,255,255,.02);}
+    .web-funnel .num.org{color:#34d399;font-weight:700;} .web-funnel .num.ads{color:#a78bfa;font-weight:700;}
     .metric-ruim { color:#f87171 !important; }
     .metric-medio { color:#fbbf24 !important; }
     .metric-bom { color:#4ade80 !important; }
@@ -1377,34 +1384,22 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="web-split">
       <div class="web-split-head">
         <div>
-          <div class="web-split-total-lbl">Total de cadastros no webinário</div>
-          <div class="web-split-total" id="web_splitTotal">—</div>
+          <div class="web-split-total-lbl">Inscritos no webinário · Masterclass</div>
+          <div class="web-split-total">335</div>
         </div>
         <div class="web-split-legend">
-          <span><i class="dot ads"></i>Anúncio <b id="web_splitAdsN">—</b><em id="web_splitAdsPct"></em></span>
-          <span><i class="dot org"></i>Orgânico <b id="web_splitOrgN">378</b><em id="web_splitOrgPct"></em></span>
+          <span><i class="dot org"></i>Orgânico <b>262</b><em>(78%)</em></span>
+          <span><i class="dot ads"></i>Anúncio <b>73</b><em>(22%)</em></span>
         </div>
       </div>
-      <div class="web-bar"><div class="web-bar-ads" id="web_barAds" style="width:0"></div><div class="web-bar-org" id="web_barOrg" style="width:100%"></div></div>
-      <div class="web-split-cards">
-        <div class="web-sc web-sc-ads">
-          <div class="web-sc-tag">● Anúncio · tráfego pago</div>
-          <div class="web-sc-big" id="web_scAdsN">—</div>
-          <div class="web-sc-sub">cadastros vindos de anúncio</div>
-          <div class="web-sc-row"><span>Investido</span><b id="web_scAdsInv">—</b></div>
-          <div class="web-sc-row"><span>Custo por cadastro</span><b id="web_scAdsCpl">—</b></div>
-        </div>
-        <div class="web-sc web-sc-org">
-          <div class="web-sc-tag">● Orgânico · sem mídia paga</div>
-          <div class="web-sc-big" id="web_scOrgN">378</div>
-          <div class="web-sc-sub">117 em novembro · sem testes/duplicados</div>
-          <div class="web-sc-row"><span>Investido</span><b>R$ 0</b></div>
-          <div class="web-sc-row"><span>Custo por cadastro</span><b>R$ 0</b></div>
-        </div>
-      </div>
-      <div class="web-split-note">Anúncio: dado ao vivo do Meta (acompanha o filtro de data). Orgânico: export do HotWebinar de 09/11 — total do período de captação (ainda não filtra por data; atualizar a cada novo export).</div>
+      <div class="web-bar"><div class="web-bar-org" style="width:78%"></div><div class="web-bar-ads" style="width:22%"></div></div>
+      <table class="web-funnel">
+        <thead><tr><th>Etapa do webinário</th><th class="num">Orgânico</th><th class="num">Anúncio</th><th class="num">Total</th></tr></thead>
+        <tbody id="webFunnelBody"></tbody>
+      </table>
+      <div class="web-split-note">Fonte: HotWebinar · período 12/08–09/11 · salas ORG e ADS da Masterclass. "Comprou" ainda não integra no HotWebinar (vem do checkout/Camila). Números manuais — atualizar a cada novo print do HotWebinar.</div>
     </div>
-    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Anúncio · detalhe do tráfego pago</div>
+    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Anúncio · custo e entrega no Meta</div>
     <div class="hf-kpi-strip cols-8">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="web_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="web_kpiImp">—</div></div>
@@ -3308,10 +3303,34 @@ function _f2sort(k){
 // ── Webinar (Masterclass · cadastros) — fonte própria gid 423386316 ──
 // Colunas: Date,Campanha,Publico,Criativo,URL,Investido(USD),Impressoes,Cliques,Leads,Visualizacoes_LP,Status,Custo real(BRL),Dólar
 const WEBINAR_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', WEBINAR_GID = '423386316';
+// ── Funil do webinário (HotWebinar · MANUAL — atualizar a cada print; [etapa, org, ads]) ──
+// Fonte: prints HotWebinar 09/11/2026, salas ORG e ADS da Masterclass, período 12/08–09/11.
+const WEB_FUNNEL = [
+  ['Visitantes (LP)',        286, 76],
+  ['Inscritos',              262, 73],
+  ['Compareceram (ao vivo)', 243, 71],
+  ['Assistiu 15 min',        142, 30],
+  ['Assistiu 30 min',        125, 27],
+  ['Assistiu 45 min',         99, 25],
+  ['Estava no pitch',        113, 26],
+  ['Estava na oferta',        99, 26],
+  ['Clicou na oferta',        45,  8],
+  ['Comprou',               null, null],
+];
+function renderWebFunnel(){
+  const tb = document.getElementById('webFunnelBody'); if(!tb) return;
+  const f = v => v==null ? '—' : NUM(v);
+  tb.innerHTML = WEB_FUNNEL.map(([et,o,a])=>{
+    const tot = (o==null&&a==null) ? null : ((o||0)+(a||0));
+    const strong = (et==='Inscritos'||et==='Clicou na oferta') ? ' style="font-weight:700;color:#fff"' : '';
+    return `<tr><td${strong}>${et}</td><td class="num org">${f(o)}</td><td class="num ads">${f(a)}</td><td class="num">${f(tot)}</td></tr>`;
+  }).join('');
+}
 async function loadWebinar(){
   const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
   if (btn) btn.classList.add('loading'); if (icon) icon.textContent = '↻';
   document.getElementById('errorBanner').style.display = 'none';
+  renderWebFunnel();
   try {
     const tw = await gvizLoadFrom(WEBINAR_SHEET, 'gid=' + WEBINAR_GID + '&_cb=' + Date.now());
     // investido = "Custo real" (col 11), JÁ em BRL (Investido USD × Dólar) — não multiplicar
@@ -3339,19 +3358,6 @@ async function loadWebinar(){
       ['web_kpiFat',   T.faturamento>0?BRL(T.faturamento):'—'],
       ['web_kpiRoas',  ROAS(T.investido&&T.faturamento>0? T.faturamento/T.investido : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
-    // ── Anúncio × Orgânico (orgânico = export HotWebinar; ATUALIZAR aqui a cada export) ──
-    const ORG_TOT = 378, ORG_NOV = 117;   // 09/11/2026 · sala orgânica, sem testes/duplicados
-    const _adsN = T.leads || 0, _tot = _adsN + ORG_TOT;
-    const _pct0 = v => v.toLocaleString('pt-BR',{maximumFractionDigits:0})+'%';
-    const _adsPct = _tot? _adsN/_tot*100 : 0, _orgPct = _tot? ORG_TOT/_tot*100 : 100;
-    setEl('web_splitTotal', NUM(_tot));
-    setEl('web_splitAdsN', NUM(_adsN)); setEl('web_splitOrgN', NUM(ORG_TOT));
-    setEl('web_splitAdsPct', ' ('+_pct0(_adsPct)+')'); setEl('web_splitOrgPct', ' ('+_pct0(_orgPct)+')');
-    const _bA=document.getElementById('web_barAds'), _bO=document.getElementById('web_barOrg');
-    if(_bA) _bA.style.width=_adsPct+'%'; if(_bO) _bO.style.width=_orgPct+'%';
-    setEl('web_scAdsN', NUM(_adsN)); setEl('web_scOrgN', NUM(ORG_TOT));
-    setEl('web_scAdsInv', BRL(T.investido));
-    setEl('web_scAdsCpl', T.leads? BRL(T.investido/T.leads) : '—');
     window._webdata = por_criativo;
     if (window._websortKey == null){ window._websortKey = 'investido'; window._websortDir = -1; }
     _webRenderTable();
