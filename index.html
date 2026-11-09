@@ -680,6 +680,28 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .hf-kpi-value.dash { color:rgba(255,255,255,.3); font-size:1.2rem; }
     .hf-kpi-value.good { color:var(--green); }
     .hf-kpi-ref { font-size:.62rem; color:rgba(255,255,255,.28); margin-top:3px; letter-spacing:.02em; }
+    /* Webinário · comparativo Anúncio × Orgânico */
+    .web-split{background:#19141f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:18px 20px;margin:4px 0 20px;}
+    .web-split-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;}
+    .web-split-total-lbl{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);}
+    .web-split-total{font-family:'Bricolage Grotesque',sans-serif;font-size:2.1rem;font-weight:800;color:#fff;line-height:1.1;}
+    .web-split-legend{display:flex;gap:18px;font-size:.84rem;color:rgba(255,255,255,.8);align-items:center;}
+    .web-split-legend b{color:#fff;}
+    .web-split-legend em{font-style:normal;color:rgba(255,255,255,.5);margin-left:3px;}
+    .web-split-legend .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle;}
+    .dot.ads{background:#8b5cf6;} .dot.org{background:#10b981;}
+    .web-bar{display:flex;height:18px;border-radius:9px;overflow:hidden;margin:14px 0 16px;background:#2a2333;}
+    .web-bar-ads{background:#8b5cf6;transition:width .4s;} .web-bar-org{background:#10b981;transition:width .4s;}
+    .web-split-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .web-sc{border-radius:12px;padding:14px 16px;background:#221b2b;border-left:4px solid transparent;}
+    .web-sc-ads{border-left-color:#8b5cf6;} .web-sc-org{border-left-color:#10b981;}
+    .web-sc-tag{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:6px;}
+    .web-sc-big{font-family:'Bricolage Grotesque',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;line-height:1;}
+    .web-sc-sub{font-size:.72rem;color:rgba(255,255,255,.45);margin:3px 0 10px;}
+    .web-sc-row{display:flex;justify-content:space-between;font-size:.8rem;color:rgba(255,255,255,.7);padding:4px 0;border-top:1px solid rgba(255,255,255,.05);}
+    .web-sc-row b{color:#fff;font-weight:700;}
+    .web-split-note{font-size:.67rem;color:rgba(255,255,255,.4);margin-top:12px;line-height:1.45;}
+    @media(max-width:620px){.web-split-cards{grid-template-columns:1fr;}}
     .metric-ruim { color:#f87171 !important; }
     .metric-medio { color:#fbbf24 !important; }
     .metric-bom { color:#4ade80 !important; }
@@ -1352,6 +1374,37 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Webinar (Masterclass · cadastros) ── -->
   <div id="viewWebinar" style="display:none">
     <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Webinário · Masterclass <span style="color:var(--muted);font-weight:400">— captação de cadastros</span></div>
+    <div class="web-split">
+      <div class="web-split-head">
+        <div>
+          <div class="web-split-total-lbl">Total de cadastros no webinário</div>
+          <div class="web-split-total" id="web_splitTotal">—</div>
+        </div>
+        <div class="web-split-legend">
+          <span><i class="dot ads"></i>Anúncio <b id="web_splitAdsN">—</b><em id="web_splitAdsPct"></em></span>
+          <span><i class="dot org"></i>Orgânico <b id="web_splitOrgN">378</b><em id="web_splitOrgPct"></em></span>
+        </div>
+      </div>
+      <div class="web-bar"><div class="web-bar-ads" id="web_barAds" style="width:0"></div><div class="web-bar-org" id="web_barOrg" style="width:100%"></div></div>
+      <div class="web-split-cards">
+        <div class="web-sc web-sc-ads">
+          <div class="web-sc-tag">● Anúncio · tráfego pago</div>
+          <div class="web-sc-big" id="web_scAdsN">—</div>
+          <div class="web-sc-sub">cadastros vindos de anúncio</div>
+          <div class="web-sc-row"><span>Investido</span><b id="web_scAdsInv">—</b></div>
+          <div class="web-sc-row"><span>Custo por cadastro</span><b id="web_scAdsCpl">—</b></div>
+        </div>
+        <div class="web-sc web-sc-org">
+          <div class="web-sc-tag">● Orgânico · sem mídia paga</div>
+          <div class="web-sc-big" id="web_scOrgN">378</div>
+          <div class="web-sc-sub">117 em novembro · sem testes/duplicados</div>
+          <div class="web-sc-row"><span>Investido</span><b>R$ 0</b></div>
+          <div class="web-sc-row"><span>Custo por cadastro</span><b>R$ 0</b></div>
+        </div>
+      </div>
+      <div class="web-split-note">Anúncio: dado ao vivo do Meta (acompanha o filtro de data). Orgânico: export do HotWebinar de 09/11 — total do período de captação (ainda não filtra por data; atualizar a cada novo export).</div>
+    </div>
+    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Anúncio · detalhe do tráfego pago</div>
     <div class="hf-kpi-strip cols-8">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="web_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="web_kpiImp">—</div></div>
@@ -1361,12 +1414,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Cadastro</div><div class="hf-kpi-value dash" id="web_kpiConv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="web_kpiFat">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="web_kpiRoas">—</div></div>
-    </div>
-    <div class="hf-table-label" style="margin:16px 0 8px;font-size:.92rem">Cadastros orgânicos <span style="color:var(--muted);font-weight:400">— fora de anúncio · fonte HotWebinar (export 09/11) · atualizar com o próximo export</span></div>
-    <div class="hf-kpi-strip" style="grid-template-columns:repeat(3,1fr)">
-      <div class="hf-kpi"><div class="hf-kpi-label">Orgânico · total</div><div class="hf-kpi-value" id="web_kpiOrgTot">378</div><div class="hf-kpi-ref">sala orgânica · out+nov · sem testes/duplicados</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Orgânico · novembro</div><div class="hf-kpi-value" id="web_kpiOrgNov">117</div><div class="hf-kpi-ref">inscrições de 01–09/11</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Pago com tag (utm)</div><div class="hf-kpi-value" id="web_kpiPagoTag">65</div><div class="hf-kpi-ref">utm_medium=paid_social · o resto chega sem tag</div></div>
     </div>
     <div class="hf-table-section">
       <div class="hf-table-label">Criativo (webinar)
@@ -3292,6 +3339,19 @@ async function loadWebinar(){
       ['web_kpiFat',   T.faturamento>0?BRL(T.faturamento):'—'],
       ['web_kpiRoas',  ROAS(T.investido&&T.faturamento>0? T.faturamento/T.investido : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
+    // ── Anúncio × Orgânico (orgânico = export HotWebinar; ATUALIZAR aqui a cada export) ──
+    const ORG_TOT = 378, ORG_NOV = 117;   // 09/11/2026 · sala orgânica, sem testes/duplicados
+    const _adsN = T.leads || 0, _tot = _adsN + ORG_TOT;
+    const _pct0 = v => v.toLocaleString('pt-BR',{maximumFractionDigits:0})+'%';
+    const _adsPct = _tot? _adsN/_tot*100 : 0, _orgPct = _tot? ORG_TOT/_tot*100 : 100;
+    setEl('web_splitTotal', NUM(_tot));
+    setEl('web_splitAdsN', NUM(_adsN)); setEl('web_splitOrgN', NUM(ORG_TOT));
+    setEl('web_splitAdsPct', ' ('+_pct0(_adsPct)+')'); setEl('web_splitOrgPct', ' ('+_pct0(_orgPct)+')');
+    const _bA=document.getElementById('web_barAds'), _bO=document.getElementById('web_barOrg');
+    if(_bA) _bA.style.width=_adsPct+'%'; if(_bO) _bO.style.width=_orgPct+'%';
+    setEl('web_scAdsN', NUM(_adsN)); setEl('web_scOrgN', NUM(ORG_TOT));
+    setEl('web_scAdsInv', BRL(T.investido));
+    setEl('web_scAdsCpl', T.leads? BRL(T.investido/T.leads) : '—');
     window._webdata = por_criativo;
     if (window._websortKey == null){ window._websortKey = 'investido'; window._websortDir = -1; }
     _webRenderTable();
