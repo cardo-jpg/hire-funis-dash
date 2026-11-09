@@ -709,6 +709,16 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     .web-funnel td:first-child{color:rgba(255,255,255,.72);}
     .web-funnel tr:hover td{background:rgba(255,255,255,.02);}
     .web-funnel .num.org{color:#34d399;font-weight:700;} .web-funnel .num.ads{color:#a78bfa;font-weight:700;}
+    /* Hire-X · destaque CRM (rastreio quebrado) */
+    .hx-crm{background:#2a1f12;border:1px solid #6b4a1e;border-radius:14px;padding:16px 18px;margin:4px 0 16px;}
+    .hx-crm-head{font-weight:800;color:#f5b84a;font-size:.95rem;margin-bottom:12px;}
+    .hx-crm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+    .hx-crm-grid .lbl{font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);}
+    .hx-crm-grid .val{font-family:'Bricolage Grotesque',sans-serif;font-size:1.7rem;font-weight:800;color:#fff;line-height:1.15;}
+    .hx-crm-grid .val.good{color:#34d399;} .hx-crm-grid .val.bad{color:#f87171;}
+    .hx-crm-note{font-size:.72rem;color:rgba(255,255,255,.55);margin-top:12px;line-height:1.45;}
+    .hx-crm-note b{color:#34d399;}
+    @media(max-width:620px){.hx-crm-grid{grid-template-columns:1fr 1fr;}}
     .metric-ruim { color:#f87171 !important; }
     .metric-medio { color:#fbbf24 !important; }
     .metric-bom { color:#4ade80 !important; }
@@ -1442,6 +1452,17 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Hire-X ── -->
   <div id="viewHirex" style="display:none">
     <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Hire-X <span style="color:var(--muted);font-weight:400">— análise do LinkedIn · Lead no WhatsApp</span></div>
+    <div class="hx-crm">
+      <div class="hx-crm-head">⚠️ Lead real do CRM — o Meta está marcando errado</div>
+      <div class="hx-crm-grid">
+        <div><div class="lbl">Leads reais (CRM · nov)</div><div class="val good">52</div></div>
+        <div><div class="lbl">Marcado no Meta</div><div class="val bad">1</div></div>
+        <div><div class="lbl">Investido (nov)</div><div class="val">R$ 558</div></div>
+        <div><div class="lbl">CPA real</div><div class="val good">R$ 10,74</div></div>
+      </div>
+      <div class="hx-crm-note">O Gerenciador mostra ~R$ 558/lead porque o pixel só registra 1 de cada 52 leads. O custo verdadeiro é <b>R$ 10,74/lead</b> — a campanha estava indo bem. Rastreio a corrigir (GTM/CAPI). Fonte: Clint · US$ 105,33 (~R$ 558) · atualizar mensal.</div>
+    </div>
+    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Meta Ads · marcação atual (subestimada pelo rastreio)</div>
     <div class="hf-kpi-strip cols-8">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="hx_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="hx_kpiImp">—</div></div>
