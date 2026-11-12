@@ -1214,6 +1214,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="hf-tab" data-tab="hirex" onclick="setTab(this)">Hire-X</button>
     <button class="hf-tab" data-tab="ebooks" onclick="setTab(this)" style="display:none">E-books</button>
     <button class="hf-tab" data-tab="corredor" onclick="setTab(this)">Video View</button>
+    <button class="hf-tab" data-tab="perfilHire" onclick="setTab(this)">Perfil Hire</button>
     <button class="hf-tab" data-tab="site" onclick="setTab(this)">Site</button>
     <button class="hf-tab" data-tab="webinar" onclick="setTab(this)">Webinar</button>
     <button class="hf-tab" data-tab="youtube" onclick="setTab(this)">YouTube</button>
@@ -1387,6 +1388,81 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     </div>
 
   </div><!-- /viewCorredor -->
+
+  <!-- ── Perfil Hire (aba "Perfil Hire" · Reconhecimento do perfil da Hire) ── -->
+  <div id="viewPerfilHire" style="display:none">
+
+    <div class="hf-table-label" style="margin:4px 0 10px;font-size:1rem">Fase 1 · Reconhecimento <span style="color:var(--muted);font-weight:400">— perfil da Hire (hooke / retenção)</span></div>
+
+    <!-- 7-col KPI strip -->
+    <div class="hf-kpi-strip cols-7">
+      <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="ph_kpiInv">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Visualizações</div><div class="hf-kpi-value dash" id="ph_kpiVis">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Hooke Rate</div><div class="hf-kpi-value dash" id="ph_kpiHooke">—</div><div class="hf-kpi-ref">ruim &lt;30% · médio 30–45% · bom 45–60% · ótimo &gt;60%</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Retenção</div><div class="hf-kpi-value dash" id="ph_kpiRet">—</div><div class="hf-kpi-ref">ruim &lt;20% · médio 20–35% · bom 35–50% · ótimo &gt;50%</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="ph_kpiImp">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="ph_kpiCli">—</div></div>
+      <div class="hf-kpi"><div class="hf-kpi-label">CPM</div><div class="hf-kpi-value dash" id="ph_kpiCpm">—</div></div>
+    </div>
+
+    <!-- Line chart -->
+    <div class="hf-chart-wrap">
+      <div class="hf-chart-title">Visualizações</div>
+      <div class="hf-chart-canvas-wrap">
+        <canvas id="perfilHireChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Tabela por Campanha -->
+    <div class="hf-table-section">
+      <div class="hf-table-label">Campanha</div>
+      <div class="hf-table-wrap">
+        <table class="hf-table">
+          <thead>
+            <tr>
+              <th>Campanha</th>
+              <th class="num">Investido</th>
+              <th class="num">Alcance</th>
+              <th class="num">Vis. 3s</th>
+              <th class="num">Cliques</th>
+              <th class="num">CPM</th>
+              <th class="num">Retenção</th>
+            </tr>
+          </thead>
+          <tbody id="phCampTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tabela por Criativo -->
+    <div class="hf-table-section">
+      <div class="hf-table-label">Criativo</div>
+      <div class="hf-table-wrap">
+        <table class="hf-table">
+          <thead>
+            <tr>
+              <th>Criativo</th>
+              <th>Status</th>
+              <th class="num">Investido</th>
+              <th class="num">Alcance</th>
+              <th class="num">Vis. 3s</th>
+              <th class="num">Cliques</th>
+              <th class="num">CPM</th>
+              <th class="num">Hooke</th>
+              <th class="num">Retenção</th>
+              <th>Ação</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="phCriTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Fase 2 do perfil Hire: em breve (José avisou) -->
+    <div class="hf-table-label" style="margin:28px 0 10px;font-size:1rem">Fase 2 <span style="color:var(--muted);font-weight:400">— em breve</span></div>
+
+  </div><!-- /viewPerfilHire -->
 
   <!-- ── Webinar (Masterclass · cadastros) ── -->
   <div id="viewWebinar" style="display:none">
@@ -2202,6 +2278,7 @@ function setTab(btn) {
   document.getElementById('viewAudiencia').style.display = state.tab === 'audiencia' ? '' : 'none';
   document.getElementById('viewEbooks').style.display    = state.tab === 'ebooks'    ? '' : 'none';
   document.getElementById('viewCorredor').style.display  = state.tab === 'corredor'  ? '' : 'none';
+  document.getElementById('viewPerfilHire').style.display = state.tab === 'perfilHire' ? '' : 'none';
   document.getElementById('viewSite').style.display      = state.tab === 'site'      ? '' : 'none';
   document.getElementById('viewYoutube').style.display   = state.tab === 'youtube'   ? '' : 'none';
   document.getElementById('viewYoutubeHire').style.display = state.tab === 'youtubeHire' ? '' : 'none';
@@ -2218,6 +2295,7 @@ async function loadCurrent() {
   else if (state.tab === 'estrategia') loadEstrategia();
   else if (state.tab === 'ebooks')   { if (!_lastGeral) await loadGeral(); renderEbooks2(); }
   else if (state.tab === 'corredor') loadCorredor();
+  else if (state.tab === 'perfilHire') loadPerfilHire();
   else if (state.tab === 'site')     loadSite();
   else if (state.tab === 'youtube')  loadYoutube('malu');
   else if (state.tab === 'youtubeHire') loadYoutube('hire');
@@ -3513,6 +3591,204 @@ function _hxSort(k){
   if (window._hxsortKey===k) window._hxsortDir = -(window._hxsortDir || -1);
   else { window._hxsortKey = k; window._hxsortDir = -1; }
   _hxRenderTable();
+}
+
+// ── Perfil Hire (aba "Perfil Hire" · Reconhecimento do perfil da Hire, HIRE_FB04) ──
+// Mesma aba-modelo/colunas da Video View Malu. Conta é US$ -> R$. Sem Fase 2 (vem depois).
+let _loadingPH = false, _phChart = null;
+
+async function buildPerfilHireData(){
+  _resetRange();
+  const t = await gvizLoadFrom(SHEET_ID, 'gid=' + GIDS.video_view_hire + '&_cb=' + Date.now());
+  const allRows = gvRows(t, {
+    campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:4,str:true},
+    investido:5, impressoes:6, visualizacoes:7, alcance:8, vis3s:9,
+    ret25:11, ret75:12, cliques:13, status:{i:15,str:true}
+  });
+  const rows = allRows.filter(r => /reconhecimento/i.test(r.campanha || ''));  // fase 1; fase 2 futura fica fora
+  const w = window30(rows); _trackRange(w); updateRangeLabel();
+  const win = w.rows;
+  for (const r of win) r.investido = r.investido * YT_USD_BRL;   // conta é US$
+
+  const _hook = (v3s, imp) => { const r=_safeDiv(v3s, imp); return r==null?null:r*100; };
+  const _ret  = (r75, r25) => { const r=_safeDiv(r75, r25); return r==null?null:r*100; };
+  const _cpm  = (inv, imp) => { const r=_safeDiv(inv, imp); return r==null?null:r*1000; };
+
+  // por criativo (status real: Ativo se QUALQUER linha do criativo estiver ACTIVE)
+  const byCri = {};
+  for (const r of win){
+    const key = r.criativo || '—';
+    const o = byCri[key] || (byCri[key] = { criativo:key, campanha:r.campanha, url:r.url, ativo:false,
+      investido:0, impressoes:0, visualizacoes:0, alcance:0, vis3s:0, ret25:0, ret75:0, cliques:0 });
+    o.investido+=r.investido; o.impressoes+=r.impressoes; o.visualizacoes+=r.visualizacoes;
+    o.alcance+=r.alcance; o.vis3s+=r.vis3s; o.ret25+=r.ret25; o.ret75+=r.ret75; o.cliques+=r.cliques;
+    if (!o.url && r.url) o.url = r.url;
+    if (r.status && /activ/i.test(r.status)) o.ativo = true;
+  }
+  const por_criativo = Object.values(byCri).map(o => {
+    const hooke = _hook(o.vis3s, o.impressoes), retencao = _ret(o.ret75, o.ret25);
+    return { criativo:o.criativo, status:(o.ativo?'Ativo':'Pausado'), url:o.url,
+      investido:o.investido, alcance:o.alcance, vis3s:o.vis3s, cliques:o.cliques,
+      cpm:_cpm(o.investido,o.impressoes), hooke, retencao,
+      acao:_vvClassAcao(hooke, retencao, o.vis3s) };
+  }).sort((a,b)=> b.investido - a.investido);
+
+  // por campanha
+  const byCamp = {};
+  for (const r of win){
+    const key = r.campanha || '—';
+    const o = byCamp[key] || (byCamp[key] = { campanha:key, investido:0, impressoes:0, alcance:0, vis3s:0, ret25:0, ret75:0, cliques:0 });
+    o.investido+=r.investido; o.impressoes+=r.impressoes; o.alcance+=r.alcance;
+    o.vis3s+=r.vis3s; o.ret25+=r.ret25; o.ret75+=r.ret75; o.cliques+=r.cliques;
+  }
+  const por_campanha = Object.values(byCamp).map(o => ({
+    campanha:o.campanha, investido:o.investido, alcance:o.alcance, vis3s:o.vis3s, cliques:o.cliques,
+    cpm:_cpm(o.investido,o.impressoes), retencao:_ret(o.ret75,o.ret25)
+  })).sort((a,b)=> b.investido - a.investido);
+
+  const T = win.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes;
+    a.visualizacoes+=r.visualizacoes; a.vis3s+=r.vis3s; a.ret25+=r.ret25; a.ret75+=r.ret75; a.cliques+=r.cliques; return a; },
+    {investido:0,impressoes:0,visualizacoes:0,vis3s:0,ret25:0,ret75:0,cliques:0});
+  const kpis = { investido:T.investido, visualizacoes:T.visualizacoes, impressoes:T.impressoes,
+    cliques:T.cliques, hooke_rate:_hook(T.vis3s,T.impressoes), retencao:_ret(T.ret75,T.ret25), cpm:_cpm(T.investido,T.impressoes) };
+
+  const byDay = {};
+  for (const r of win){
+    const iso = `${r.date.getFullYear()}-${String(r.date.getMonth()+1).padStart(2,'0')}-${String(r.date.getDate()).padStart(2,'0')}`;
+    byDay[iso] = (byDay[iso]||0) + (r.visualizacoes||0);
+  }
+  const serie_diaria = Object.keys(byDay).sort().map(iso => ({ date:iso, vis:byDay[iso] }));
+
+  return { kpis, serie_diaria, por_campanha, por_criativo };
+}
+
+async function loadPerfilHire() {
+  if (_loadingPH) return;
+  _loadingPH = true;
+  const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
+  if (btn) btn.classList.add('loading');
+  if (icon) icon.textContent = '↻';
+  document.getElementById('errorBanner').style.display = 'none';
+  try {
+    const d = await buildPerfilHireData();
+    const inj = document.querySelector('#viewPerfilHire .hf-empty-injected');
+    if (inj) inj.remove();
+    if (!d.por_criativo.length) {
+      _hfShowEmpty('viewPerfilHire', 'Sem dados do perfil Hire no período selecionado. A aba "Perfil Hire" da planilha não tem linhas nesse intervalo.');
+    } else {
+      renderPerfilHire(d);
+    }
+    document.getElementById('lastUpdate').textContent =
+      'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    const b = document.getElementById('errorBanner');
+    b.textContent = 'Erro ao carregar Perfil Hire: ' + e.message;
+    b.style.display = 'block';
+  } finally {
+    _loadingPH = false;
+    if (btn) btn.classList.remove('loading');
+    if (icon) icon.textContent = '↻';
+  }
+}
+
+function renderPerfilHire(d) {
+  const k = d.kpis || {};
+  const PCT = v => v == null ? '—' : v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+  function _hookeClass(v){ if(v==null)return''; if(v>=60)return'metric-otimo'; if(v>=45)return'metric-bom'; if(v>=30)return'metric-medio'; return'metric-ruim'; }
+  function _retClass(v){ if(v==null)return''; if(v>=50)return'metric-otimo'; if(v>=35)return'metric-bom'; if(v>=20)return'metric-medio'; return'metric-ruim'; }
+  function _applyMetricClass(el, cls){ if(!el)return; el.classList.remove('metric-ruim','metric-medio','metric-bom','metric-otimo','good'); el.style.color=''; if(cls) el.classList.add(cls); }
+
+  [ ['ph_kpiInv',   BRL(k.investido)],
+    ['ph_kpiVis',   NUM(k.visualizacoes)],
+    ['ph_kpiHooke', PCT(k.hooke_rate)],
+    ['ph_kpiRet',   PCT(k.retencao)],
+    ['ph_kpiImp',   NUM(k.impressoes)],
+    ['ph_kpiCli',   NUM(k.cliques)],
+    ['ph_kpiCpm',   BRL(k.cpm)],
+  ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
+  _applyMetricClass(document.getElementById('ph_kpiHooke'), _hookeClass(k.hooke_rate));
+  _applyMetricClass(document.getElementById('ph_kpiRet'),   _retClass(k.retencao));
+
+  // Chart
+  const serie = d.serie_diaria || [];
+  const labels = serie.map(s => { const [y,m,dd]=s.date.split('-'); return `${dd}/${m}`; });
+  const data = serie.map(s => s.vis);
+  const canvas = document.getElementById('perfilHireChart');
+  if (_phChart){ _phChart.destroy(); _phChart = null; }
+  if (canvas && serie.length){
+    _phChart = new Chart(canvas, {
+      type:'line',
+      data:{ labels, datasets:[{ data, borderColor:'#a855c8', backgroundColor:'rgba(168,85,200,.12)', borderWidth:2, pointRadius:3, pointHoverRadius:5, pointBackgroundColor:'#a855c8', fill:true, tension:0.3 }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + ctx.parsed.y.toLocaleString('pt-BR') + ' vis.' } } },
+        scales:{ x:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'rgba(255,255,255,.4)',font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:14} },
+                 y:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'rgba(255,255,255,.4)',font:{size:10}} } }
+      }
+    });
+  }
+
+  const _hC = v => { const c=_hookeClass(v); return c?`<span class="${c}">${PCT(v)}</span>`:PCT(v); };
+  const _rC = v => { const c=_retClass(v);   return c?`<span class="${c}">${PCT(v)}</span>`:PCT(v); };
+
+  // Campanha table
+  const camps = d.por_campanha || [];
+  const totC = camps.reduce((a,r)=>{ a.inv+=r.investido; a.vis3s+=r.vis3s; a.cli+=r.cliques; return a; }, {inv:0,vis3s:0,cli:0});
+  let htmlC = camps.map(r => `
+    <tr>
+      <td class="camp-name" title="${r.campanha}">${r.campanha}</td>
+      <td class="num">${BRL(r.investido)}</td>
+      <td class="num">${NUM(r.alcance)}</td>
+      <td class="num">${NUM(r.vis3s)}</td>
+      <td class="num">${NUM(r.cliques)}</td>
+      <td class="num">${BRL(r.cpm)}</td>
+      <td class="num">${_rC(r.retencao)}</td>
+    </tr>`).join('');
+  htmlC += `<tr class="total-row">
+    <td>Total geral</td>
+    <td class="num">${BRL(totC.inv)}</td>
+    <td class="num">—</td>
+    <td class="num">${NUM(totC.vis3s)}</td>
+    <td class="num">${NUM(totC.cli)}</td>
+    <td class="num">${BRL(k.cpm)}</td>
+    <td class="num">${PCT(k.retencao)}</td>
+  </tr>`;
+  document.getElementById('phCampTbody').innerHTML = htmlC;
+
+  // Criativo table
+  const cris = d.por_criativo || [];
+  const totR = cris.reduce((a,r)=>{a.inv+=r.investido;a.vis3s+=r.vis3s;a.cli+=r.cliques;return a;},{inv:0,vis3s:0,cli:0});
+  const ACAO_CLS = { 'Ruim':'acao-ruim', 'Amostra básica':'acao-amostra', 'Aguardar dados':'acao-aguardar', 'Escalar':'acao-escalar' };
+  let htmlR = cris.map(r => {
+    const cls = ACAO_CLS[r.acao] || 'acao-amostra';
+    const btn = r.url ? `<a class="link-anuncio-btn" href="${r.url}" target="_blank">↗ Anúncio</a>` : '—';
+    const stCls = r.status === 'Ativo' ? 'status-ativo' : 'status-pausado';
+    return `<tr>
+      <td class="cri-name" title="${r.criativo}">${r.criativo}</td>
+      <td><span class="${stCls}">${r.status}</span></td>
+      <td class="num">${BRL(r.investido)}</td>
+      <td class="num">${NUM(r.alcance)}</td>
+      <td class="num">${NUM(r.vis3s)}</td>
+      <td class="num">${NUM(r.cliques)}</td>
+      <td class="num">${BRL(r.cpm)}</td>
+      <td class="num">${_hC(r.hooke)}</td>
+      <td class="num">${_rC(r.retencao)}</td>
+      <td><span class="acao-badge ${cls}">${r.acao}</span></td>
+      <td>${btn}</td>
+    </tr>`;
+  }).join('');
+  htmlR += `<tr class="total-row">
+    <td>Total geral</td>
+    <td></td>
+    <td class="num">${BRL(totR.inv)}</td>
+    <td class="num">—</td>
+    <td class="num">${NUM(totR.vis3s)}</td>
+    <td class="num">${NUM(totR.cli)}</td>
+    <td class="num">${BRL(k.cpm)}</td>
+    <td class="num">${_hC(k.hooke_rate)}</td>
+    <td class="num">${PCT(k.retencao)}</td>
+    <td></td><td></td>
+  </tr>`;
+  document.getElementById('phCriTbody').innerHTML = htmlR;
 }
 
 function renderCorredor(d) {
@@ -4823,7 +5099,7 @@ loadBudgetMatrix().then(() => {
 // ── Backend (Apps Script publicado em conta pessoal — acesso anônimo liberado) ──
 const NOTAS_API = 'https://script.google.com/macros/s/AKfycbwIk3uTPQfeKQNJbfna0odpsqmXNYPODiYD-jHw9TumxK2aZ6dsb5KJVBdEaVyrtymf5g/exec';
 const DASH_NOMES = { geral:'Geral', estrategia:'Estratégia', audiencia:'Audiência', ebook7:'Ebook 7 Erros',
-  ebookRemoto:'Ebook Remoto', latam:'LATAM', hirex:'Hire-X', corredor:'Video View', site:'Site',
+  ebookRemoto:'Ebook Remoto', latam:'LATAM', hirex:'Hire-X', corredor:'Video View', perfilHire:'Perfil Hire', site:'Site',
   webinar:'Webinar', youtube:'YouTube Malu', youtubeHire:'YouTube Hire', ebooks:'E-books' };
 let _ntSeg = 'notas', _ntChatHist = [];
 
@@ -4836,7 +5112,7 @@ function _ntData(ts){
 }
 // Texto visível da aba ativa, pra alimentar a IA.
 function _ntContexto(){
-  const ids=['viewGeral','viewEstrategia','viewAudiencia','viewEbooks','viewCorredor','viewSite',
+  const ids=['viewGeral','viewEstrategia','viewAudiencia','viewEbooks','viewCorredor','viewPerfilHire','viewSite',
     'viewYoutube','viewYoutubeHire','viewEbook7','viewEbookRemoto','viewLatam','viewWebinar','viewHirex'];
   let el=null;
   for(const id of ids){ const e=document.getElementById(id); if(e && e.style.display!=='none'){ el=e; break; } }
