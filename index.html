@@ -1701,6 +1701,7 @@ const GIDS = {
   youtube:'1098222347', youtube_ads:'400478401', budget:'1387283031',
   youtube_hire_ads:'587346590',   // aba "Youtube HIRE" (Google Ads · canal Hire)
   video_view:'1864681166',        // aba "Video View" (Reconhecimento · IG Malu)
+  video_view_hire:'1637475227',   // aba "Perfil Hire" (Reconhecimento · perfil da Hire, HIRE_FB04)
 };
 
 let _gvizCache = {};
@@ -2574,6 +2575,17 @@ async function loadGeral() {
       fVV = { investido: invVV, seguidores: visVV, custo_seguidor: _safeDiv(invVV, visVV), vendas:null, faturamento:null, roas:null };
     } catch(e){ console.warn('Video View indisponível:', e); }
 
+    // Fase 1 · Perfil Hire — reconhecimento do PERFIL da Hire (HIRE_FB04). Mesmo layout/aba-modelo da Video View Malu. Conta é US$ -> R$.
+    let fVVHire = {};
+    try {
+      const rVH = gvRows(await gvizLoadFrom(SHEET_ID, 'gid=' + GIDS.video_view_hire + '&_cb=' + Date.now()), { campanha:{i:1,str:true}, investido:5, visualizacoes:7 });
+      const rVHf1 = rVH.filter(r => /reconhecimento/i.test(r.campanha || ''));  // só fase 1 (quando a fase 2 chegar, vive na mesma aba e não entra aqui)
+      const wVH = window30(rVHf1);
+      const invVH = gvSum(wVH.rows,'investido') * YT_USD_BRL;   // conta é US$
+      const visVH = gvSum(wVH.rows,'visualizacoes');
+      fVVHire = { investido: invVH, visualizacoes: visVH, custo_visualizacao: _safeDiv(invVH, visVH), vendas:null, faturamento:null, roas:null };
+    } catch(e){ console.warn('Fase 1 Perfil Hire indisponível:', e); }
+
     // UGC Latam — funil de vendas em vídeo (aba UGC do funis). Conta é US$ -> R$.
     let fUGC = {};
     try {
@@ -2633,7 +2645,7 @@ async function loadGeral() {
     // Colunas da Geral (todos os funis + fase 2)
     const cols = {
       ig_malu: fMalu, ig_hire: fHire, ig_int: fInt, youtube: fYt, site: fSite,
-      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, ugc: fUGC, webinar: fWebinar, ebook_latam: fLatam, hire_x: fHireX, fase2: fFase2,
+      eb_7erros: f7, eb_cr: fcr, 'youtube hire': fYtHire, 'Video View Malu': fVV, vv_hire: fVVHire, ugc: fUGC, webinar: fWebinar, ebook_latam: fLatam, hire_x: fHireX, fase2: fFase2,
     };
     // Webinar, Hire-X e Fase 2 agora têm venda → entram no total (igual aos demais).
     funis.push(['Webinar', fWebinar], ['Hire-X', fHireX], ['Fase 2', fFase2]);
@@ -2734,6 +2746,7 @@ const _BUDGET_FIXO = {
   // 'site' segue a planilha (800) — não recebeu +500.
   'Video View Malu': 1600,      // Fase 1 · reconhecimento (ganhou +500)
   'fase2': 1100,                // Fase 2 · WhatsApp recon (card próprio, chave 'fase2')
+  'vv_hire': 1600,              // Fase 1 · Perfil Hire — mesma verba da Malu (pedido do José 12/11/2026)
 };
 
 // Budget de um canal: valor fixado no código tem prioridade; senão, planilha
@@ -2765,6 +2778,7 @@ const DEFS_ALL = [
   ['youtube',  '🎥', 'Inscritos YouTube',  'Youtube_Malu',                      'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['youtube hire','🎥','YouTube Hire',     'Youtube Hire Brazil',               'Inscritos',        'Custo por Inscrito', 'youtube'],
   ['fase2',    '💬', 'Fase 2 · WhatsApp',  'Retargeting da Fase 1 · Lead no Whats','Leads',          'Custo por Lead',     'ebook'],
+  ['vv_hire',  '👤', 'Fase 1 · Perfil Hire','Reconhecimento · perfil da Hire',     'Visualizações',    'Custo / visualização','videoview'],
   ['webinar',  '🎓', 'Webinário',          'Masterclass · cadastros (Hot)',     'Cadastros',        'Custo por Cadastro', 'ebook'],
   ['site',     '🌐', 'Acessos no Site',    'hire brazil - ads - popup - site',  'Conversões',       'CPA',                'site'],
   ['eb_7erros','📕', 'Ebook 7 Erros',         'Cadastro · LinkedIn',           'Leads',            'Custo por Lead',     'ebook'],
@@ -2813,6 +2827,11 @@ function funnelCardsHTML(cols, matrix, defs){
       const vis = (f.visitas != null) ? f.visitas : null;
       audVal   = (vis != null) ? NUM(vis) : '—';
       const cpv = _safeDiv(f.investido, vis);
+      custoVal = (cpv != null) ? BRL(cpv) : '—';
+    } else if (kind === 'videoview'){
+      const vis = (f.visualizacoes != null) ? f.visualizacoes : null;
+      audVal   = (vis != null) ? NUM(vis) : '—';
+      const cpv = (f.custo_visualizacao != null) ? f.custo_visualizacao : _safeDiv(f.investido, vis);
       custoVal = (cpv != null) ? BRL(cpv) : '—';
     }
     const budInput = (bud != null)
