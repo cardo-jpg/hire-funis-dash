@@ -1528,17 +1528,17 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Hire-X ── -->
   <div id="viewHirex" style="display:none">
     <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Hire-X <span style="color:var(--muted);font-weight:400">— análise do LinkedIn · Lead no WhatsApp</span></div>
-    <div class="hx-crm">
-      <div class="hx-crm-head">⚠️ Lead real do CRM — o Meta está marcando errado</div>
+    <div class="hx-crm" style="border-color:rgba(143,209,158,.4);background:rgba(143,209,158,.08)">
+      <div class="hx-crm-head" style="color:#8fd19e">✅ Rastreio corrigido via CAPI (Clint → Meta)</div>
       <div class="hx-crm-grid">
-        <div><div class="lbl">Leads reais (CRM · nov)</div><div class="val good">52</div></div>
-        <div><div class="lbl">Marcado no Meta</div><div class="val bad">1</div></div>
-        <div><div class="lbl">Investido (nov)</div><div class="val">R$ 558</div></div>
-        <div><div class="lbl">CPA real</div><div class="val good">R$ 10,74</div></div>
+        <div><div class="lbl">Leads reais (Clint · nov)</div><div class="val good">279</div></div>
+        <div><div class="lbl">Marcado no Meta (CAPI)</div><div class="val good">181</div></div>
+        <div><div class="lbl">Investido (nov)</div><div class="val">R$ 971</div></div>
+        <div><div class="lbl">CPA real</div><div class="val good">R$ 3,48</div></div>
       </div>
-      <div class="hx-crm-note">O Gerenciador mostra ~R$ 558/lead porque o pixel só registra 1 de cada 52 leads. O custo verdadeiro é <b>R$ 10,74/lead</b> — a campanha estava indo bem. Rastreio a corrigir (GTM/CAPI). Fonte: Clint · US$ 105,33 (~R$ 558) · atualizar mensal.</div>
+      <div class="hx-crm-note">Antes o pixel marcava só <b>1 de cada 52</b> leads (a CSP da LP bloqueava o Facebook). Com o ajuste da CSP + o CAPI (Clint → Meta), o Gerenciador já registra <b>181 de 279</b> leads reais (65%). CPA real <b>R$ 3,48/lead</b>. Fonte: Clint + Meta · atualizar mensal.</div>
     </div>
-    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Meta Ads · marcação atual (subestimada pelo rastreio)</div>
+    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Meta Ads · o que a planilha Stract puxou (ainda defasada — os números reais estão no quadro verde acima)</div>
     <div class="hf-kpi-strip cols-8">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="hx_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="hx_kpiImp">—</div></div>
