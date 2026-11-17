@@ -1471,19 +1471,19 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <div class="web-split-head">
         <div>
           <div class="web-split-total-lbl">Inscritos no webinário · Masterclass</div>
-          <div class="web-split-total">335</div>
+          <div class="web-split-total">413</div>
         </div>
         <div class="web-split-legend">
-          <span><i class="dot org"></i>Orgânico <b>262</b><em>(78%)</em></span>
-          <span><i class="dot ads"></i>Anúncio <b>73</b><em>(22%)</em></span>
+          <span><i class="dot org"></i>Orgânico <b>343</b><em>(83%)</em></span>
+          <span><i class="dot ads"></i>Anúncio <b>70</b><em>(17%)</em></span>
         </div>
       </div>
-      <div class="web-bar"><div class="web-bar-org" style="width:78%"></div><div class="web-bar-ads" style="width:22%"></div></div>
+      <div class="web-bar"><div class="web-bar-org" style="width:83%"></div><div class="web-bar-ads" style="width:17%"></div></div>
       <table class="web-funnel">
         <thead><tr><th>Etapa do webinário</th><th class="num">Orgânico</th><th class="num">Anúncio</th><th class="num">Total</th></tr></thead>
         <tbody id="webFunnelBody"></tbody>
       </table>
-      <div class="web-split-note">Fonte: HotWebinar · período 12/08–09/11 · salas ORG e ADS da Masterclass. "Comprou" ainda não integra no HotWebinar (vem do checkout/Camila). Números manuais — atualizar a cada novo print do HotWebinar.</div>
+      <div class="web-split-note">Fonte: HotWebinar · até 16/11/2026 · salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass. "Comprou" ainda não integra no HotWebinar (vem do checkout/Camila). Números manuais — atualizar a cada novo print do HotWebinar.</div>
     </div>
     <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Anúncio · custo e entrega no Meta</div>
     <div class="hf-kpi-strip cols-8">
@@ -3422,17 +3422,17 @@ function _f2sort(k){
 // Colunas: Date,Campanha,Publico,Criativo,URL,Investido(USD),Impressoes,Cliques,Leads,Visualizacoes_LP,Status,Custo real(BRL),Dólar
 const WEBINAR_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', WEBINAR_GID = '423386316';
 // ── Funil do webinário (HotWebinar · MANUAL — atualizar a cada print; [etapa, org, ads]) ──
-// Fonte: prints HotWebinar 09/11/2026, salas ORG e ADS da Masterclass, período 12/08–09/11.
+// Fonte: prints HotWebinar 16/11/2026, salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass.
 const WEB_FUNNEL = [
-  ['Visitantes (LP)',        286, 76],
-  ['Inscritos',              262, 73],
-  ['Compareceram (ao vivo)', 243, 71],
-  ['Assistiu 15 min',        142, 30],
-  ['Assistiu 30 min',        125, 27],
-  ['Assistiu 45 min',         99, 25],
-  ['Estava no pitch',        113, 26],
-  ['Estava na oferta',        99, 26],
-  ['Clicou na oferta',        45,  8],
+  ['Visitantes (LP)',        370, 74],
+  ['Inscritos',              343, 70],
+  ['Compareceram (ao vivo)', 320, 68],
+  ['Assistiu 15 min',        185, 26],
+  ['Assistiu 30 min',        160, 24],
+  ['Assistiu 45 min',        128, 20],
+  ['Estava no pitch',        144, 22],
+  ['Estava na oferta',       128, 20],
+  ['Clicou na oferta',        58, 10],
   ['Comprou',               null, null],
 ];
 function renderWebFunnel(){
