@@ -1528,17 +1528,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- ── Hire-X ── -->
   <div id="viewHirex" style="display:none">
     <div class="hf-table-label" style="margin:4px 0 14px;font-size:1rem">Hire-X <span style="color:var(--muted);font-weight:400">— análise do LinkedIn · Lead no WhatsApp</span></div>
-    <div class="hx-crm" style="border-color:rgba(143,209,158,.4);background:rgba(143,209,158,.08)">
-      <div class="hx-crm-head" style="color:#8fd19e">✅ Rastreio corrigido via CAPI (Clint → Meta)</div>
-      <div class="hx-crm-grid">
-        <div><div class="lbl">Leads reais (Clint · nov)</div><div class="val good">279</div></div>
-        <div><div class="lbl">Marcado no Meta (CAPI)</div><div class="val good">181</div></div>
-        <div><div class="lbl">Investido (nov)</div><div class="val">R$ 971</div></div>
-        <div><div class="lbl">CPA real</div><div class="val good">R$ 3,48</div></div>
-      </div>
-      <div class="hx-crm-note">Antes o pixel marcava só <b>1 de cada 52</b> leads (a CSP da LP bloqueava o Facebook). Com o ajuste da CSP + o CAPI (Clint → Meta), o Gerenciador já registra <b>181 de 279</b> leads reais (65%). CPA real <b>R$ 3,48/lead</b>. Fonte: Clint + Meta · atualizar mensal.</div>
-    </div>
-    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Meta Ads · o que a planilha Stract puxou (ainda defasada — os números reais estão no quadro verde acima)</div>
+    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Meta Ads · últimos 30 dias</div>
     <div class="hf-kpi-strip cols-8">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="hx_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="hx_kpiImp">—</div></div>
@@ -2696,16 +2686,13 @@ async function loadGeral() {
       fLatam = { investido: sl.rows.reduce((s,r)=>s+(r.inv||0),0), leads: sl.rows.reduce((s,r)=>s+(r.leads||0),0) };
     } catch(e){ console.warn('Ebook Latam indisponível:', e); }
 
-    // Hire-X — funil novo (análise do LinkedIn → Lead no WhatsApp). Stract gid 1436932728, mesmo layout da Fase 2.
+    // Hire-X — V2 ao vivo do Meta (constante HIREX_V2, conta US$). A Stract só puxava a V1 morta.
     let fHireX = {};
     try {
-      const rX = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1436932728&_cb=' + Date.now()),
-        { investido:4, impressoes:5, cliques:6, leads:7, vendas:10, faturamento:11 });
-      const wX = window30(rX);
-      const invX = gvSum(wX.rows,'investido'), fatX = gvSum(wX.rows,'faturamento'), vendX = gvSum(wX.rows,'vendas');
-      fHireX = { investido: invX, leads: gvSum(wX.rows,'leads'),
-        impressoes: gvSum(wX.rows,'impressoes'), cliques: gvSum(wX.rows,'cliques'),
-        vendas: vendX||0, faturamento: fatX>0?fatX:null, roas: (invX&&fatX>0)? fatX/invX : null };
+      const invX = HIREX_V2.reduce((s,o)=>s + o.usd*YT_USD_BRL, 0);
+      fHireX = { investido: invX, leads: HIREX_V2.reduce((s,o)=>s+o.leads,0),
+        impressoes: HIREX_V2.reduce((s,o)=>s+o.impressoes,0), cliques: HIREX_V2.reduce((s,o)=>s+o.cliques,0),
+        vendas: 0, faturamento: null, roas: null };
     } catch(e){ console.warn('Hire-X indisponível:', e); }
 
     // Fase 2 · WhatsApp (recon) — fonte própria gid 1327644415 (conta Malu é US$).
@@ -3519,27 +3506,32 @@ function _webSort(k){
   _webRenderTable();
 }
 
-// ── Hire-X (análise do LinkedIn → Lead no WhatsApp) — Stract gid 1436932728, layout da Fase 2 ──
+// ── Hire-X (análise do LinkedIn → Lead no WhatsApp) — V2 REAL do Meta (conta US$) ──
+// 19/11/2026: a Stract só puxava a V1 morta de outubro; passamos a mostrar a V2 ativa
+// (campanha 120250275629940300). Números por criativo do Gerenciador, últimos 30 dias.
+// Refresh: rodar scripts/pull_hirex.py e colar o array aqui (ou automatizar no .bat do hire-x).
+const HIREX_V2 = [
+  {criativo:'AD11_VID_nao_acredito_de_graca', status:'ACTIVE', usd:94.96, impressoes:18395, cliques:910, leads:707, url:'https://www.instagram.com/p/DfiUDJcg4iL/'},
+  {criativo:'AD14_CAR_vagas_remotas_area', status:'ACTIVE', usd:27.05, impressoes:3022, cliques:98, leads:53, url:'https://www.instagram.com/p/DflPfxMggJf/'},
+  {criativo:'AD13_VID_2_conselhos_vaga_remoto', status:'ACTIVE', usd:16.77, impressoes:974, cliques:54, leads:70, url:'https://www.instagram.com/p/Dfk3YdBgd6G/'},
+  {criativo:'AD12_VID_odeio_processos_seletivos', status:'ACTIVE', usd:0.53, impressoes:114, cliques:5, leads:3, url:'https://www.instagram.com/p/DfiUCKTgVUv/'},
+  {criativo:'AD07_VID_perdeu_a_conta', status:'ACTIVE', usd:0.09, impressoes:21, cliques:0, leads:0, url:'https://www.instagram.com/p/DfiUEp6ApxV/'},
+  {criativo:'AD06_VID_pare_easy_apply', status:'ACTIVE', usd:0.08, impressoes:27, cliques:0, leads:0, url:'https://www.instagram.com/p/DfiUE9rgitd/'},
+  {criativo:'AD08_VID_ficou_tao_boa', status:'ACTIVE', usd:0.06, impressoes:18, cliques:1, leads:0, url:'https://www.instagram.com/p/DfiUCmRATLH/'},
+];
 async function loadHirex(){
   const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
   if (btn) btn.classList.add('loading'); if (icon) icon.textContent = '↻';
   document.getElementById('errorBanner').style.display = 'none';
   try {
-    const tx = await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1436932728&_cb=' + Date.now());
-    const rows = gvRows(tx, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true}, vendas:10, faturamento:11 });
-    const w = window30(rows);
-    const byCri = {};
-    for (const r of w.rows){
-      const key = r.criativo || '—';
-      const o = byCri[key] || (byCri[key] = { criativo:key, url:r.url, status:r.status, investido:0, impressoes:0, cliques:0, leads:0 });
-      o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0);
-      if (!o.url && r.url) o.url = r.url;
-      if (r.status && /active|ativ/i.test(r.status)) o.status = r.status;
-    }
-    const por_criativo = Object.values(byCri).map(o => ({
-      ...o, ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
-    })).sort((a,b)=> b.investido - a.investido);
-    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); a.vendas+=(r.vendas||0); a.faturamento+=(r.faturamento||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0,vendas:0,faturamento:0});
+    const por_criativo = HIREX_V2.map(o => {
+      const investido = o.usd * YT_USD_BRL;
+      return { criativo:o.criativo, status:o.status, url:o.url, investido,
+        impressoes:o.impressoes, cliques:o.cliques, leads:o.leads,
+        ctr:(o.impressoes? o.cliques/o.impressoes*100 : null),
+        cpl:(o.leads? investido/o.leads : null) };
+    }).sort((a,b)=> b.investido - a.investido);
+    const T = por_criativo.reduce((a,c)=>{ a.investido+=c.investido; a.impressoes+=c.impressoes; a.cliques+=c.cliques; a.leads+=c.leads; return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
     const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
     [ ['hx_kpiInv',   BRL(T.investido)],
       ['hx_kpiImp',   NUM(T.impressoes)],
@@ -3547,8 +3539,8 @@ async function loadHirex(){
       ['hx_kpiLeads', NUM(T.leads)],
       ['hx_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['hx_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
-      ['hx_kpiFat',   T.faturamento>0?BRL(T.faturamento):'—'],
-      ['hx_kpiRoas',  ROAS(T.investido&&T.faturamento>0? T.faturamento/T.investido : null)],
+      ['hx_kpiFat',   '—'],
+      ['hx_kpiRoas',  '—'],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
     window._hxdata = por_criativo;
     if (window._hxsortKey == null){ window._hxsortKey = 'investido'; window._hxsortDir = -1; }
