@@ -1485,16 +1485,35 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       </table>
       <div class="web-split-note">Fonte: HotWebinar · até 16/11/2026 · salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass. "Comprou" ainda não integra no HotWebinar (vem do checkout/Camila). Números manuais — atualizar a cada novo print do HotWebinar.</div>
     </div>
+    <!-- ── Faturamento e ROAS do webinário · tráfego separado do orgânico ── -->
+    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Faturamento e ROAS · tráfego × orgânico</div>
+    <div class="web-split" style="margin-bottom:22px">
+      <div class="web-split-cards">
+        <div class="web-sc web-sc-ads">
+          <div class="web-sc-tag">[WEBINAR][ADS] · Tráfego pago</div>
+          <div class="web-sc-big" id="web_fatTraf">—</div>
+          <div class="web-sc-sub">venda atribuída ao anúncio</div>
+          <div class="web-sc-row"><span>Investido (Meta)</span><b id="web_invTraf">—</b></div>
+          <div class="web-sc-row"><span>ROAS do tráfego</span><b id="web_roasTraf">—</b></div>
+        </div>
+        <div class="web-sc web-sc-org">
+          <div class="web-sc-tag">[WEBINAR][ORG] · Orgânico</div>
+          <div class="web-sc-big" id="web_fatOrg">—</div>
+          <div class="web-sc-sub" id="web_fatOrgSub">não gerado pelo tráfego</div>
+          <div class="web-sc-row"><span>Entra no ROAS?</span><b style="color:#f87171">Não</b></div>
+          <div class="web-sc-row"><span>Fonte</span><b>controle por tag (manual)</b></div>
+        </div>
+      </div>
+      <div class="web-split-note">O <b style="color:#fff">ROAS do webinário é calculado só sobre a venda do tráfego pago</b> (tag [WEBINAR][ADS] ÷ investido no Meta). O faturamento orgânico (tag [WEBINAR][ORG]) vem de inscritos que não passaram pelo anúncio e <b style="color:#fff">NÃO entra no ROAS</b> — fica aqui só para mostrar o total que o webinário faturou. O número do orgânico é manual (controle por tag), atualizar a cada apuração.</div>
+    </div>
     <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Anúncio · custo e entrega no Meta</div>
-    <div class="hf-kpi-strip cols-8">
+    <div class="hf-kpi-strip cols-6">
       <div class="hf-kpi"><div class="hf-kpi-label">Investido</div><div class="hf-kpi-value dash" id="web_kpiInv">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Impressões</div><div class="hf-kpi-value dash" id="web_kpiImp">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cliques</div><div class="hf-kpi-value dash" id="web_kpiCli">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Cadastros</div><div class="hf-kpi-value dash" id="web_kpiLeads">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Custo por Cadastro</div><div class="hf-kpi-value dash" id="web_kpiCpl">—</div></div>
       <div class="hf-kpi"><div class="hf-kpi-label">Clique → Cadastro</div><div class="hf-kpi-value dash" id="web_kpiConv">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">Faturamento</div><div class="hf-kpi-value dash" id="web_kpiFat">—</div></div>
-      <div class="hf-kpi"><div class="hf-kpi-label">ROAS</div><div class="hf-kpi-value dash" id="web_kpiRoas">—</div></div>
     </div>
     <div class="hf-table-section">
       <div class="hf-table-label">Criativo (webinar)
@@ -3428,6 +3447,9 @@ const WEB_FUNNEL = [
   ['Clicou na oferta',        58, 10],
   ['Comprou',               null, null],
 ];
+// ── Faturamento ORGÂNICO do webinário (tag [WEBINAR][ORG]) — MANUAL, controle por tag. NÃO é do tráfego, NÃO entra no ROAS. ──
+// Cada item = uma apuração por tag. Somar as duas colunas do print (712,82 + 770,00). Atualizar a cada apuração.
+const WEB_VENDAS_ORG = [712.82, 770.00];
 function renderWebFunnel(){
   const tb = document.getElementById('webFunnelBody'); if(!tb) return;
   const f = v => v==null ? '—' : NUM(v);
@@ -3466,9 +3488,17 @@ async function loadWebinar(){
       ['web_kpiLeads', NUM(T.leads)],
       ['web_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['web_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
-      ['web_kpiFat',   T.faturamento>0?BRL(T.faturamento):'—'],
-      ['web_kpiRoas',  ROAS(T.investido&&T.faturamento>0? T.faturamento/T.investido : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
+    // ── Faturamento × ROAS: tráfego (planilha, col Vendas) separado do orgânico (manual) ──
+    const fatTraf = T.faturamento || 0;                                   // venda atribuída ao anúncio (tag [WEBINAR][ADS])
+    const roasTraf = (T.investido && fatTraf > 0) ? fatTraf / T.investido : null;
+    const fatOrg = WEB_VENDAS_ORG.reduce((a,b)=> a + b, 0);               // orgânico manual (tag [WEBINAR][ORG])
+    setEl('web_fatTraf',  fatTraf > 0 ? BRL(fatTraf) : 'R$ 0,00');
+    setEl('web_invTraf',  BRL(T.investido));
+    setEl('web_roasTraf', roasTraf == null ? 'sem venda' : ROAS(roasTraf));
+    setEl('web_fatOrg',   fatOrg > 0 ? BRL(fatOrg) : '—');
+    setEl('web_fatOrgSub', 'não gerado pelo tráfego · ' + WEB_VENDAS_ORG.length + ' apuraç' + (WEB_VENDAS_ORG.length===1?'ão':'ões'));
+    { const rt = document.getElementById('web_roasTraf'); if (rt){ rt.style.color = (roasTraf!=null && roasTraf>=3) ? '#34d399' : (roasTraf!=null && roasTraf<1 ? '#f87171' : ''); } }
     window._webdata = por_criativo;
     if (window._websortKey == null){ window._websortKey = 'investido'; window._websortDir = -1; }
     _webRenderTable();
