@@ -1493,7 +1493,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
           <div class="web-sc-tag">[WEBINAR][ADS] · Tráfego pago</div>
           <div class="web-sc-big" id="web_fatTraf">—</div>
           <div class="web-sc-sub">venda atribuída ao anúncio</div>
-          <div class="web-sc-row"><span>Investido (Meta)</span><b id="web_invTraf">—</b></div>
+          <div class="web-sc-row"><span>Investido (controle)</span><b id="web_invTraf">—</b></div>
           <div class="web-sc-row"><span>ROAS do tráfego</span><b id="web_roasTraf">—</b></div>
         </div>
         <div class="web-sc web-sc-org">
@@ -3447,9 +3447,31 @@ const WEB_FUNNEL = [
   ['Clicou na oferta',        58, 10],
   ['Comprou',               null, null],
 ];
-// ── Faturamento ORGÂNICO do webinário (tag [WEBINAR][ORG]) — MANUAL, controle por tag. NÃO é do tráfego, NÃO entra no ROAS. ──
-// Cada item = uma apuração por tag. Somar as duas colunas do print (712,82 + 770,00). Atualizar a cada apuração.
-const WEB_VENDAS_ORG = [712.82, 770.00];
+// ── Vendas do webinário por tag — LIVE da planilha-mãe "Análise ROAS" (ESTRATEGIA_SHEET, gid=0) ──
+// Lê o bloco "ORIGEM: Webinário": [WEBINAR][ADS]=tráfego, [WEBINAR][ORG]=orgânico, Investimento. Meses nas colunas 2..13.
+// Auto-atualiza quando elas editam a planilha. NÃO é manual.
+function _webBrlNum(c){ if(!c||c.v==null) return 0; if(typeof c.v==='number') return c.v;
+  const n=parseFloat(String(c.v).replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')); return isFinite(n)?n:0; }
+async function _webVendasPorTag(){
+  const out = { fatTraf:0, fatOrg:0, invTag:0, ok:false };
+  try{
+    const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0&_cb=' + Date.now());
+    const rows = (t && t.rows) ? t.rows : [];
+    const sumMeses = r => { let s=0; for(let ci=2; ci<=13; ci++){ const c=r.c&&r.c[ci]; s+=_webBrlNum(c); } return s; };
+    let inWeb=false;
+    for(const r of rows){
+      const lbl=(r.c&&r.c[1]&&r.c[1].v!=null)?String(r.c[1].v).trim():'';
+      if(/ORIGEM.*Webin/i.test(lbl)){ inWeb=true; continue; }
+      if(inWeb && /^ORIGEM/i.test(lbl)){ inWeb=false; }
+      if(!inWeb) continue;
+      if(/WEBINAR\]\[ADS/i.test(lbl))      out.fatTraf = sumMeses(r);
+      else if(/WEBINAR\]\[ORG/i.test(lbl)) out.fatOrg  = sumMeses(r);
+      else if(/^Investimento/i.test(lbl))  out.invTag  = sumMeses(r);
+    }
+    out.ok=true;
+  }catch(e){ console.warn('Vendas webinário por tag indisponível:', e); }
+  return out;
+}
 function renderWebFunnel(){
   const tb = document.getElementById('webFunnelBody'); if(!tb) return;
   const f = v => v==null ? '—' : NUM(v);
@@ -3489,15 +3511,15 @@ async function loadWebinar(){
       ['web_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['web_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
-    // ── Faturamento × ROAS: tráfego (planilha, col Vendas) separado do orgânico (manual) ──
-    const fatTraf = T.faturamento || 0;                                   // venda atribuída ao anúncio (tag [WEBINAR][ADS])
-    const roasTraf = (T.investido && fatTraf > 0) ? fatTraf / T.investido : null;
-    const fatOrg = WEB_VENDAS_ORG.reduce((a,b)=> a + b, 0);               // orgânico manual (tag [WEBINAR][ORG])
-    setEl('web_fatTraf',  fatTraf > 0 ? BRL(fatTraf) : 'R$ 0,00');
-    setEl('web_invTraf',  BRL(T.investido));
+    // ── Faturamento × ROAS: tráfego [ADS] separado do orgânico [ORG] — LIVE da planilha "Análise ROAS" ──
+    const V = await _webVendasPorTag();
+    const fatTraf = V.fatTraf, fatOrg = V.fatOrg;
+    const roasTraf = (V.invTag > 0) ? fatTraf / V.invTag : null;          // ROAS do tráfego = venda [ADS] ÷ investimento (mesmo par da planilha-mãe)
+    setEl('web_fatTraf',  BRL(fatTraf));
+    setEl('web_invTraf',  V.invTag > 0 ? BRL(V.invTag) : '—');
     setEl('web_roasTraf', roasTraf == null ? 'sem venda' : ROAS(roasTraf));
     setEl('web_fatOrg',   fatOrg > 0 ? BRL(fatOrg) : '—');
-    setEl('web_fatOrgSub', 'não gerado pelo tráfego · ' + WEB_VENDAS_ORG.length + ' apuraç' + (WEB_VENDAS_ORG.length===1?'ão':'ões'));
+    setEl('web_fatOrgSub', 'não gerado pelo tráfego · acumulado');
     { const rt = document.getElementById('web_roasTraf'); if (rt){ rt.style.color = (roasTraf!=null && roasTraf>=3) ? '#34d399' : (roasTraf!=null && roasTraf<1 ? '#f87171' : ''); } }
     window._webdata = por_criativo;
     if (window._websortKey == null){ window._websortKey = 'investido'; window._websortDir = -1; }
