@@ -1485,26 +1485,28 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       </table>
       <div class="web-split-note">Fonte: HotWebinar · até 16/11/2026 · salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass. "Comprou" ainda não integra no HotWebinar (vem do checkout/Camila). Números manuais — atualizar a cada novo print do HotWebinar.</div>
     </div>
-    <!-- ── Faturamento e ROAS do webinário · tráfego separado do orgânico ── -->
-    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Faturamento e ROAS · tráfego × orgânico</div>
+    <!-- ── Faturamento e retorno do webinário · produto principal + PIP (tráfego × orgânico) ── -->
+    <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Faturamento e retorno do funil</div>
     <div class="web-split" style="margin-bottom:22px">
-      <div class="web-split-cards">
-        <div class="web-sc web-sc-ads">
-          <div class="web-sc-tag">[WEBINAR][ADS] · Tráfego pago</div>
-          <div class="web-sc-big" id="web_fatTraf">—</div>
-          <div class="web-sc-sub">venda atribuída ao anúncio</div>
-          <div class="web-sc-row"><span>Investido (Meta, real)</span><b id="web_invTraf">—</b></div>
-          <div class="web-sc-row"><span>ROAS do tráfego</span><b id="web_roasTraf">—</b></div>
+      <div class="web-split-head" style="align-items:flex-end">
+        <div>
+          <div class="web-split-total-lbl">Faturamento total do funil</div>
+          <div class="web-split-total" id="web_fatTotal">—</div>
         </div>
-        <div class="web-sc web-sc-org">
-          <div class="web-sc-tag">[WEBINAR][ORG] · Orgânico</div>
-          <div class="web-sc-big" id="web_fatOrg">—</div>
-          <div class="web-sc-sub" id="web_fatOrgSub">não gerado pelo tráfego</div>
-          <div class="web-sc-row"><span>Entra no ROAS?</span><b style="color:#f87171">Não</b></div>
-          <div class="web-sc-row"><span>Fonte</span><b>controle por tag (manual)</b></div>
+        <div style="display:flex;gap:26px;align-items:flex-end">
+          <div style="text-align:right"><div class="web-split-total-lbl">Investido (Meta real)</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.35rem;font-weight:700;color:#fff" id="web_invReal">—</div></div>
+          <div style="text-align:right"><div class="web-split-total-lbl">Retorno do funil</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.7rem;font-weight:800;color:#34d399" id="web_roasFunil">—</div></div>
         </div>
       </div>
-      <div class="web-split-note">O <b style="color:#fff">ROAS do webinário é calculado só sobre a venda do tráfego pago</b> (tag [WEBINAR][ADS] ÷ investido no Meta). O faturamento orgânico (tag [WEBINAR][ORG]) vem de inscritos que não passaram pelo anúncio e <b style="color:#fff">NÃO entra no ROAS</b> — fica aqui só para mostrar o total que o webinário faturou. O número do orgânico é manual (controle por tag), atualizar a cada apuração.</div>
+      <table class="web-funnel" style="margin-top:18px">
+        <thead><tr><th>Produto / origem</th><th class="num">Faturamento</th><th>O que é</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:#fff">Perfil Internacional Pro <span style="color:var(--muted);font-weight:400">· produto principal</span></td><td class="num" id="web_linPrinc">—</td><td style="color:rgba(255,255,255,.5);font-size:.8rem">anúncio + orgânico (não separável)</td></tr>
+          <tr><td>PIP · orgânico <span style="color:var(--muted)">[ORG]</span></td><td class="num org" id="web_linOrg">—</td><td style="color:#34d399;font-size:.8rem">inscritos que não vieram do anúncio</td></tr>
+          <tr><td>PIP · tráfego pago <span style="color:var(--muted)">[ADS]</span></td><td class="num ads" id="web_linTraf">—</td><td style="color:#f0806a;font-size:.8rem">venda rastreável do anúncio</td></tr>
+        </tbody>
+      </table>
+      <div class="web-split-note">O <b style="color:#fff">retorno do funil</b> = faturamento total ÷ gasto real no Meta. Ele <b style="color:#fff">inclui a venda orgânica e o produto principal</b>, que não vieram só do anúncio — então <b style="color:#fff">não é o ROAS puro do tráfego pago</b>. A única venda que dá para rastrear direto no anúncio é a linha <b style="color:#f0806a">[ADS] (tráfego pago)</b>; o resto é orgânico + principal, que o funil traz com investimento baixo. Faturamento vem da planilha "Análise ROAS" (ao vivo); o investido é o gasto real do Meta.</div>
     </div>
     <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Anúncio · custo e entrega no Meta</div>
     <div class="hf-kpi-strip cols-6">
@@ -3453,7 +3455,7 @@ const WEB_FUNNEL = [
 function _webBrlNum(c){ if(!c||c.v==null) return 0; if(typeof c.v==='number') return c.v;
   const n=parseFloat(String(c.v).replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')); return isFinite(n)?n:0; }
 async function _webVendasPorTag(){
-  const out = { fatTraf:0, fatOrg:0, invTag:0, ok:false };
+  const out = { fatPrincipal:0, fatTraf:0, fatOrg:0, invTag:0, ok:false };
   try{
     const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0&_cb=' + Date.now());
     const rows = (t && t.rows) ? t.rows : [];
@@ -3461,7 +3463,7 @@ async function _webVendasPorTag(){
     let inWeb=false;
     for(const r of rows){
       const lbl=(r.c&&r.c[1]&&r.c[1].v!=null)?String(r.c[1].v).trim():'';
-      if(/ORIGEM.*Webin/i.test(lbl)){ inWeb=true; continue; }
+      if(/ORIGEM.*Webin/i.test(lbl)){ inWeb=true; out.fatPrincipal = sumMeses(r); continue; }  // linha ORIGEM = produto principal
       if(inWeb && /^ORIGEM/i.test(lbl)){ inWeb=false; }
       if(!inWeb) continue;
       if(/WEBINAR\]\[ADS/i.test(lbl))      out.fatTraf = sumMeses(r);
@@ -3511,19 +3513,21 @@ async function loadWebinar(){
       ['web_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['web_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
-    // ── Faturamento × ROAS: tráfego [ADS] separado do orgânico [ORG] ──
-    // Venda por tag = LIVE da planilha "Análise ROAS". Investido = GASTO REAL do Meta (col Custo real, TODAS as linhas),
-    // NÃO o "Investimento" da planilha delas (que está subdimensionado: R$125 vs R$547 real). ROAS honesto.
+    // ── Faturamento do funil = produto principal (ORIGEM) + PIP orgânico [ORG] + PIP tráfego [ADS], tudo somado ──
+    // Venda = LIVE da planilha "Análise ROAS". Investido = GASTO REAL do Meta (Custo real, todas as linhas), não o
+    // "Investimento" subdimensionado da planilha delas. Retorno do funil INCLUI orgânico → não é ROAS puro do tráfego.
     const V = await _webVendasPorTag();
-    const fatTraf = V.fatTraf, fatOrg = V.fatOrg;
-    const invRealTraf = rows.reduce((a,r)=> a + (r.investido || 0), 0);   // gasto real total (Custo real BRL), não janelado
-    const roasTraf = (invRealTraf > 0 && fatTraf > 0) ? fatTraf / invRealTraf : (fatTraf > 0 ? null : 0);
-    setEl('web_fatTraf',  BRL(fatTraf));
-    setEl('web_invTraf',  invRealTraf > 0 ? BRL(invRealTraf) : '—');
-    setEl('web_roasTraf', fatTraf <= 0 ? 'sem venda' : ROAS(roasTraf));
-    setEl('web_fatOrg',   fatOrg > 0 ? BRL(fatOrg) : '—');
-    setEl('web_fatOrgSub', 'não gerado pelo tráfego · acumulado');
-    { const rt = document.getElementById('web_roasTraf'); if (rt){ rt.style.color = (roasTraf!=null && roasTraf>=3) ? '#34d399' : (roasTraf!=null && roasTraf<1 ? '#f87171' : ''); } }
+    const fatPrincipal = V.fatPrincipal, fatTraf = V.fatTraf, fatOrg = V.fatOrg;
+    const fatTotal = fatPrincipal + fatTraf + fatOrg;
+    const invReal = rows.reduce((a,r)=> a + (r.investido || 0), 0);       // gasto real total (Custo real BRL), não janelado
+    const roasFunil = (invReal > 0 && fatTotal > 0) ? fatTotal / invReal : null;
+    setEl('web_fatTotal',  BRL(fatTotal));
+    setEl('web_invReal',   invReal > 0 ? BRL(invReal) : '—');
+    setEl('web_roasFunil', roasFunil == null ? '—' : ROAS(roasFunil) + 'x');
+    setEl('web_linPrinc',  BRL(fatPrincipal));
+    setEl('web_linOrg',    BRL(fatOrg));
+    setEl('web_linTraf',   BRL(fatTraf));
+    { const rf = document.getElementById('web_roasFunil'); if (rf){ rf.style.color = (roasFunil!=null && roasFunil>=3) ? '#34d399' : (roasFunil!=null && roasFunil<1 ? '#f87171' : '#fff'); } }
     window._webdata = por_criativo;
     if (window._websortKey == null){ window._websortKey = 'investido'; window._websortDir = -1; }
     _webRenderTable();
