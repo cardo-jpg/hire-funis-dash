@@ -2686,12 +2686,15 @@ async function loadGeral() {
       fLatam = { investido: sl.rows.reduce((s,r)=>s+(r.inv||0),0), leads: sl.rows.reduce((s,r)=>s+(r.leads||0),0) };
     } catch(e){ console.warn('Ebook Latam indisponível:', e); }
 
-    // Hire-X — V2 ao vivo do Meta (constante HIREX_V2, conta US$). A Stract só puxava a V1 morta.
+    // Hire-X — V2 ao vivo do Meta (aba HireX_V2 gid 917946028, conta US$). A Stract só puxava a V1 morta.
     let fHireX = {};
     try {
-      const invX = HIREX_V2.reduce((s,o)=>s + o.usd*YT_USD_BRL, 0);
-      fHireX = { investido: invX, leads: HIREX_V2.reduce((s,o)=>s+o.leads,0),
-        impressoes: HIREX_V2.reduce((s,o)=>s+o.impressoes,0), cliques: HIREX_V2.reduce((s,o)=>s+o.cliques,0),
+      const rX = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=917946028&_cb=' + Date.now()),
+        { investido:4, impressoes:5, cliques:6, leads:7 });
+      const wX = window30(rX);
+      const invX = gvSum(wX.rows,'investido') * YT_USD_BRL;
+      fHireX = { investido: invX, leads: gvSum(wX.rows,'leads'),
+        impressoes: gvSum(wX.rows,'impressoes'), cliques: gvSum(wX.rows,'cliques'),
         vendas: 0, faturamento: null, roas: null };
     } catch(e){ console.warn('Hire-X indisponível:', e); }
 
@@ -3507,31 +3510,32 @@ function _webSort(k){
 }
 
 // ── Hire-X (análise do LinkedIn → Lead no WhatsApp) — V2 REAL do Meta (conta US$) ──
-// 19/11/2026: a Stract só puxava a V1 morta de outubro; passamos a mostrar a V2 ativa
-// (campanha 120250275629940300). Números por criativo do Gerenciador, últimos 30 dias.
-// Refresh: rodar scripts/pull_hirex.py e colar o array aqui (ou automatizar no .bat do hire-x).
-const HIREX_V2 = [
-  {criativo:'AD11_VID_nao_acredito_de_graca', status:'ACTIVE', usd:94.96, impressoes:18395, cliques:910, leads:707, url:'https://www.instagram.com/p/DfiUDJcg4iL/'},
-  {criativo:'AD14_CAR_vagas_remotas_area', status:'ACTIVE', usd:27.05, impressoes:3022, cliques:98, leads:53, url:'https://www.instagram.com/p/DflPfxMggJf/'},
-  {criativo:'AD13_VID_2_conselhos_vaga_remoto', status:'ACTIVE', usd:16.77, impressoes:974, cliques:54, leads:70, url:'https://www.instagram.com/p/Dfk3YdBgd6G/'},
-  {criativo:'AD12_VID_odeio_processos_seletivos', status:'ACTIVE', usd:0.53, impressoes:114, cliques:5, leads:3, url:'https://www.instagram.com/p/DfiUCKTgVUv/'},
-  {criativo:'AD07_VID_perdeu_a_conta', status:'ACTIVE', usd:0.09, impressoes:21, cliques:0, leads:0, url:'https://www.instagram.com/p/DfiUEp6ApxV/'},
-  {criativo:'AD06_VID_pare_easy_apply', status:'ACTIVE', usd:0.08, impressoes:27, cliques:0, leads:0, url:'https://www.instagram.com/p/DfiUE9rgitd/'},
-  {criativo:'AD08_VID_ficou_tao_boa', status:'ACTIVE', usd:0.06, impressoes:18, cliques:1, leads:0, url:'https://www.instagram.com/p/DfiUCmRATLH/'},
-];
+// 19/11/2026: a Stract só puxava a V1 morta; agora lemos a aba HireX_V2 (gid 917946028) do
+// mesmo workbook, escrita DIA A DIA pelo hirex_diario.py (insights diários da campanha
+// 120250275629940300, lead = offsite_conversion.fb_pixel_lead). Com linhas por dia, o filtro
+// De/Até funciona igual aos outros funis. Investimento vem em US$ → ×YT_USD_BRL.
+const HIREX_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', HIREX_GID = '917946028';
 async function loadHirex(){
   const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
   if (btn) btn.classList.add('loading'); if (icon) icon.textContent = '↻';
   document.getElementById('errorBanner').style.display = 'none';
   try {
-    const por_criativo = HIREX_V2.map(o => {
-      const investido = o.usd * YT_USD_BRL;
-      return { criativo:o.criativo, status:o.status, url:o.url, investido,
-        impressoes:o.impressoes, cliques:o.cliques, leads:o.leads,
-        ctr:(o.impressoes? o.cliques/o.impressoes*100 : null),
-        cpl:(o.leads? investido/o.leads : null) };
-    }).sort((a,b)=> b.investido - a.investido);
-    const T = por_criativo.reduce((a,c)=>{ a.investido+=c.investido; a.impressoes+=c.impressoes; a.cliques+=c.cliques; a.leads+=c.leads; return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
+    const tx = await gvizLoadFrom(HIREX_SHEET, 'gid=' + HIREX_GID + '&_cb=' + Date.now());
+    const rows = gvRows(tx, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true} });
+    const w = window30(rows);
+    for (const r of w.rows) r.investido = r.investido * YT_USD_BRL;   // conta Hire é US$
+    const byCri = {};
+    for (const r of w.rows){
+      const key = r.criativo || '—';
+      const o = byCri[key] || (byCri[key] = { criativo:key, url:r.url, status:r.status, investido:0, impressoes:0, cliques:0, leads:0 });
+      o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0);
+      if (!o.url && r.url) o.url = r.url;
+      if (r.status && /active|ativ/i.test(r.status)) o.status = r.status;
+    }
+    const por_criativo = Object.values(byCri).map(o => ({
+      ...o, ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
+    })).sort((a,b)=> b.investido - a.investido);
+    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
     const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
     [ ['hx_kpiInv',   BRL(T.investido)],
       ['hx_kpiImp',   NUM(T.impressoes)],
