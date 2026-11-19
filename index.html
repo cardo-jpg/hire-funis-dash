@@ -1493,7 +1493,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
           <div class="web-sc-tag">[WEBINAR][ADS] · Tráfego pago</div>
           <div class="web-sc-big" id="web_fatTraf">—</div>
           <div class="web-sc-sub">venda atribuída ao anúncio</div>
-          <div class="web-sc-row"><span>Investido (controle)</span><b id="web_invTraf">—</b></div>
+          <div class="web-sc-row"><span>Investido (Meta, real)</span><b id="web_invTraf">—</b></div>
           <div class="web-sc-row"><span>ROAS do tráfego</span><b id="web_roasTraf">—</b></div>
         </div>
         <div class="web-sc web-sc-org">
@@ -3511,13 +3511,16 @@ async function loadWebinar(){
       ['web_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['web_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
-    // ── Faturamento × ROAS: tráfego [ADS] separado do orgânico [ORG] — LIVE da planilha "Análise ROAS" ──
+    // ── Faturamento × ROAS: tráfego [ADS] separado do orgânico [ORG] ──
+    // Venda por tag = LIVE da planilha "Análise ROAS". Investido = GASTO REAL do Meta (col Custo real, TODAS as linhas),
+    // NÃO o "Investimento" da planilha delas (que está subdimensionado: R$125 vs R$547 real). ROAS honesto.
     const V = await _webVendasPorTag();
     const fatTraf = V.fatTraf, fatOrg = V.fatOrg;
-    const roasTraf = (V.invTag > 0) ? fatTraf / V.invTag : null;          // ROAS do tráfego = venda [ADS] ÷ investimento (mesmo par da planilha-mãe)
+    const invRealTraf = rows.reduce((a,r)=> a + (r.investido || 0), 0);   // gasto real total (Custo real BRL), não janelado
+    const roasTraf = (invRealTraf > 0 && fatTraf > 0) ? fatTraf / invRealTraf : (fatTraf > 0 ? null : 0);
     setEl('web_fatTraf',  BRL(fatTraf));
-    setEl('web_invTraf',  V.invTag > 0 ? BRL(V.invTag) : '—');
-    setEl('web_roasTraf', roasTraf == null ? 'sem venda' : ROAS(roasTraf));
+    setEl('web_invTraf',  invRealTraf > 0 ? BRL(invRealTraf) : '—');
+    setEl('web_roasTraf', fatTraf <= 0 ? 'sem venda' : ROAS(roasTraf));
     setEl('web_fatOrg',   fatOrg > 0 ? BRL(fatOrg) : '—');
     setEl('web_fatOrgSub', 'não gerado pelo tráfego · acumulado');
     { const rt = document.getElementById('web_roasTraf'); if (rt){ rt.style.color = (roasTraf!=null && roasTraf>=3) ? '#34d399' : (roasTraf!=null && roasTraf<1 ? '#f87171' : ''); } }
