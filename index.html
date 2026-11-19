@@ -3454,33 +3454,16 @@ const WEB_FUNNEL = [
 // Auto-atualiza quando elas editam a planilha. NÃO é manual.
 function _webBrlNum(c){ if(!c||c.v==null) return 0; if(typeof c.v==='number') return c.v;
   const n=parseFloat(String(c.v).replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')); return isFinite(n)?n:0; }
-const _MESNUM={jan:1,fev:2,mar:3,abr:4,mai:5,jun:6,jul:7,ago:8,set:9,out:10,nov:11,dez:12};
-// Mapa coluna→mês lido do cabeçalho ("Origem e Tag | Janeiro | ... | dezembro | TOTAL"). Soma SÓ meses já
-// realizados (<= mês atual) → ignora mês futuro lançado antes na planilha (ex.: dezembro com R$500 em novembro).
-function _colMeses(rows){
-  const map={};
-  for(const r of rows){
-    const l0=(r.c&&r.c[1]&&r.c[1].v!=null)?String(r.c[1].v).trim():'';
-    if(/origem e tag/i.test(l0)){
-      for(let ci=2; ci<=13; ci++){
-        const h=(r.c&&r.c[ci]&&r.c[ci].v!=null)?String(r.c[ci].v).trim().toLowerCase():'';
-        const m=_MESNUM[h.slice(0,3)]; if(m) map[ci]=m;
-      }
-      break;
-    }
-  }
-  return map;
-}
+// Colunas FIXAS da "Análise ROAS": idx 2=Janeiro … 12=novembro, 13=dezembro, 14=TOTAL (mês = idx-1).
+// O gviz NÃO devolve o texto do cabeçalho (coluna tipada como número → vem null), por isso mapeio pela POSIÇÃO.
+// Soma SÓ meses já realizados (<= mês atual) → ignora mês futuro lançado antes na planilha (ex.: dezembro R$500 em novembro).
 async function _webVendasPorTag(){
   const out = { fatPrincipal:0, fatTraf:0, fatOrg:0, invTag:0, ok:false };
   try{
     const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0&_cb=' + Date.now());
     const rows = (t && t.rows) ? t.rows : [];
-    const col2mes = _colMeses(rows);
-    const hasHdr = Object.keys(col2mes).length > 0;
     const curMes = new Date().getMonth() + 1;   // novembro=11; ignora mês futuro (dezembro) até ele chegar
-    const sumMeses = r => { let s=0; for(let ci=2; ci<=13; ci++){ const m=col2mes[ci];
-      if(!hasHdr || (m && m<=curMes)) s+=_webBrlNum(r.c&&r.c[ci]); } return s; };
+    const sumMeses = r => { let s=0; for(let ci=2; ci<=13; ci++){ if((ci-1)<=curMes) s+=_webBrlNum(r.c&&r.c[ci]); } return s; };
     let inWeb=false;
     for(const r of rows){
       const lbl=(r.c&&r.c[1]&&r.c[1].v!=null)?String(r.c[1].v).trim():'';
