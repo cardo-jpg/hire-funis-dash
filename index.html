@@ -1501,12 +1501,12 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <table class="web-funnel" style="margin-top:18px">
         <thead><tr><th>Produto / origem</th><th class="num">Faturamento</th><th>O que é</th></tr></thead>
         <tbody>
-          <tr><td style="font-weight:700;color:#fff">Perfil Internacional Pro <span style="color:var(--muted);font-weight:400">· produto principal</span></td><td class="num" id="web_linPrinc">—</td><td style="color:rgba(255,255,255,.5);font-size:.8rem">anúncio + orgânico (não separável)</td></tr>
-          <tr><td>PIP · orgânico <span style="color:var(--muted)">[ORG]</span></td><td class="num org" id="web_linOrg">—</td><td style="color:#34d399;font-size:.8rem">inscritos que não vieram do anúncio</td></tr>
-          <tr><td>PIP · tráfego pago <span style="color:var(--muted)">[ADS]</span></td><td class="num ads" id="web_linTraf">—</td><td style="color:#f0806a;font-size:.8rem">venda rastreável do anúncio</td></tr>
+          <tr><td style="font-weight:700;color:#fff">Webinário Perfil Internacional Pro <span style="color:var(--muted);font-weight:400">· origem</span></td><td class="num" id="web_linPrinc">—</td><td style="color:rgba(255,255,255,.5);font-size:.8rem">produto do webinário</td></tr>
+          <tr><td>PIP · orgânico <span style="color:var(--muted)">[WEBINAR][ORG]</span></td><td class="num org" id="web_linOrg">—</td><td style="color:#34d399;font-size:.8rem">outro produto (PIP), fora do anúncio</td></tr>
+          <tr><td>PIP · tráfego pago <span style="color:var(--muted)">[WEBINAR][ADS]</span></td><td class="num ads" id="web_linTraf">—</td><td style="color:#f0806a;font-size:.8rem">outro produto (PIP), venda rastreável do anúncio</td></tr>
         </tbody>
       </table>
-      <div class="web-split-note">O <b style="color:#fff">retorno do funil</b> = faturamento total ÷ gasto real no Meta. Ele <b style="color:#fff">inclui a venda orgânica e o produto principal</b>, que não vieram só do anúncio — então <b style="color:#fff">não é o ROAS puro do tráfego pago</b>. A única venda que dá para rastrear direto no anúncio é a linha <b style="color:#f0806a">[ADS] (tráfego pago)</b>; o resto é orgânico + principal, que o funil traz com investimento baixo. Faturamento vem da planilha "Análise ROAS" (ao vivo); o investido é o gasto real do Meta.</div>
+      <div class="web-split-note">As três linhas vêm da planilha "Análise ROAS" (ao vivo): a <b style="color:#fff">origem Webinário</b> e os dois produtos <b>PIP</b> (ORG e ADS). O <b style="color:#fff">retorno do funil</b> = faturamento das três ÷ gasto real no Meta — e <b style="color:#fff">inclui venda orgânica</b>, então <b style="color:#fff">não é o ROAS puro do tráfego</b>. A única venda rastreável direto no anúncio é a linha <b style="color:#f0806a">[WEBINAR][ADS]</b>; o resto é orgânico, que o funil traz com investimento baixo. Investido = gasto real do Meta.</div>
     </div>
     <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Anúncio · custo e entrega no Meta</div>
     <div class="hf-kpi-strip cols-6">
@@ -3454,16 +3454,37 @@ const WEB_FUNNEL = [
 // Auto-atualiza quando elas editam a planilha. NÃO é manual.
 function _webBrlNum(c){ if(!c||c.v==null) return 0; if(typeof c.v==='number') return c.v;
   const n=parseFloat(String(c.v).replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')); return isFinite(n)?n:0; }
+const _MESNUM={jan:1,fev:2,mar:3,abr:4,mai:5,jun:6,jul:7,ago:8,set:9,out:10,nov:11,dez:12};
+// Mapa coluna→mês lido do cabeçalho ("Origem e Tag | Janeiro | ... | dezembro | TOTAL"). Soma SÓ meses já
+// realizados (<= mês atual) → ignora mês futuro lançado antes na planilha (ex.: dezembro com R$500 em novembro).
+function _colMeses(rows){
+  const map={};
+  for(const r of rows){
+    const l0=(r.c&&r.c[1]&&r.c[1].v!=null)?String(r.c[1].v).trim():'';
+    if(/origem e tag/i.test(l0)){
+      for(let ci=2; ci<=13; ci++){
+        const h=(r.c&&r.c[ci]&&r.c[ci].v!=null)?String(r.c[ci].v).trim().toLowerCase():'';
+        const m=_MESNUM[h.slice(0,3)]; if(m) map[ci]=m;
+      }
+      break;
+    }
+  }
+  return map;
+}
 async function _webVendasPorTag(){
   const out = { fatPrincipal:0, fatTraf:0, fatOrg:0, invTag:0, ok:false };
   try{
     const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0&_cb=' + Date.now());
     const rows = (t && t.rows) ? t.rows : [];
-    const sumMeses = r => { let s=0; for(let ci=2; ci<=13; ci++){ const c=r.c&&r.c[ci]; s+=_webBrlNum(c); } return s; };
+    const col2mes = _colMeses(rows);
+    const hasHdr = Object.keys(col2mes).length > 0;
+    const curMes = new Date().getMonth() + 1;   // novembro=11; ignora mês futuro (dezembro) até ele chegar
+    const sumMeses = r => { let s=0; for(let ci=2; ci<=13; ci++){ const m=col2mes[ci];
+      if(!hasHdr || (m && m<=curMes)) s+=_webBrlNum(r.c&&r.c[ci]); } return s; };
     let inWeb=false;
     for(const r of rows){
       const lbl=(r.c&&r.c[1]&&r.c[1].v!=null)?String(r.c[1].v).trim():'';
-      if(/ORIGEM.*Webin/i.test(lbl)){ inWeb=true; out.fatPrincipal = sumMeses(r); continue; }  // linha ORIGEM = produto principal
+      if(/ORIGEM.*Webin/i.test(lbl)){ inWeb=true; out.fatPrincipal = sumMeses(r); continue; }  // ORIGEM = produto do webinário (só meses realizados)
       if(inWeb && /^ORIGEM/i.test(lbl)){ inWeb=false; }
       if(!inWeb) continue;
       if(/WEBINAR\]\[ADS/i.test(lbl))      out.fatTraf = sumMeses(r);
