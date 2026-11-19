@@ -1972,21 +1972,24 @@ let _pickingMonth = false;
 const _MES_NOME = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 function _buildMonthOptions(){
   const sel = document.getElementById('monthPicker');
-  if (!sel || !_dataMin || !_dataMax || sel.dataset.built) return;
-  let html = '<option value="all">Todos os meses</option>';
+  if (!sel || !_dataMin || !_dataMax) return;
   const months = [];
   const cur = new Date(_dataMin.getFullYear(), _dataMin.getMonth(), 1);
   const end = new Date(_dataMax.getFullYear(), _dataMax.getMonth(), 1);
   while (cur <= end){ months.push([cur.getFullYear(), cur.getMonth()+1]); cur.setMonth(cur.getMonth()+1); }
+  // Reconstrói sempre que o período CRESCE (cada aba estende _dataMin/_dataMax). Guarda a
+  // assinatura dos meses pra não refazer à toa, e preserva a seleção atual se ela sobreviver.
+  const sig = months.map(m=>m.join('-')).join(',');
+  if (sel.dataset.sig === sig) return;
+  const keep = sel.value || 'all';
+  let html = '<option value="all">Todos os meses</option>';
   for (const [y,m] of months) html += `<option value="${y}-${String(m).padStart(2,'0')}">${_MES_NOME[m-1]}/${y}</option>`;
   sel.innerHTML = html;
-  sel.dataset.built = '1';
-  // Default do load: NÃO auto-filtra pro mês mais recente — abre em "Todos os meses"
-  // e deixa o window30 cortar os últimos 30 dias POR SÉRIE (visão padrão do Meta).
-  // Antes auto-aplicava o último mês e, no começo de cada mês, escondia as vendas do
-  // mês anterior (ex.: Fase 2 mostrava só R$ 9,90 de nov e ocultava os R$ 3.147 de out).
+  sel.dataset.sig = sig;
+  // Default do load: NÃO auto-filtra pro mês mais recente — abre em "Todos os meses".
   // O seletor de mês continua funcionando pra quem quiser fatiar por mês.
-  sel.value = 'all';
+  sel.value = [...sel.options].some(o => o.value === keep) ? keep : 'all';
+  sel.dataset.built = '1';
 }
 function onMonthPick(){
   const sel = document.getElementById('monthPicker');
@@ -3549,6 +3552,7 @@ async function loadHirex(){
     window._hxdata = por_criativo;
     if (window._hxsortKey == null){ window._hxsortKey = 'investido'; window._hxsortDir = -1; }
     _hxRenderTable();
+    _syncDateInputsToData();   // monta/estende o seletor de mês (abrir direto no Hire-X também popula)
     document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   } catch(e){
     const b = document.getElementById('errorBanner'); b.textContent = 'Erro ao carregar Hire-X: ' + e.message; b.style.display='block';
