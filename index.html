@@ -2444,7 +2444,17 @@ async function loadEstrategia(){
       html += '<td class="est-lbl">' + _estEsc(displayLabel) + '</td>';
       // cols 2..14 (12 meses + TOTAL = 13 colunas)
       for (const ci of _activeCols.concat([14])){
-        const raw = _estCell(c, ci);
+        const cell = c[ci];
+        const nv = (cell && typeof cell.v === 'number') ? cell.v : null;
+        let raw;
+        if (nv != null){
+          // espelho guarda número cru → a dash formata: ROAS com 2 casas, resto em R$ com milhar
+          raw = isRoas
+            ? nv.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : 'R$ ' + nv.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+          raw = _estCell(c, ci);   // texto (PAUSADO, #DIV/0!, já formatado) ou vazio
+        }
         const isTotal = (ci === 14);
         let cls = 'num' + (isTotal ? ' est-total' : '');
         if (isRoas && raw.trim() !== '') cls += ' ' + _estRoasClass(raw);
