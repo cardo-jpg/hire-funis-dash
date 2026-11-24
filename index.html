@@ -1483,7 +1483,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
         <thead><tr><th>Etapa do webinário</th><th class="num">Orgânico</th><th class="num">Anúncio</th><th class="num">Total</th></tr></thead>
         <tbody id="webFunnelBody"></tbody>
       </table>
-      <div class="web-split-note">Fonte: HotWebinar · até 16/11/2026 · salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass. "Comprou" ainda não integra no HotWebinar (vem do checkout/Camila). Números manuais — atualizar a cada novo print do HotWebinar.</div>
+      <div class="web-split-note">Fonte: HotWebinar · até 24/11/2026 · salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass. "Comprou" = vendas PIP (33 ORG / 4 ADS). Números manuais — atualizar a cada novo print do HotWebinar.</div>
     </div>
     <!-- ── Faturamento e retorno do webinário · produto principal + PIP (tráfego × orgânico) ── -->
     <div class="hf-table-label" style="margin:2px 0 8px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em">Faturamento e retorno do funil</div>
@@ -3457,18 +3457,21 @@ function _f2sort(k){
 // Colunas: Date,Campanha,Publico,Criativo,URL,Investido(USD),Impressoes,Cliques,Leads,Visualizacoes_LP,Status,Custo real(BRL),Dólar
 const WEBINAR_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', WEBINAR_GID = '423386316';
 // ── Funil do webinário (HotWebinar · MANUAL — atualizar a cada print; [etapa, org, ads]) ──
-// Fonte: prints HotWebinar 16/11/2026, salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass.
+// Fonte: prints HotWebinar 24/11/2026 (Iohana), salas ORG (desde 01/10) e ADS (desde 17/10) da Masterclass.
+// "Comprou" = vendas PIP (33 ORG / 4 ADS = 37). "Visitantes (LP)" não vem do HotWebinar (não veio no print, mantido).
 const WEB_FUNNEL = [
   ['Visitantes (LP)',        434, 118],
-  ['Inscritos',              405, 113],
-  ['Compareceram (ao vivo)', 381, 109],
-  ['Assistiu 15 min',        216,  48],
-  ['Assistiu 30 min',        187,  42],
-  ['Assistiu 45 min',        149,  36],
-  ['Estava no pitch',        166,  39],
-  ['Estava na oferta',       149,  37],
+  ['Inscritos',              407, 113],
+  ['Compareceram (ao vivo)', 383, 109],
+  ['Clicou no vídeo',        235,  57],
+  ['Assistiu 15 min',        218,  48],
+  ['Assistiu 30 min',        188,  42],
+  ['Assistiu 45 min',        150,  36],
+  ['Assistiu 60 min',          0,   0],
+  ['Estava no pitch',        167,  39],
+  ['Estava na oferta',       150,  37],
   ['Clicou na oferta',        71,  15],
-  ['Comprou',               null, null],
+  ['Comprou',                 33,   4],
 ];
 // ── Vendas do webinário por tag — LIVE da planilha-mãe "Análise ROAS" (ESTRATEGIA_SHEET, gid=0) ──
 // Lê o bloco "ORIGEM: Webinário": [WEBINAR][ADS]=tráfego, [WEBINAR][ORG]=orgânico, Investimento. Meses nas colunas 2..13.
