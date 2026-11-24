@@ -2720,16 +2720,26 @@ async function loadGeral() {
       fLatam = { investido: sl.rows.reduce((s,r)=>s+(r.inv||0),0), leads: sl.rows.reduce((s,r)=>s+(r.leads||0),0) };
     } catch(e){ console.warn('Ebook Latam indisponível:', e); }
 
-    // Hire-X — V2 ao vivo do Meta (aba HireX_V2 gid 917946028, conta US$). A Stract só puxava a V1 morta.
+    // Hire-X — ROAS/venda/investido vêm da aba "Hire-x" gid 1436932728 (atual, com Quantidade/Valor;
+    // investido em US$ → ×cotação, Valor/faturamento já em R$). A aba "HireX_V2" (917946028) parou em
+    // 19/11 e NÃO tem venda — serve só de fonte de LEADS (a 1436932728 quase não registra lead; os leads
+    // reais vêm por CAPI). Pega o maior nº de leads entre as duas pra não perder os leads já mostrados.
     let fHireX = {};
     try {
-      const rX = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=917946028&_cb=' + Date.now()),
-        { investido:4, impressoes:5, cliques:6, leads:7 });
+      const rX = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=1436932728&_cb=' + Date.now()),
+        { investido:4, impressoes:5, cliques:6, leads:7, vendas:10, faturamento:11 });
       const wX = window30(rX);
       const invX = gvSum(wX.rows,'investido') * YT_USD_BRL;
-      fHireX = { investido: invX, leads: gvSum(wX.rows,'leads'),
+      const fatX = gvSum(wX.rows,'faturamento'), vendX = gvSum(wX.rows,'vendas');
+      let leadsX = gvSum(wX.rows,'leads');
+      try {
+        const rL = gvRows(await gvizLoadFrom('1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', 'gid=917946028&_cb=' + Date.now()), { leads:7 });
+        const lX = gvSum(window30(rL).rows,'leads');
+        if (lX > leadsX) leadsX = lX;
+      } catch(e){}
+      fHireX = { investido: invX, leads: leadsX,
         impressoes: gvSum(wX.rows,'impressoes'), cliques: gvSum(wX.rows,'cliques'),
-        vendas: 0, faturamento: null, roas: null };
+        vendas: vendX||0, faturamento: fatX>0?fatX:null, roas: (invX&&fatX>0)? fatX/invX : null };
     } catch(e){ console.warn('Hire-X indisponível:', e); }
 
     // Fase 2 · WhatsApp (recon) — fonte própria gid 1327644415 (conta Malu é US$).
@@ -3586,33 +3596,47 @@ function _webSort(k){
   _webRenderTable();
 }
 
-// ── Hire-X (análise do LinkedIn → Lead no WhatsApp) — V2 REAL do Meta (conta US$) ──
-// 19/11/2026: a Stract só puxava a V1 morta; agora lemos a aba HireX_V2 (gid 917946028) do
-// mesmo workbook, escrita DIA A DIA pelo hirex_diario.py (insights diários da campanha
-// 120250275629940300, lead = offsite_conversion.fb_pixel_lead). Com linhas por dia, o filtro
-// De/Até funciona igual aos outros funis. Investimento vem em US$ → ×YT_USD_BRL.
-const HIREX_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI', HIREX_GID = '917946028';
+// ── Hire-X (análise do LinkedIn → Lead no WhatsApp) ──
+// ROAS/venda/investido vêm da aba "Hire-x" (gid 1436932728): investido em US$ (×YT_USD_BRL) e
+// Quantidade/Valor (venda, Valor já em R$). Os LEADS reais ficam na aba diária "HireX_V2"
+// (gid 917946028, hirex_diario.py) — a Hire-x quase não registra lead. Mescla por criativo:
+// financeiro+venda da Hire-x, leads da diária.
+const HIREX_SHEET = '1kD8zq5vehWWTdse9BMJj3ra4A5jZzAwC71vAUhcnXWI';
+const HIREX_GID_FIN = '1436932728', HIREX_GID_LEADS = '917946028';
 async function loadHirex(){
   const btn = document.getElementById('btnRefresh'), icon = document.getElementById('refreshIcon');
   if (btn) btn.classList.add('loading'); if (icon) icon.textContent = '↻';
   document.getElementById('errorBanner').style.display = 'none';
   try {
-    const tx = await gvizLoadFrom(HIREX_SHEET, 'gid=' + HIREX_GID + '&_cb=' + Date.now());
-    const rows = gvRows(tx, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, status:{i:9,str:true} });
-    const w = window30(rows);
-    for (const r of w.rows) r.investido = r.investido * YT_USD_BRL;   // conta Hire é US$
+    // 1) Financeiro + venda (aba Hire-x) — base dos criativos
+    const tf = await gvizLoadFrom(HIREX_SHEET, 'gid=' + HIREX_GID_FIN + '&_cb=' + Date.now());
+    const rf = gvRows(tf, { campanha:{i:1,str:true}, criativo:{i:3,str:true}, url:{i:8,str:true}, investido:4, impressoes:5, cliques:6, leads:7, vendas:10, faturamento:11, status:{i:9,str:true} });
+    const wf = window30(rf);
+    for (const r of wf.rows) r.investido = r.investido * YT_USD_BRL;   // conta Hire é US$ (Valor já em R$)
     const byCri = {};
-    for (const r of w.rows){
+    for (const r of wf.rows){
       const key = r.criativo || '—';
-      const o = byCri[key] || (byCri[key] = { criativo:key, url:r.url, status:r.status, investido:0, impressoes:0, cliques:0, leads:0 });
-      o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0);
+      const o = byCri[key] || (byCri[key] = { criativo:key, url:r.url, status:r.status, investido:0, impressoes:0, cliques:0, leads:0, vendas:0, faturamento:0 });
+      o.investido+=r.investido; o.impressoes+=r.impressoes; o.cliques+=r.cliques; o.leads+=(r.leads||0); o.vendas+=(r.vendas||0); o.faturamento+=(r.faturamento||0);
       if (!o.url && r.url) o.url = r.url;
       if (r.status && /active|ativ/i.test(r.status)) o.status = r.status;
     }
+    // 2) Leads reais (aba diária) — merge por criativo
+    try {
+      const tl = await gvizLoadFrom(HIREX_SHEET, 'gid=' + HIREX_GID_LEADS + '&_cb=' + Date.now());
+      const rl = gvRows(tl, { criativo:{i:3,str:true}, url:{i:8,str:true}, leads:7, status:{i:9,str:true} });
+      for (const r of window30(rl).rows){
+        const key = r.criativo || '—';
+        const o = byCri[key] || (byCri[key] = { criativo:key, url:r.url, status:r.status, investido:0, impressoes:0, cliques:0, leads:0, vendas:0, faturamento:0 });
+        o.leads += (r.leads||0);
+        if (!o.url && r.url) o.url = r.url;
+        if (r.status && /active|ativ/i.test(r.status)) o.status = r.status;
+      }
+    } catch(e){ /* sem a aba de leads, fica só com o que a Hire-x registra */ }
     const por_criativo = Object.values(byCri).map(o => ({
       ...o, ctr:(o.impressoes? o.cliques/o.impressoes*100 : null), cpl:(o.leads? o.investido/o.leads : null)
     })).sort((a,b)=> b.investido - a.investido);
-    const T = w.rows.reduce((a,r)=>{ a.investido+=r.investido; a.impressoes+=r.impressoes; a.cliques+=r.cliques; a.leads+=(r.leads||0); return a; }, {investido:0,impressoes:0,cliques:0,leads:0});
+    const T = por_criativo.reduce((a,o)=>{ a.investido+=o.investido; a.impressoes+=o.impressoes; a.cliques+=o.cliques; a.leads+=o.leads; a.vendas+=o.vendas; a.faturamento+=o.faturamento; return a; }, {investido:0,impressoes:0,cliques:0,leads:0,vendas:0,faturamento:0});
     const _p1 = v => v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
     [ ['hx_kpiInv',   BRL(T.investido)],
       ['hx_kpiImp',   NUM(T.impressoes)],
@@ -3620,8 +3644,8 @@ async function loadHirex(){
       ['hx_kpiLeads', NUM(T.leads)],
       ['hx_kpiCpl',   T.leads? BRL(T.investido/T.leads) : '—'],
       ['hx_kpiConv',  _p1(T.cliques? T.leads/T.cliques*100 : null)],
-      ['hx_kpiFat',   '—'],
-      ['hx_kpiRoas',  '—'],
+      ['hx_kpiFat',   T.faturamento>0? BRL(T.faturamento) : '—'],
+      ['hx_kpiRoas',  (T.investido&&T.faturamento>0)? ROAS(T.faturamento/T.investido) : '—'],
     ].forEach(([id,val])=>{ setEl(id,val); const el=document.getElementById(id); if(el&&val!=='—') el.classList.remove('dash'); });
     window._hxdata = por_criativo;
     if (window._hxsortKey == null){ window._hxsortKey = 'investido'; window._hxsortDir = -1; }
