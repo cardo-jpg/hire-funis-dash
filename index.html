@@ -2327,7 +2327,35 @@ async function loadCurrent() {
 }
 
 // ── Estratégia: matriz "Análise de ROAS por Estratégia" (planilha ao vivo) ─────
-const ESTRATEGIA_SHEET = '1Zkv-tgkwBcP7pWfq8_nBoED3urYQ3uMkkvZASXBDBuw'; // ESPELHO Cardô (nativo, público) da "Conversão de Funis.xlsx" da Hire — a antiga 1bxPlxoT ficou privada/congelada. Ver [[hire-funis-dash-vendas]].
+const ESTRATEGIA_SHEET = '1Zkv-tgkwBcP7pWfq8_nBoED3urYQ3uMkkvZASXBDBuw'; // ESPELHO Cardô (nativo, público) — FALLBACK. Ver [[hire-funis-dash-vendas]].
+// Fonte AO VIVO: Web App (eleuterio.corp) que lê o .xlsx privado das meninas e devolve no formato gviz por JSONP.
+// Vazio = usa o espelho acima. Padrão da Pati. Ver espelho-funis-sync/WebApp-Estrategia.gs.
+const WEBAPP_ESTRATEGIA_URL = '';
+let _estSrcCache = null, _estSrcAt = 0;
+function _estJsonp(url){
+  return new Promise((resolve, reject) => {
+    const cb = '__est_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    const s = document.createElement('script');
+    const done = () => { try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); clearTimeout(tm); };
+    const tm = setTimeout(() => { done(); reject(new Error('timeout')); }, 25000);
+    window[cb] = d => { done(); resolve(d); };
+    s.onerror = () => { done(); reject(new Error('rede')); };
+    s.src = url + (url.indexOf('?')>=0 ? '&' : '?') + 'callback=' + cb + '&_cb=' + Date.now();
+    document.head.appendChild(s);
+  });
+}
+// Fonte da aba Estratégia + vendas do webinário: Web App ao vivo se configurado, senão o espelho. Cache 60s.
+async function loadEstrategiaSrc(){
+  if (_estSrcCache && (Date.now() - _estSrcAt) < 60000) return _estSrcCache;
+  let t = null;
+  if (WEBAPP_ESTRATEGIA_URL){
+    try { t = await _estJsonp(WEBAPP_ESTRATEGIA_URL); }
+    catch(e){ console.warn('Web App estratégia falhou, caindo pro espelho:', e); }
+  }
+  if (!t || !t.rows || !t.rows.length) t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0');
+  _estSrcCache = t; _estSrcAt = Date.now();
+  return t;
+}
 const _EST_MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const _EST_STOP = ['doc de apoio','clique aqui','pausado','ebook 5 formas','lista 10 empresas'];
 
@@ -2361,7 +2389,7 @@ async function loadEstrategia(){
   if (!box) return;
   box.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.3);padding:32px">Carregando…</div>';
   try {
-    const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0');
+    const t = await loadEstrategiaSrc();
     const rows = (t && t.rows) ? t.rows : [];
 
     // Só mostra os meses que TÊM dados (elimina meses vazios → cabe tudo sem rolagem horizontal)
@@ -3484,7 +3512,7 @@ function _webBrlNum(c){ if(!c||c.v==null) return 0; if(typeof c.v==='number') re
 async function _webVendasPorTag(){
   const out = { fatPrincipal:0, fatTraf:0, fatOrg:0, invTag:0, ok:false };
   try{
-    const t = await gvizLoadFrom(ESTRATEGIA_SHEET, 'gid=0&_cb=' + Date.now());
+    const t = await loadEstrategiaSrc();
     const rows = (t && t.rows) ? t.rows : [];
     const curMes = new Date().getMonth() + 1;   // novembro=11; ignora mês futuro (dezembro) até ele chegar
     const sumMeses = r => { let s=0; for(let ci=2; ci<=13; ci++){ if((ci-1)<=curMes) s+=_webBrlNum(r.c&&r.c[ci]); } return s; };
