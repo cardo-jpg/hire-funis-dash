@@ -2330,7 +2330,7 @@ async function loadCurrent() {
 const ESTRATEGIA_SHEET = '1Zkv-tgkwBcP7pWfq8_nBoED3urYQ3uMkkvZASXBDBuw'; // ESPELHO Cardô (nativo, público) — FALLBACK. Ver [[hire-funis-dash-vendas]].
 // Fonte AO VIVO: Web App (eleuterio.corp) que lê o .xlsx privado das meninas e devolve no formato gviz por JSONP.
 // Vazio = usa o espelho acima. Padrão da Pati. Ver espelho-funis-sync/WebApp-Estrategia.gs.
-const WEBAPP_ESTRATEGIA_URL = '';
+const WEBAPP_ESTRATEGIA_URL = 'https://script.google.com/macros/s/AKfycbzqVgdmIfnqnDaIx6t9hwigZjnxzXMPdh8V1RvxZ0HVOQNr5qZ9pw26qDm8xjpOZ1Eo/exec';
 let _estSrcCache = null, _estSrcAt = 0;
 function _estJsonp(url){
   return new Promise((resolve, reject) => {
